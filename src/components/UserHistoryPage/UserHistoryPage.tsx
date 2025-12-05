@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useUserHistoryPageLogic } from './UserHistoryPage.logic';
 import ThemeToggle from '@components/common/ThemeToggle';
@@ -12,34 +11,15 @@ const UserHistoryPage: React.FC = () => {
     sidebarOpen,
     toggleSidebar,
     emailQuery,
-    searchResults,
     selectedUser,
-    showDropdown,
     searchLoading,
     transactions,
     transactionsLoading,
     transactionsError,
     totalTransactions,
     handleEmailSearch,
-    handleUserSelect,
     handleSearchByEmail,
-    setShowDropdown,
   } = useUserHistoryPageLogic();
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [setShowDropdown]);
 
   return (
     <div className={`user-history-page-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -142,7 +122,7 @@ const UserHistoryPage: React.FC = () => {
           {/* Search Section */}
           <div className="user-history-card">
             <h2 className="card-title">Search User by Email</h2>
-            <div className="search-section" ref={dropdownRef}>
+            <div className="search-section">
               <div className="search-input-group">
                 <input
                   type="email"
@@ -162,33 +142,9 @@ const UserHistoryPage: React.FC = () => {
                   onClick={handleSearchByEmail}
                   disabled={searchLoading || !emailQuery.trim()}
                 >
-                  {searchLoading ? 'Searching...' : '🔍 Search'}
+                  {searchLoading ? 'Searching...' : '🔍 SEARCH'}
                 </button>
               </div>
-              {showDropdown && searchResults.length > 0 && (
-                <div className="user-search-dropdown">
-                  {searchResults.map((user) => {
-                    const userId = user.userId || user._id || '';
-                    return (
-                      <div
-                        key={userId}
-                        className="user-search-item"
-                        onClick={() => handleUserSelect(user)}
-                      >
-                        <div className="user-search-info">
-                          <div className="user-search-name">{user.name || 'N/A'}</div>
-                          <div className="user-search-email">{user.email}</div>
-                          {user.balanceGC !== undefined && (
-                            <div className="user-search-balance">
-                              Balance: {user.balanceGC} GC
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
             {/* Selected User Info */}

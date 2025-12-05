@@ -1,20 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '@services/api';
-import type { LoginRequest, AuthResponse, ApiError } from '@services/types/api.types';
-import { ROUTES } from '@utils/constants';
+import type { LoginRequest } from '@services/types/api.types';
 import { useAppDispatch } from '@store/hooks';
-import { setCredentials } from '@store/slices/authSlice';
 import { addToast } from '@store/slices/toastSlice';
+import { useLogin } from '@services/api/hooks';
 
 export const useLoginLogic = () => {
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const loginMutation = useLogin();
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
     password: '',
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -74,36 +70,18 @@ export const useLoginLogic = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response: AuthResponse = await authApi.login(formData);
-      
-      // Verify token is received
-      if (!response.accessToken) {
-        // This error will be shown via toaster from API interceptor
-        return;
-      }
-
-      // Store credentials in Redux (this also persists to localStorage)
-      dispatch(setCredentials({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        user: response.user,
-      }));
-      
-      // Navigate to dashboard
-      navigate(ROUTES.DASHBOARD, { replace: true });
-    } catch (err) {
-      // Error will be handled by API interceptor and shown via toaster
-      // Only keep error state for validation errors (handled in validateForm)
-    } finally {
-      setLoading(false);
-    }
+    // Use TanStack Query mutation
+    loginMutation.mutate(formData, {
+      onError: () => {
+        // Error will be handled by API interceptor and shown via toaster
+        // Only keep error state for validation errors (handled in validateForm)
+      },
+    });
   };
 
   return {
     formData,
-    loading,
+    loading: loginMutation.isPending,
     error,
     showPassword,
     togglePasswordVisibility,

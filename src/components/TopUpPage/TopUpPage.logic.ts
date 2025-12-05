@@ -1,33 +1,47 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi, usersApi, type AdminUser } from '@services/api';
+import type { AdminUser } from '@services/api';
 import { ROUTES } from '@utils/constants';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { selectUser, selectIsAuthenticated, setUser } from '@store/slices/authSlice';
+import { useAppSelector } from '@store/hooks';
+import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
+import { useProfile, useUsers, useTopUpBalance, useBulkTopUpBalance } from '@services/api/hooks';
 
 export const useTopUpPageLogic = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
   // Top-up states
   const [topUpUserQuery, setTopUpUserQuery] = useState<string>('');
-  const [topUpSearchResults, setTopUpSearchResults] = useState<AdminUser[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [topUpSelectedUser, setTopUpSelectedUser] = useState<AdminUser | null>(null);
   const [topUpSelectedUsers, setTopUpSelectedUsers] = useState<AdminUser[]>([]);
   const [topUpMode, setTopUpMode] = useState<'single' | 'bulk'>('single');
   const [topUpAmount, setTopUpAmount] = useState<string>('');
   const [topUpDescription, setTopUpDescription] = useState<string>('');
-  const [topUpLoading, setTopUpLoading] = useState(false);
   const [topUpError, setTopUpError] = useState<string | null>(null);
   const [topUpSuccess, setTopUpSuccess] = useState<string | null>(null);
   const [showTopUpDropdown, setShowTopUpDropdown] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
   
   // Debounce timer ref
   const searchDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // TanStack Query hooks
+  useProfile(isAuthenticated && !user);
+  
+  // User search query
+  const { data: searchData, isLoading: searchLoading } = useUsers(
+    undefined,
+    searchQuery || undefined,
+    1,
+    10,
+    !!searchQuery && searchQuery.trim().length > 0
+  );
+  const topUpSearchResults = searchData?.users || [];
+  
+  const topUpBalanceMutation = useTopUpBalance();
+  const bulkTopUpBalanceMutation = useBulkTopUpBalance();
 
   useEffect(() => {
     // Check authentication from Redux
@@ -35,50 +49,21 @@ export const useTopUpPageLogic = () => {
       navigate(ROUTES.LOGIN);
       return;
     }
-
-    // Load user data if not already in Redux
-    const loadUser = async () => {
-      if (user) {
-        // User already in Redux, no need to fetch
-        return;
-      }
-
-      try {
-        const userData = await authApi.getProfile();
-        dispatch(setUser(userData));
-      } catch (error) {
-        console.error('Failed to load user profile:', error);
-        // User data will remain from Redux state (loaded from localStorage on init)
-      }
-    };
-
-    loadUser();
-  }, [navigate, isAuthenticated, user, dispatch]);
+  }, [navigate, isAuthenticated]);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
   };
 
   // Debounced search function
-  const performUserSearch = useCallback(async (query: string) => {
+  const performUserSearch = useCallback((query: string) => {
     if (!query.trim()) {
-      setTopUpSearchResults([]);
+      setSearchQuery('');
       setShowTopUpDropdown(false);
-      setSearchLoading(false);
       return;
     }
-
-    setSearchLoading(true);
-    try {
-      const result = await usersApi.getUsers(undefined, query.trim(), 1, 10);
-      setTopUpSearchResults(result.users);
-      setShowTopUpDropdown(true);
-    } catch (error: any) {
-      console.error('Failed to search users for top-up:', error);
-      setTopUpSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
+    setSearchQuery(query.trim());
+    setShowTopUpDropdown(true);
   }, []);
 
   // Top-up functions with debounce
@@ -158,7 +143,7 @@ export const useTopUpPageLogic = () => {
     return topUpSelectedUsers.some(u => (u.userId || u._id) === userId);
   };
 
-  const handleTopUpSubmit = async () => {
+  const handleTopUpSubmit = () => {
     if (topUpMode === 'single') {
       if (!topUpSelectedUser) {
         setTopUpError('Please select a user');
@@ -177,28 +162,34 @@ export const useTopUpPageLogic = () => {
         return;
       }
 
-      setTopUpLoading(true);
       setTopUpError(null);
       setTopUpSuccess(null);
 
-      try {
-        const description = topUpDescription.trim() || 'Top-up via Admin Panel';
-        const response = await usersApi.topUpBalance(userId, amount, description);
-        if (response.success) {
-          setTopUpSuccess(`Successfully added ${amount} GC to ${topUpSelectedUser.name || topUpSelectedUser.email}'s account. New balance: ${response.data?.balanceGC ?? 'N/A'} GC`);
-          setTopUpAmount('');
-          setTopUpDescription('');
-          setTopUpSelectedUser(null);
-          setTopUpUserQuery('');
-        } else {
-          setTopUpError(response.message || 'Failed to top up balance');
+      topUpBalanceMutation.mutate(
+        {
+          userId,
+          amountGC: amount,
+          description: topUpDescription.trim() || 'Top-up via Admin Panel',
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              setTopUpSuccess(`Successfully added ${amount} GC to ${topUpSelectedUser.name || topUpSelectedUser.email}'s account. New balance: ${response.data?.balanceGC ?? 'N/A'} GC`);
+              setTopUpAmount('');
+              setTopUpDescription('');
+              setTopUpSelectedUser(null);
+              setTopUpUserQuery('');
+              setSearchQuery('');
+            } else {
+              setTopUpError(response.message || 'Failed to top up balance');
+            }
+          },
+          onError: (error: any) => {
+            console.error('Failed to top up balance:', error);
+            setTopUpError(error?.response?.data?.message || error?.message || 'Failed to top up balance');
+          },
         }
-      } catch (error: any) {
-        console.error('Failed to top up balance:', error);
-        setTopUpError(error?.response?.data?.message || error?.message || 'Failed to top up balance');
-      } finally {
-        setTopUpLoading(false);
-      }
+      );
     } else {
       // Bulk mode
       if (topUpSelectedUsers.length === 0) {
@@ -221,30 +212,36 @@ export const useTopUpPageLogic = () => {
         return;
       }
 
-      setTopUpLoading(true);
       setTopUpError(null);
       setTopUpSuccess(null);
 
-      try {
-        const description = topUpDescription.trim() || 'Bulk top-up via Admin Panel';
-        const response = await usersApi.topUpBalanceBulk(userIds, amount, description);
-        if (response.success) {
-          const successCount = response.data?.successCount ?? topUpSelectedUsers.length;
-          const failedCount = response.data?.failedCount ?? 0;
-          setTopUpSuccess(`Successfully added ${amount} GC to ${successCount} user(s).${failedCount > 0 ? ` ${failedCount} user(s) failed.` : ''}`);
-          setTopUpAmount('');
-          setTopUpDescription('');
-          setTopUpSelectedUsers([]);
-          setTopUpUserQuery('');
-        } else {
-          setTopUpError(response.message || 'Failed to top up balance');
+      bulkTopUpBalanceMutation.mutate(
+        {
+          userIds,
+          amountGC: amount,
+          description: topUpDescription.trim() || 'Bulk top-up via Admin Panel',
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              const successCount = response.data?.successCount ?? topUpSelectedUsers.length;
+              const failedCount = response.data?.failedCount ?? 0;
+              setTopUpSuccess(`Successfully added ${amount} GC to ${successCount} user(s).${failedCount > 0 ? ` ${failedCount} user(s) failed.` : ''}`);
+              setTopUpAmount('');
+              setTopUpDescription('');
+              setTopUpSelectedUsers([]);
+              setTopUpUserQuery('');
+              setSearchQuery('');
+            } else {
+              setTopUpError(response.message || 'Failed to top up balance');
+            }
+          },
+          onError: (error: any) => {
+            console.error('Failed to bulk top up balance:', error);
+            setTopUpError(error?.response?.data?.message || error?.message || 'Failed to bulk top up balance');
+          },
         }
-      } catch (error: any) {
-        console.error('Failed to bulk top up balance:', error);
-        setTopUpError(error?.response?.data?.message || error?.message || 'Failed to bulk top up balance');
-      } finally {
-        setTopUpLoading(false);
-      }
+      );
     }
   };
 
@@ -260,7 +257,7 @@ export const useTopUpPageLogic = () => {
     topUpMode,
     topUpAmount,
     topUpDescription,
-    topUpLoading,
+    topUpLoading: topUpMode === 'single' ? topUpBalanceMutation.isPending : bulkTopUpBalanceMutation.isPending,
     topUpError,
     topUpSuccess,
     showTopUpDropdown,

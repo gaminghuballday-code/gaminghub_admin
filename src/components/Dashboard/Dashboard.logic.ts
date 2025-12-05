@@ -1,46 +1,84 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi, usersApi, hostApplicationsApi, type AdminUser, type HostStatistics } from '@services/api';
+import type { AdminUser } from '@services/api';
 import { ROUTES } from '@utils/constants';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { selectUser, selectIsAuthenticated, setUser, logout } from '@store/slices/authSlice';
+import { useAppSelector } from '@store/hooks';
+import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
+import {
+  useProfile,
+  useLogout,
+  useUsers,
+  useBlockUsers,
+  useUnblockUsers,
+  useHostStatistics,
+} from '@services/api/hooks';
 
 export const useDashboardLogic = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [usersError, setUsersError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<{ page: number; total: number; totalPages: number } | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
   const [userQuery, setUserQuery] = useState<string>('');
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
-  const [isBlocking, setIsBlocking] = useState(false);
-  const [isUnblocking, setIsUnblocking] = useState(false);
   const [processingUserId, setProcessingUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-  const isManualSearchRef = useRef(false);
   
   // Host Statistics states
   const [activeTab, setActiveTab] = useState<'users' | 'hostStats'>('users');
-  const [hostStatistics, setHostStatistics] = useState<HostStatistics[]>([]);
-  const [hostStatsLoading, setHostStatsLoading] = useState(false);
-  const [hostStatsError, setHostStatsError] = useState<string | null>(null);
   const [hostStatsFilters, setHostStatsFilters] = useState<{
     date?: string;
     fromDate?: string;
     toDate?: string;
     hostId?: string;
   }>({});
-  const [totalHosts, setTotalHosts] = useState<number>(0);
-  const [totalLobbies, setTotalLobbies] = useState<number>(0);
+
+  // TanStack Query hooks
+  const { data: profileData } = useProfile(isAuthenticated && !user);
+  const logoutMutation = useLogout();
+  
+  // Track if we're in search mode
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  
+  // Users query - fetch when authenticated
+  const shouldFetchUsers = isAuthenticated;
+  const roleForQuery = roleFilter === 'all' ? undefined : roleFilter;
+  const queryForHook = isSearchMode ? (userQuery.trim() || undefined) : undefined;
+  const { 
+    data: usersData, 
+    isLoading: usersLoading, 
+    error: usersQueryError,
+    refetch: refetchUsers 
+  } = useUsers(roleForQuery, queryForHook, currentPage, pageLimit, shouldFetchUsers);
+  
+  const users = usersData?.users || [];
+  const pagination = usersData?.pagination ? {
+    page: usersData.pagination.page,
+    total: usersData.pagination.total,
+    totalPages: usersData.pagination.totalPages,
+  } : null;
+  const usersError = usersQueryError ? (usersQueryError as Error).message : null;
+
+  const blockUsersMutation = useBlockUsers();
+  const unblockUsersMutation = useUnblockUsers();
+
+  // Host Statistics query
+  const shouldFetchHostStats = activeTab === 'hostStats' && isAuthenticated;
+  const { 
+    data: hostStatsData, 
+    isLoading: hostStatsLoading, 
+    error: hostStatsQueryError,
+    refetch: refetchHostStats 
+  } = useHostStatistics(hostStatsFilters, shouldFetchHostStats);
+  
+  const hostStatistics = hostStatsData?.hosts || [];
+  const totalHosts = hostStatsData?.totalHosts || 0;
+  const totalLobbies = hostStatsData?.totalLobbies || 0;
+  const hostStatsError = hostStatsQueryError ? (hostStatsQueryError as Error).message : null;
 
   useEffect(() => {
     // Check authentication from Redux
@@ -48,82 +86,12 @@ export const useDashboardLogic = () => {
       navigate(ROUTES.LOGIN);
       return;
     }
+    // Profile loading is handled by useProfile hook
+  }, [navigate, isAuthenticated]);
 
-    // Load user data if not already in Redux
-    const loadUser = async () => {
-      if (user) {
-        // User already in Redux, no need to fetch
-        return;
-      }
 
-      try {
-        const userData = await authApi.getProfile();
-        dispatch(setUser(userData));
-      } catch (error) {
-        console.error('Failed to load user profile:', error);
-        // User data will remain from Redux state (loaded from localStorage on init)
-      }
-    };
-
-    loadUser();
-  }, [navigate, isAuthenticated, user, dispatch]);
-
-  // Load users list based on role filter (without query - query only on button click)
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (isManualSearchRef.current) {
-      // Skip automatic load if we're doing a manual search
-      isManualSearchRef.current = false;
-      return;
-    }
-
-    const loadUsers = async () => {
-      setUsersLoading(true);
-      setUsersError(null);
-      try {
-        // If filter is 'all', don't pass role parameter (searches entire DB)
-        // If filter is specific role, pass role parameter (searches only that role)
-        const role = roleFilter === 'all' ? undefined : roleFilter;
-        // Don't pass query here - only load users by role
-        const result = await usersApi.getUsers(role, undefined, currentPage, pageLimit);
-        setUsers(result.users);
-        if (result.pagination) {
-          setPagination({
-            page: result.pagination.page,
-            total: result.pagination.total,
-            totalPages: result.pagination.totalPages,
-          });
-        }
-      } catch (error: any) {
-        // Ignore axios cancel errors (request deduplication)
-        if (error?.message?.includes('cancelled') || error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
-          return; // Silently ignore cancelled requests
-        }
-        console.error('Failed to load users:', error);
-        // Show specific error message if format is wrong
-        if (error?.message?.includes('Invalid API response format')) {
-          setUsersError(`API Format Error: ${error.message}. Please check the API response structure.`);
-        } else {
-          setUsersError(error?.message || 'Failed to load users');
-        }
-      } finally {
-        setUsersLoading(false);
-      }
-    };
-
-    loadUsers();
-  }, [isAuthenticated, roleFilter, currentPage, pageLimit]);
-
-  const handleLogoutConfirm = async () => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear Redux state (this also clears localStorage)
-      dispatch(logout());
-      navigate(ROUTES.LOGIN, { replace: true });
-    }
+  const handleLogoutConfirm = () => {
+    logoutMutation.mutate();
   };
 
   const toggleSidebar = () => {
@@ -134,44 +102,15 @@ export const useDashboardLogic = () => {
     setRoleFilter(filter);
     setCurrentPage(1); // Reset to first page when filter changes
     setSelectedUserIds(new Set()); // Clear selection when filter changes
+    setIsSearchMode(false); // Reset search mode when filter changes
   };
 
   const handleQueryUsers = async () => {
     if (!isAuthenticated) return;
 
-    isManualSearchRef.current = true; // Prevent useEffect from running
+    setIsSearchMode(true);
     setCurrentPage(1); // Reset to first page when searching
-    setUsersLoading(true);
-    setUsersError(null);
-    try {
-      // If filter is 'all', don't pass role parameter (searches entire DB)
-      // If filter is specific role, pass role parameter (searches only that role)
-      const role = roleFilter === 'all' ? undefined : roleFilter;
-      const query = userQuery.trim() || undefined;
-      const result = await usersApi.getUsers(role, query, 1, pageLimit); // Use page 1 for new search
-      setUsers(result.users);
-      if (result.pagination) {
-        setPagination({
-          page: result.pagination.page,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        });
-      }
-    } catch (error: any) {
-      // Ignore axios cancel errors (request deduplication)
-      if (error?.message?.includes('cancelled') || error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
-        return; // Silently ignore cancelled requests
-      }
-      console.error('Failed to search users:', error);
-      // Show specific error message if format is wrong
-      if (error?.message?.includes('Invalid API response format')) {
-        setUsersError(`API Format Error: ${error.message}. Please check the API response structure.`);
-      } else {
-        setUsersError(error?.message || 'Failed to search users');
-      }
-    } finally {
-      setUsersLoading(false);
-    }
+    // The query will automatically refetch when isSearchMode changes
   };
 
   const handleQueryChange = (query: string) => {
@@ -209,125 +148,86 @@ export const useDashboardLogic = () => {
   const handleBlockUsers = async () => {
     if (selectedUserIds.size === 0) return;
 
-    setIsBlocking(true);
-    try {
-      // Filter out admin users from the list to block
-      const userIds = Array.from(selectedUserIds).filter((id) => {
-        const user = users.find((u) => (u.userId || u._id) === id);
-        return user && user.role?.toLowerCase() !== 'admin';
-      });
+    // Filter out admin users from the list to block
+    const userIds = Array.from(selectedUserIds).filter((id) => {
+      const user = users.find((u) => (u.userId || u._id) === id);
+      return user && user.role?.toLowerCase() !== 'admin';
+    });
 
-      if (userIds.length === 0) {
-        setUsersError('Cannot block admin users');
-        setIsBlocking(false);
-        return;
-      }
-
-      await usersApi.blockUsers(userIds);
-      // Clear selection and reload users
-      setSelectedUserIds(new Set());
-      // Reload users list with current filters
-      const role = roleFilter === 'all' ? undefined : roleFilter;
-      const query = userQuery.trim() || undefined;
-      const result = await usersApi.getUsers(role, query, currentPage, pageLimit);
-      setUsers(result.users);
-      if (result.pagination) {
-        setPagination({
-          page: result.pagination.page,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        });
-      }
-    } catch (error: any) {
-      console.error('Failed to block users:', error);
-      setUsersError(error?.message || 'Failed to block users');
-    } finally {
-      setIsBlocking(false);
+    if (userIds.length === 0) {
+      return;
     }
+
+    blockUsersMutation.mutate(
+      { userIds },
+      {
+        onSuccess: () => {
+          setSelectedUserIds(new Set());
+          refetchUsers();
+        },
+        onError: (error: any) => {
+          console.error('Failed to block users:', error);
+        },
+      }
+    );
   };
 
   const handleUnblockUsers = async () => {
     if (selectedUserIds.size === 0) return;
 
-    setIsUnblocking(true);
-    try {
-      const userIds = Array.from(selectedUserIds);
-      await usersApi.unblockUsers(userIds);
-      // Clear selection and reload users
-      setSelectedUserIds(new Set());
-      // Reload users list with current filters
-      const role = roleFilter === 'all' ? undefined : roleFilter;
-      const query = userQuery.trim() || undefined;
-      const result = await usersApi.getUsers(role, query, currentPage, pageLimit);
-      setUsers(result.users);
-      if (result.pagination) {
-        setPagination({
-          page: result.pagination.page,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        });
+    const userIds = Array.from(selectedUserIds);
+    unblockUsersMutation.mutate(
+      { userIds },
+      {
+        onSuccess: () => {
+          setSelectedUserIds(new Set());
+          refetchUsers();
+        },
+        onError: (error: any) => {
+          console.error('Failed to unblock users:', error);
+        },
       }
-    } catch (error: any) {
-      console.error('Failed to unblock users:', error);
-      setUsersError(error?.message || 'Failed to unblock users');
-    } finally {
-      setIsUnblocking(false);
-    }
+    );
   };
 
   const handleBlockSingleUser = async (userId: string) => {
     // Prevent blocking admin users
     const user = users.find((u) => (u.userId || u._id) === userId);
     if (user && user.role?.toLowerCase() === 'admin') {
-      setUsersError('Cannot block admin users');
       return;
     }
 
     setProcessingUserId(userId);
-    try {
-      await usersApi.blockUsers([userId]);
-      // Reload users list with current filters
-      const role = roleFilter === 'all' ? undefined : roleFilter;
-      const query = userQuery.trim() || undefined;
-      const result = await usersApi.getUsers(role, query, currentPage, pageLimit);
-      setUsers(result.users);
-      if (result.pagination) {
-        setPagination({
-          page: result.pagination.page,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        });
+    blockUsersMutation.mutate(
+      { userIds: [userId] },
+      {
+        onSuccess: () => {
+          setProcessingUserId(null);
+          refetchUsers();
+        },
+        onError: (error: any) => {
+          console.error('Failed to block user:', error);
+          setProcessingUserId(null);
+        },
       }
-    } catch (error: any) {
-      console.error('Failed to block user:', error);
-      setUsersError(error?.message || 'Failed to block user');
-    } finally {
-      setProcessingUserId(null);
-    }
+    );
   };
 
   const handleUnblockSingleUser = async (userId: string) => {
     setProcessingUserId(userId);
-    try {
-      await usersApi.unblockUsers([userId]);
-      // Reload users list with current filters
-      const role = roleFilter === 'all' ? undefined : roleFilter;
-      const query = userQuery.trim() || undefined;
-      const result = await usersApi.getUsers(role, query, currentPage, pageLimit);
-      setUsers(result.users);
-      if (result.pagination) {
-        setPagination({
-          page: result.pagination.page,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        });
+    unblockUsersMutation.mutate(
+      { userIds: [userId] },
+      {
+        onSuccess: () => {
+          setProcessingUserId(null);
+          refetchUsers();
+        },
+        onError: (error: any) => {
+          console.error('Failed to unblock user:', error);
+          setProcessingUserId(null);
+        },
       }
-    } catch (error: any) {
-      console.error('Failed to unblock user:', error);
-      setUsersError(error?.message || 'Failed to unblock user');
-    } finally {
-      setProcessingUserId(null);
-    }
+    );
   };
 
   const isAllSelected = users.length > 0 && selectedUserIds.size === users.length;
@@ -350,38 +250,11 @@ export const useDashboardLogic = () => {
     }
   };
 
-  const handlePageChange = async (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && pagination && newPage <= pagination.totalPages) {
       setCurrentPage(newPage);
       setSelectedUserIds(new Set()); // Clear selection when page changes
-      
-      // If there's a search query, reload with query; otherwise useEffect will handle it
-      if (userQuery.trim()) {
-        isManualSearchRef.current = true;
-        setUsersLoading(true);
-        setUsersError(null);
-        try {
-          const role = roleFilter === 'all' ? undefined : roleFilter;
-          const query = userQuery.trim() || undefined;
-          const result = await usersApi.getUsers(role, query, newPage, pageLimit);
-          setUsers(result.users);
-          if (result.pagination) {
-            setPagination({
-              page: result.pagination.page,
-              total: result.pagination.total,
-              totalPages: result.pagination.totalPages,
-            });
-          }
-        } catch (error: any) {
-          if (error?.message?.includes('cancelled') || error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
-            return;
-          }
-          console.error('Failed to load users:', error);
-          setUsersError(error?.message || 'Failed to load users');
-        } finally {
-          setUsersLoading(false);
-        }
-      }
+      // Query will automatically refetch when currentPage changes
     }
   };
 
@@ -398,35 +271,6 @@ export const useDashboardLogic = () => {
   };
 
   // Host Statistics functions
-  const loadHostStatistics = useCallback(async (filters?: typeof hostStatsFilters) => {
-    if (!isAuthenticated) return;
-    
-    const filtersToUse = filters !== undefined ? filters : hostStatsFilters;
-    
-    setHostStatsLoading(true);
-    setHostStatsError(null);
-    try {
-      const result = await hostApplicationsApi.getHostStatistics(filtersToUse);
-      setHostStatistics(result.hosts || []);
-      setTotalHosts(result.totalHosts || 0);
-      setTotalLobbies(result.totalLobbies || 0);
-    } catch (error: any) {
-      console.error('Failed to load host statistics:', error);
-      setHostStatsError(error?.message || 'Failed to load host statistics');
-    } finally {
-      setHostStatsLoading(false);
-    }
-  }, [isAuthenticated, hostStatsFilters]);
-
-  // Only load statistics when tab is first opened, not on filter changes
-  useEffect(() => {
-    if (activeTab === 'hostStats' && isAuthenticated) {
-      // Load with empty filters initially
-      loadHostStatistics({});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, isAuthenticated]); // Only load when tab changes, not when filters change
-
   const handleHostStatsFilterChange = (filterType: 'date' | 'fromDate' | 'toDate' | 'hostId', value: string) => {
     setHostStatsFilters((prev) => ({
       ...prev,
@@ -436,12 +280,10 @@ export const useDashboardLogic = () => {
 
   const handleClearHostStatsFilters = () => {
     setHostStatsFilters({});
-    // Optionally reload with cleared filters
-    // loadHostStatistics();
   };
 
   const handleSearchHostStats = () => {
-    loadHostStatistics();
+    refetchHostStats();
   };
 
   return {
@@ -470,8 +312,8 @@ export const useDashboardLogic = () => {
     handleUnblockUsers,
     handleBlockSingleUser,
     handleUnblockSingleUser,
-    isBlocking,
-    isUnblocking,
+    isBlocking: blockUsersMutation.isPending,
+    isUnblocking: unblockUsersMutation.isPending,
     processingUserId,
     selectedUser,
     handleUserCardClick,
@@ -492,7 +334,6 @@ export const useDashboardLogic = () => {
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
-    loadHostStatistics,
   };
 };
 

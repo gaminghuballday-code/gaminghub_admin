@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '@services/api';
 import { ROUTES } from '@utils/constants';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { selectUser, selectIsAuthenticated, setUser } from '@store/slices/authSlice';
+import { useAppSelector } from '@store/hooks';
+import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
+import { useProfile } from '@services/api/hooks';
 
 export const useProfileLogic = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  // Load profile if not already in Redux
+  useProfile(isAuthenticated && !user);
 
   useEffect(() => {
     // Check authentication from Redux
@@ -17,24 +19,7 @@ export const useProfileLogic = () => {
       navigate(ROUTES.LOGIN);
       return;
     }
-
-    // Load user data if not already in Redux
-    const loadUser = async () => {
-      if (user) {
-        // User already in Redux, no need to fetch
-        return;
-      }
-
-      try {
-        const userData = await authApi.getProfile();
-        dispatch(setUser(userData));
-      } catch (error) {
-        console.error('Failed to load user profile:', error);
-      }
-    };
-
-    loadUser();
-  }, [navigate, isAuthenticated, user, dispatch]);
+  }, [navigate, isAuthenticated]);
 
   return {
     user,

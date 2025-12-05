@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { lobbyApi, type GenerateLobbyRequest } from '@services/api';
+import type { GenerateLobbyRequest } from '@services/api';
+import { useGenerateLobbies } from '@services/api/hooks';
 
 interface FieldError {
   field: string;
@@ -17,10 +18,11 @@ interface GenerateLobbyFormData {
 }
 
 export const useGenerateLobbyLogic = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [success, setSuccess] = useState<string | null>(null);
+  
+  const generateLobbiesMutation = useGenerateLobbies();
 
   // Get tomorrow's date as default
   const getTomorrowDate = () => {
@@ -145,61 +147,60 @@ export const useGenerateLobbyLogic = () => {
     setFieldErrors({});
     setSuccess(null);
 
-    setIsSubmitting(true);
-    try {
-      // Transform payload: API expects "date" but we use "dateType" internally
-      const apiPayload: GenerateLobbyRequest = {
-        date: formData.dateType, // Map dateType to date for API
-        timeSlots: formData.timeSlots,
-        mode: formData.mode,
-        subModes: formData.subModes,
-        region: formData.region,
-        price: formData.price,
-      };
-      
-      const response = await lobbyApi.generateLobbies(apiPayload);
-      if (response.success) {
-        setSuccess(response.message || 'Lobbies generated successfully!');
-        setFieldErrors({});
-      } else {
-        setError(response.message || 'Failed to generate lobbies');
-      }
-    } catch (err: any) {
-      console.error('Failed to generate lobbies:', err);
-      
-      // Check if error has errors array (validation errors) - API format: {errors: [{field, message}, ...]}
-      if (err?.errors && Array.isArray(err.errors)) {
-        const parsedErrors = parseApiErrors(err.errors);
-        setFieldErrors(parsedErrors);
-        setError(err?.message || 'Validation failed');
-      } 
-      // Handle errors from response.data.errors array
-      else if (err?.response?.data?.errors) {
-        if (Array.isArray(err.response.data.errors)) {
-          // Array format: [{field: "date", message: "..."}, ...]
-          const parsedErrors = parseApiErrors(err.response.data.errors);
-          setFieldErrors(parsedErrors);
-        } else if (typeof err.response.data.errors === 'object') {
-          // Object format: {date: ["error1", "error2"], ...}
-          const parsedErrors = parseApiErrors(err.response.data.errors);
-          setFieldErrors(parsedErrors);
+    // Transform payload: API expects "date" but we use "dateType" internally
+    const apiPayload: GenerateLobbyRequest = {
+      date: formData.dateType, // Map dateType to date for API
+      timeSlots: formData.timeSlots,
+      mode: formData.mode,
+      subModes: formData.subModes,
+      region: formData.region,
+      price: formData.price,
+    };
+    
+    generateLobbiesMutation.mutate(apiPayload, {
+      onSuccess: (response) => {
+        if (response.success) {
+          setSuccess(response.message || 'Lobbies generated successfully!');
+          setFieldErrors({});
+        } else {
+          setError(response.message || 'Failed to generate lobbies');
         }
-        setError(err?.response?.data?.message || err?.message || 'Validation failed');
-      } 
-      // Check if error object itself has errors property (direct from API)
-      else if (err?.errors && typeof err.errors === 'object' && !Array.isArray(err.errors)) {
-        const parsedErrors = parseApiErrors(err.errors);
-        setFieldErrors(parsedErrors);
-        setError(err?.message || 'Validation failed');
-      }
-      else {
-        // Generic error
-      setError(err?.message || 'Failed to generate lobbies. Please try again.');
-        setFieldErrors({});
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      onError: (err: any) => {
+        console.error('Failed to generate lobbies:', err);
+        
+        // Check if error has errors array (validation errors) - API format: {errors: [{field, message}, ...]}
+        if (err?.errors && Array.isArray(err.errors)) {
+          const parsedErrors = parseApiErrors(err.errors);
+          setFieldErrors(parsedErrors);
+          setError(err?.message || 'Validation failed');
+        } 
+        // Handle errors from response.data.errors array
+        else if (err?.response?.data?.errors) {
+          if (Array.isArray(err.response.data.errors)) {
+            // Array format: [{field: "date", message: "..."}, ...]
+            const parsedErrors = parseApiErrors(err.response.data.errors);
+            setFieldErrors(parsedErrors);
+          } else if (typeof err.response.data.errors === 'object') {
+            // Object format: {date: ["error1", "error2"], ...}
+            const parsedErrors = parseApiErrors(err.response.data.errors);
+            setFieldErrors(parsedErrors);
+          }
+          setError(err?.response?.data?.message || err?.message || 'Validation failed');
+        } 
+        // Check if error object itself has errors property (direct from API)
+        else if (err?.errors && typeof err.errors === 'object' && !Array.isArray(err.errors)) {
+          const parsedErrors = parseApiErrors(err.errors);
+          setFieldErrors(parsedErrors);
+          setError(err?.message || 'Validation failed');
+        }
+        else {
+          // Generic error
+          setError(err?.message || 'Failed to generate lobbies. Please try again.');
+          setFieldErrors({});
+        }
+      },
+    });
   };
 
   // Helper function to get error for a specific field
@@ -209,7 +210,7 @@ export const useGenerateLobbyLogic = () => {
   };
 
   return {
-    isSubmitting,
+    isSubmitting: generateLobbiesMutation.isPending,
     error,
     fieldErrors,
     getFieldError,

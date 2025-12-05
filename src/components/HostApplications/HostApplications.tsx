@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  hostApplicationsApi, 
   type HostApplication, 
   type HostWithAssignments,
   type HostAssignment,
   type Tournament 
 } from '@services/api';
+import {
+  useHostApplications,
+  useAllHostsWithAssignments,
+  useApproveApplication,
+  useRejectApplication,
+  useAssignHost,
+} from '@services/api/hooks';
 import ConfirmationModal from '@components/common/ConfirmationModal';
 import './HostApplications.scss';
 
@@ -61,131 +67,104 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
   onClose,
   onApplicationProcessed,
 }) => {
-  const [applications, setApplications] = useState<HostApplication[]>([]);
-  const [allHosts, setAllHosts] = useState<HostWithAssignments[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [hostToAssign, setHostToAssign] = useState<HostWithAssignments | null>(null);
   const [viewMode, setViewMode] = useState<'applications' | 'all-hosts'>('applications');
 
-  useEffect(() => {
-    if (isOpen && tournamentId) {
-      if (viewMode === 'applications') {
-        loadApplications();
-      } else {
-        loadAllHosts();
-      }
-    }
-  }, [isOpen, tournamentId, viewMode]);
+  // TanStack Query hooks
+  const { data: applications = [], isLoading: applicationsLoading, refetch: refetchApplications } = useHostApplications(
+    tournamentId,
+    isOpen && viewMode === 'applications'
+  );
+  
+  const { data: allHostsData = [], isLoading: hostsLoading, error: hostsError, refetch: refetchAllHosts } = useAllHostsWithAssignments(
+    tournamentId,
+    isOpen && viewMode === 'all-hosts'
+  );
+  
+  const loading = viewMode === 'applications' ? applicationsLoading : hostsLoading;
+  const error = hostsError ? (hostsError as Error).message : null;
+  
+  // Process hosts - use backend conflict data if available, otherwise calculate
+  const allHosts = useMemo(() => {
+    return allHostsData.map(host => {
+      // Safety check: ensure assignedLobbies is an array
+      const assignedLobbies = Array.isArray(host.assignedLobbies) ? host.assignedLobbies : [];
+      
+      // Use backend conflict data if available, otherwise calculate conflicts
+      const hasConflict = host.hasTimeConflict !== undefined 
+        ? host.hasTimeConflict 
+        : assignedLobbies.some(assignment => 
+            assignment &&
+            assignment.tournamentStartTime &&
+            assignment.tournamentDate &&
+            checkTimeConflict(
+              tournament.startTime,
+              tournament.date,
+              assignment.tournamentStartTime,
+              assignment.tournamentDate
+            )
+          );
+      
+      const conflictingAssignments = host.timeConflictDetails && Array.isArray(host.timeConflictDetails)
+        ? host.timeConflictDetails
+        : assignedLobbies.filter(assignment => 
+            assignment &&
+            assignment.tournamentStartTime &&
+            assignment.tournamentDate &&
+            checkTimeConflict(
+              tournament.startTime,
+              tournament.date,
+              assignment.tournamentStartTime,
+              assignment.tournamentDate
+            )
+          );
+      
+      return {
+        ...host,
+        assignedLobbies: assignedLobbies,
+        totalLobbies: host.totalLobbies || assignedLobbies.length,
+        hasTimeConflict: hasConflict,
+        conflictingTournaments: conflictingAssignments,
+      };
+    });
+  }, [allHostsData, tournament]);
+  
+  const approveMutation = useApproveApplication();
+  const rejectMutation = useRejectApplication();
+  const assignHostMutation = useAssignHost();
 
-  const loadApplications = async () => {
-    try {
-      const apps = await hostApplicationsApi.getHostApplications(tournamentId);
-      setApplications(Array.isArray(apps) ? apps : []);
-    } catch (err: any) {
-      if (err?.message?.includes('cancelled') || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.message === 'Duplicate request cancelled') {
-        return;
-      }
-      console.error('Failed to load host applications:', err);
-      setApplications([]); // Set empty array on error
-    }
-  };
-
-  const loadAllHosts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const hosts = await hostApplicationsApi.getAllHostsWithAssignments(tournamentId);
-      // Process hosts - use backend conflict data if available, otherwise calculate
-      const hostsWithConflicts = hosts.map(host => {
-        // Safety check: ensure assignedLobbies is an array
-        const assignedLobbies = Array.isArray(host.assignedLobbies) ? host.assignedLobbies : [];
-        
-        // Use backend conflict data if available, otherwise calculate conflicts
-        const hasConflict = host.hasTimeConflict !== undefined 
-          ? host.hasTimeConflict 
-          : assignedLobbies.some(assignment => 
-              assignment &&
-              assignment.tournamentStartTime &&
-              assignment.tournamentDate &&
-              checkTimeConflict(
-                tournament.startTime,
-                tournament.date,
-                assignment.tournamentStartTime,
-                assignment.tournamentDate
-              )
-            );
-        
-        const conflictingAssignments = host.timeConflictDetails && Array.isArray(host.timeConflictDetails)
-          ? host.timeConflictDetails
-          : assignedLobbies.filter(assignment => 
-              assignment &&
-              assignment.tournamentStartTime &&
-              assignment.tournamentDate &&
-              checkTimeConflict(
-                tournament.startTime,
-                tournament.date,
-                assignment.tournamentStartTime,
-                assignment.tournamentDate
-              )
-            );
-        
-        return {
-          ...host,
-          assignedLobbies: assignedLobbies,
-          totalLobbies: host.totalLobbies || assignedLobbies.length,
-          hasTimeConflict: hasConflict,
-          conflictingTournaments: conflictingAssignments,
-        };
-      });
-      setAllHosts(hostsWithConflicts);
-    } catch (err: any) {
-      if (err?.message?.includes('cancelled') || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.message === 'Duplicate request cancelled') {
-        return;
-      }
-      console.error('Failed to load hosts:', err);
-      setError(err?.message || 'Failed to load hosts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async (applicationId: string) => {
+  const handleApprove = (applicationId: string) => {
     setProcessingId(applicationId);
-    try {
-      await hostApplicationsApi.approveApplication(applicationId);
-      await loadApplications();
-      await loadAllHosts();
-      onApplicationProcessed();
-    } catch (err: any) {
-      if (err?.message?.includes('cancelled') || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.message === 'Duplicate request cancelled') {
-        return;
-      }
-      console.error('Failed to approve application:', err);
-      setError(err?.message || 'Failed to approve application');
-    } finally {
-      setProcessingId(null);
-    }
+    approveMutation.mutate(applicationId, {
+      onSuccess: () => {
+        setProcessingId(null);
+        refetchApplications();
+        refetchAllHosts();
+        onApplicationProcessed();
+      },
+      onError: (err: any) => {
+        console.error('Failed to approve application:', err);
+        setProcessingId(null);
+      },
+    });
   };
 
-  const handleReject = async (applicationId: string) => {
+  const handleReject = (applicationId: string) => {
     setProcessingId(applicationId);
-    try {
-      await hostApplicationsApi.rejectApplication(applicationId);
-      await loadApplications();
-      await loadAllHosts();
-      onApplicationProcessed();
-    } catch (err: any) {
-      if (err?.message?.includes('cancelled') || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.message === 'Duplicate request cancelled') {
-        return;
-      }
-      console.error('Failed to reject application:', err);
-      setError(err?.message || 'Failed to reject application');
-    } finally {
-      setProcessingId(null);
-    }
+    rejectMutation.mutate(applicationId, {
+      onSuccess: () => {
+        setProcessingId(null);
+        refetchApplications();
+        refetchAllHosts();
+        onApplicationProcessed();
+      },
+      onError: (err: any) => {
+        console.error('Failed to reject application:', err);
+        setProcessingId(null);
+      },
+    });
   };
 
   const handleAssignHost = (host: HostWithAssignments) => {
@@ -197,31 +176,32 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
     }
   };
 
-  const assignHostDirectly = async (host?: HostWithAssignments) => {
+  const assignHostDirectly = (host?: HostWithAssignments) => {
     // Use passed host or hostToAssign from state (for conflict modal)
     const hostToUse = host || hostToAssign;
     if (!hostToUse) return;
 
     setProcessingId(hostToUse.hostId);
-    try {
-      await hostApplicationsApi.assignHost({
+    assignHostMutation.mutate(
+      {
         tournamentId,
         hostId: hostToUse.hostId,
-      });
-      await loadAllHosts();
-      await loadApplications();
-      onApplicationProcessed();
-      setShowConflictModal(false);
-      setHostToAssign(null);
-    } catch (err: any) {
-      if (err?.message?.includes('cancelled') || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || err?.message === 'Duplicate request cancelled') {
-        return;
+      },
+      {
+        onSuccess: () => {
+          setProcessingId(null);
+          refetchAllHosts();
+          refetchApplications();
+          onApplicationProcessed();
+          setShowConflictModal(false);
+          setHostToAssign(null);
+        },
+        onError: (err: any) => {
+          console.error('Failed to assign host:', err);
+          setProcessingId(null);
+        },
       }
-      console.error('Failed to assign host:', err);
-      setError(err?.message || 'Failed to assign host');
-    } finally {
-      setProcessingId(null);
-    }
+    );
   };
 
   const formatDate = (dateStr: string) => {

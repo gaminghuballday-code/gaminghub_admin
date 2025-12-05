@@ -3,7 +3,6 @@ import type { AxiosInstance, InternalAxiosRequestConfig, CancelTokenSource } fro
 import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, logout } from '../../store/slices/authSlice';
-import { startLoading, stopLoading } from '../../store/slices/loadingSlice';
 import { addToast } from '../../store/slices/toastSlice';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
@@ -40,13 +39,9 @@ apiClient.interceptors.request.use(
     const existingRequest = pendingRequests.get(requestKey);
 
     if (existingRequest) {
-      // Cancel the previous request and stop its loading
+      // Cancel the previous request
       existingRequest.cancel('Duplicate request cancelled');
-      store.dispatch(stopLoading()); // Stop loading for cancelled request
     }
-    
-    // Start loading for this request (will be stopped when response comes)
-    store.dispatch(startLoading());
 
     // Create cancel token for this request
     const cancelTokenSource = axios.CancelToken.source();
@@ -61,8 +56,6 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    // Stop loading on request error
-    store.dispatch(stopLoading());
     return Promise.reject(error);
   }
 );
@@ -73,11 +66,10 @@ apiClient.interceptors.response.use(
     // Clean up pending request
     const requestKey = `${response.config.method?.toUpperCase()}_${response.config.url}`;
     pendingRequests.delete(requestKey);
-    // Stop loading on successful response
-    store.dispatch(stopLoading());
     
     // Show success toast if response has a message (exclude GET requests)
     // GET requests are usually just data fetching, so don't show success toasts
+    // Note: TanStack Query handles loading states, so we don't dispatch loading actions
     const method = response.config.method?.toUpperCase();
     if (method && method !== 'GET' && response.data && typeof response.data === 'object' && 'message' in response.data) {
       const message = (response.data as { message?: string }).message;
@@ -101,12 +93,8 @@ apiClient.interceptors.response.use(
 
     // Handle cancelled requests (deduplication)
     if (axios.isCancel(error)) {
-      // Loading already stopped in request interceptor when cancelling
       return Promise.reject(error);
     }
-
-    // Stop loading on error (except cancelled requests)
-    store.dispatch(stopLoading());
 
     const apiError: ApiError = {
       message: error.message || 'An error occurred',
