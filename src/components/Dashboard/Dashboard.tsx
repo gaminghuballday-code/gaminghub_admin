@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
-    loadHostStatistics,
+    // loadHostStatistics,
   } = useDashboardLogic();
 
   const dropdownRef = useRef<HTMLDivElement>(null);

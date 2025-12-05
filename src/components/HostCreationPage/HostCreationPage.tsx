@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import ThemeToggle from '@components/common/ThemeToggle';
