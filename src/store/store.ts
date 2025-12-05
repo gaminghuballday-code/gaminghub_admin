@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import themeReducer from './slices/themeSlice';
 import loadingReducer from './slices/loadingSlice';
+import toastReducer from './slices/toastSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     theme: themeReducer,
     loading: loadingReducer,
+    toast: toastReducer,
   },
 });
 

@@ -1,0 +1,123 @@
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  min-width: 300px;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+  z-index: 99999;
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+  }
+
+  &__message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-color);
+    word-wrap: break-word;
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    border-radius: 4px;
+
+    &:hover {
+      color: var(--text-color);
+      background-color: var(--background-color-dark);
+    }
+
+    &:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Type-specific styles
+  &--success {
+    border-left: 4px solid var(--success-color);
+    
+    .toast__icon {
+      color: var(--success-color);
+    }
+  }
+
+  &--error {
+    border-left: 4px solid var(--error-color);
+    
+    .toast__icon {
+      color: var(--error-color);
+    }
+  }
+
+  &--warning {
+    border-left: 4px solid var(--warning-color);
+    
+    .toast__icon {
+      color: var(--warning-color);
+    }
+  }
+
+  &--info {
+    border-left: 4px solid var(--primary-color);
+    
+    .toast__icon {
+      color: var(--primary-color);
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast.toast--removing {
+  animation: slideOut 0.3s ease-in;
+}
+

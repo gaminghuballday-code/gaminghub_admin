@@ -5,6 +5,7 @@ import type { LoginRequest, AuthResponse, ApiError } from '@services/types/api.t
 import { ROUTES } from '@utils/constants';
 import { useAppDispatch } from '@store/hooks';
 import { setCredentials } from '@store/slices/authSlice';
+import { addToast } from '@store/slices/toastSlice';
 
 export const useLoginLogic = () => {
   const navigate = useNavigate();
@@ -33,15 +34,33 @@ export const useLoginLogic = () => {
 
   const validateForm = (): boolean => {
     if (!formData.email.trim()) {
-      setError('Email is required');
+      const errorMsg = 'Email is required';
+      setError(errorMsg);
+      dispatch(addToast({
+        message: errorMsg,
+        type: 'error',
+        duration: 4000,
+      }));
       return false;
     }
     if (!formData.password.trim()) {
-      setError('Password is required');
+      const errorMsg = 'Password is required';
+      setError(errorMsg);
+      dispatch(addToast({
+        message: errorMsg,
+        type: 'error',
+        duration: 4000,
+      }));
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError('Please enter a valid email address');
+      const errorMsg = 'Please enter a valid email address';
+      setError(errorMsg);
+      dispatch(addToast({
+        message: errorMsg,
+        type: 'error',
+        duration: 4000,
+      }));
       return false;
     }
     return true;
@@ -61,7 +80,7 @@ export const useLoginLogic = () => {
       
       // Verify token is received
       if (!response.accessToken) {
-        setError('Authentication failed. Token not received.');
+        // This error will be shown via toaster from API interceptor
         return;
       }
 
@@ -75,8 +94,8 @@ export const useLoginLogic = () => {
       // Navigate to dashboard
       navigate(ROUTES.DASHBOARD, { replace: true });
     } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Login failed. Please try again.');
+      // Error will be handled by API interceptor and shown via toaster
+      // Only keep error state for validation errors (handled in validateForm)
     } finally {
       setLoading(false);
     }

@@ -285,12 +285,6 @@ const Login: React.FC = () => {
         <p className="login-subtitle">Sign in to access the dashboard</p>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {error && (
-            <div className="error-message" role="alert">
-              {error}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               Email

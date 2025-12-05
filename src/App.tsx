@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@components/common/ProtectedRoute';
 import Loading from '@components/common/Loading';
 import GlobalLoader from '@components/common/GlobalLoader';
+import Toaster from '@components/common/Toaster';
 import { ROUTES } from '@utils/constants';
 
 // Code splitting with lazy loading
@@ -19,6 +20,7 @@ function App() {
   return (
     <BrowserRouter>
       <GlobalLoader />
+      <Toaster />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path={ROUTES.LOGIN} element={<Login />} />

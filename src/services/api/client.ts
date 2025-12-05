@@ -4,6 +4,7 @@ import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, logout } from '../../store/slices/authSlice';
 import { startLoading, stopLoading } from '../../store/slices/loadingSlice';
+import { addToast } from '../../store/slices/toastSlice';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
 // This avoids CORS issues by making requests from the same origin
@@ -74,6 +75,21 @@ apiClient.interceptors.response.use(
     pendingRequests.delete(requestKey);
     // Stop loading on successful response
     store.dispatch(stopLoading());
+    
+    // Show success toast if response has a message (exclude GET requests)
+    // GET requests are usually just data fetching, so don't show success toasts
+    const method = response.config.method?.toUpperCase();
+    if (method && method !== 'GET' && response.data && typeof response.data === 'object' && 'message' in response.data) {
+      const message = (response.data as { message?: string }).message;
+      if (message && typeof message === 'string' && message.trim().length > 0) {
+        store.dispatch(addToast({
+          message: message.trim(),
+          type: 'success',
+          duration: 5000,
+        }));
+      }
+    }
+    
     return response;
   },
   (error: AxiosError) => {
@@ -109,11 +125,30 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - Clear token via Redux and redirect to login
     if (error.response?.status === 401) {
-      store.dispatch(logout());
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/login')) {
+      const isOnLoginPage = window.location.pathname.includes('/login');
+      
+      // If on login page, show error toast for invalid credentials
+      if (isOnLoginPage && apiError.message && apiError.message.trim().length > 0) {
+        store.dispatch(addToast({
+          message: apiError.message.trim(),
+          type: 'error',
+          duration: 6000,
+        }));
+      } else {
+        // If not on login page, logout and redirect (don't show toast as redirecting)
+        store.dispatch(logout());
         window.location.href = '/login';
       }
+      return Promise.reject(apiError);
+    }
+
+    // Show error toast for all other errors
+    if (apiError.message && apiError.message.trim().length > 0) {
+      store.dispatch(addToast({
+        message: apiError.message.trim(),
+        type: 'error',
+        duration: 6000,
+      }));
     }
 
     return Promise.reject(apiError);
