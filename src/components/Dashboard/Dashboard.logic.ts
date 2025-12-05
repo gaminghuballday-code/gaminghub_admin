@@ -6,7 +6,6 @@ import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import {
   useProfile,
-  useLogout,
   useUsers,
   useBlockUsers,
   useUnblockUsers,
@@ -18,8 +17,6 @@ export const useDashboardLogic = () => {
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
@@ -39,7 +36,6 @@ export const useDashboardLogic = () => {
 
   // TanStack Query hooks
   const { data: profileData } = useProfile(isAuthenticated && !user);
-  const logoutMutation = useLogout();
   
   // Track if we're in search mode
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -88,11 +84,6 @@ export const useDashboardLogic = () => {
     }
     // Profile loading is handled by useProfile hook
   }, [navigate, isAuthenticated]);
-
-
-  const handleLogoutConfirm = () => {
-    logoutMutation.mutate();
-  };
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
@@ -290,11 +281,6 @@ export const useDashboardLogic = () => {
     user,
     sidebarOpen,
     toggleSidebar,
-    showLogoutModal,
-    setShowLogoutModal,
-    handleLogoutConfirm,
-    showSettingsModal,
-    setShowSettingsModal,
     users: users,
     usersLoading,
     usersError,

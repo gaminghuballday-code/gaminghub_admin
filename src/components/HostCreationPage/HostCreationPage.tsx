@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
-import ThemeToggle from '@components/common/ThemeToggle';
+import AppHeaderActions from '@components/common/AppHeaderActions';
 import { ROUTES } from '@utils/constants';
 import './HostCreationPage.scss';
 
@@ -125,9 +125,7 @@ const HostCreationPage: React.FC = () => {
       <main className="host-creation-main">
         <header className="host-creation-header">
           <h1>Host Creation</h1>
-          <div className="header-actions">
-            <ThemeToggle />
-          </div>
+          <AppHeaderActions />
         </header>
 
         <div className="host-creation-content">

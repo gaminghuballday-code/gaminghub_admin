@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useGenerateLobbyPageLogic } from './GenerateLobbyPage.logic';
-import ThemeToggle from '@components/common/ThemeToggle';
+import AppHeaderActions from '@components/common/AppHeaderActions';
 import GenerateLobby from '@components/GenerateLobby/GenerateLobby';
 import EditTournament from '@components/EditTournament/EditTournament';
 import ConfirmationModal from '@components/common/ConfirmationModal';
@@ -149,9 +149,7 @@ const GenerateLobbyPage: React.FC = () => {
           <div className="header-left">
             <h1>Generate Lobby</h1>
           </div>
-          <div className="header-actions">
-            <ThemeToggle />
-          </div>
+          <AppHeaderActions />
         </header>
 
       <div className="generate-lobby-page-content">

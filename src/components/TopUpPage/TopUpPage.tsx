@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useTopUpPageLogic } from './TopUpPage.logic';
-import ThemeToggle from '@components/common/ThemeToggle';
+import AppHeaderActions from '@components/common/AppHeaderActions';
 import { ROUTES } from '@utils/constants';
 import './TopUpPage.scss';
 
@@ -167,9 +167,7 @@ const TopUpPage: React.FC = () => {
       <main className="top-up-main">
         <header className="top-up-header">
           <h1>Top Up Balance</h1>
-          <div className="header-actions">
-            <ThemeToggle />
-          </div>
+          <AppHeaderActions />
         </header>
 
         <div className="top-up-content">

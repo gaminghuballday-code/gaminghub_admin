@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useUserHistoryPageLogic } from './UserHistoryPage.logic';
-import ThemeToggle from '@components/common/ThemeToggle';
+import AppHeaderActions from '@components/common/AppHeaderActions';
 import { ROUTES } from '@utils/constants';
 import './UserHistoryPage.scss';
 
@@ -113,9 +113,7 @@ const UserHistoryPage: React.FC = () => {
       <main className="user-history-main">
         <header className="user-history-header">
           <h1>User Transaction History</h1>
-          <div className="header-actions">
-            <ThemeToggle />
-          </div>
+          <AppHeaderActions />
         </header>
 
         <div className="user-history-content">

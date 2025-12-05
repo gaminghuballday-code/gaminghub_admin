@@ -1,6 +1,6 @@
 import { useProfileLogic } from './Profile.logic';
 import BackButton from '@components/common/BackButton';
-import ThemeToggle from '@components/common/ThemeToggle';
+import AppHeaderActions from '@components/common/AppHeaderActions';
 import './Profile.scss';
 
 const Profile: React.FC = () => {
@@ -13,9 +13,7 @@ const Profile: React.FC = () => {
           <BackButton />
           <h1>Profile</h1>
         </div>
-        <div className="header-actions">
-          <ThemeToggle />
-        </div>
+        <AppHeaderActions />
       </header>
 
       <div className="profile-content">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Tournament, UpdateTournamentRequest, UpdateRoomRequest } from '@services/api';
 import { ROUTES } from '@utils/constants';
@@ -23,7 +23,6 @@ export const useGenerateLobbyPageLogic = () => {
   const [tournamentStatus, setTournamentStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
   const [subModeFilter, setSubModeFilter] = useState<'all' | 'solo' | 'duo' | 'squad'>('all');
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
-  const [filteredTournaments, setFilteredTournaments] = useState<Tournament[]>([]);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -42,11 +41,11 @@ export const useGenerateLobbyPageLogic = () => {
     return new Date().toISOString().split('T')[0];
   };
   
-  // Tournaments query
-  const tournamentParams = {
+  // Tournaments query - memoize params to prevent unnecessary re-renders
+  const tournamentParams = useMemo(() => ({
     status: tournamentStatus,
     fromDate: selectedDate || (tournamentStatus === 'upcoming' ? getCurrentDate() : undefined),
-  };
+  }), [tournamentStatus, selectedDate]);
   const { data: tournaments = [], isLoading: tournamentsLoading, error: tournamentsQueryError, refetch: refetchTournaments } = useTournaments(
     tournamentParams,
     isAuthenticated
@@ -76,8 +75,8 @@ export const useGenerateLobbyPageLogic = () => {
     setSidebarOpen((prev) => !prev);
   };
 
-  // Filter tournaments by subMode (client-side filtering)
-  useEffect(() => {
+  // Filter tournaments by subMode (client-side filtering) - use useMemo for derived state
+  const filteredTournaments = useMemo(() => {
     let filtered = [...tournaments];
     
     // Filter by subMode
@@ -85,7 +84,7 @@ export const useGenerateLobbyPageLogic = () => {
       filtered = filtered.filter(t => t.subMode?.toLowerCase() === subModeFilter.toLowerCase());
     }
     
-    setFilteredTournaments(filtered);
+    return filtered;
   }, [tournaments, subModeFilter]);
 
   // Handle edit tournament
