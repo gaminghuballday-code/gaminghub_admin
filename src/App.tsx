@@ -11,6 +11,9 @@ const Dashboard = lazy(() => import('@components/Dashboard/Dashboard'));
 const HealthStatus = lazy(() => import('@components/HealthStatus/HealthStatus'));
 const Profile = lazy(() => import('@components/Profile/Profile'));
 const GenerateLobbyPage = lazy(() => import('@components/GenerateLobbyPage/GenerateLobbyPage'));
+const TopUpPage = lazy(() => import('@components/TopUpPage/TopUpPage'));
+const HostCreationPage = lazy(() => import('@components/HostCreationPage/HostCreationPage'));
+const UserHistoryPage = lazy(() => import('@components/UserHistoryPage/UserHistoryPage'));
 
 function App() {
   return (
@@ -48,6 +51,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <GenerateLobbyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.TOP_UP}
+            element={
+              <ProtectedRoute>
+                <TopUpPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HOST_CREATION}
+            element={
+              <ProtectedRoute>
+                <HostCreationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.USER_HISTORY}
+            element={
+              <ProtectedRoute>
+                <UserHistoryPage />
               </ProtectedRoute>
             }
           />
