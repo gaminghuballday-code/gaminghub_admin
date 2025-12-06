@@ -23,7 +23,7 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor - Add auth token, deduplicate requests, and show loading
+  // Request interceptor - Add auth token, deduplicate requests, and show loading
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const state = store.getState();
