@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi, type AuthResponse, type LoginRequest } from '../index';
 import { useAppDispatch } from '@store/hooks';
@@ -73,14 +74,19 @@ export const useLogout = () => {
 export const useProfile = (enabled = true) => {
   const dispatch = useAppDispatch();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: authKeys.profile(),
     queryFn: () => authApi.getProfile(),
     enabled,
-    onSuccess: (user) => {
-      // Update Redux store with user data
-      dispatch(setUser(user));
-    },
   });
+
+  // Update Redux store when data is available (TanStack Query v5 doesn't have onSuccess)
+  useEffect(() => {
+    if (query.data) {
+      dispatch(setUser(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  return query;
 };
 

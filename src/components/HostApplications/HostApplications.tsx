@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  type HostApplication, 
+  // type HostApplication, 
   type HostWithAssignments,
   type HostAssignment,
   type Tournament 
@@ -240,7 +240,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
               onClick={() => {
                 setViewMode('applications');
                 if (applications.length === 0) {
-                  loadApplications();
+                  // loadApplications();
                 }
               }}
               disabled={loading}
@@ -252,7 +252,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
               onClick={() => {
                 setViewMode('all-hosts');
                 if (allHosts.length === 0) {
-                  loadAllHosts();
+                  // loadAllHosts();
                 }
               }}
               disabled={loading}

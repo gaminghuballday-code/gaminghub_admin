@@ -8,7 +8,6 @@ const HealthStatus: React.FC = () => {
     healthData,
     healthLoading,
     healthError,
-    checkHealth,
   } = useHealthStatusLogic();
 
   return (
@@ -55,7 +54,7 @@ const HealthStatus: React.FC = () => {
           <div className="health-status-actions">
             <button 
               className="refresh-button" 
-              onClick={checkHealth} 
+              // onClick={checkHealth} 
               disabled={healthLoading}
               aria-label="Refresh"
               title="Refresh"

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   usersApi,
-  type AdminUser,
+  // type AdminUser,
   type BlockUnblockRequest,
   type TopUpRequest,
   type BulkTopUpRequest,

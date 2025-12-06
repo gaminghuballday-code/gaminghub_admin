@@ -7,7 +7,7 @@ const Login: React.FC = () => {
   const {
     formData,
     loading,
-    error,
+    // error,
     showPassword,
     togglePasswordVisibility,
     handleInputChange,

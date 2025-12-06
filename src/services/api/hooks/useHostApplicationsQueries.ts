@@ -36,7 +36,7 @@ export const useApproveApplication = () => {
 
   return useMutation({
     mutationFn: (applicationId: string) => hostApplicationsApi.approveApplication(applicationId),
-    onSuccess: (_, applicationId) => {
+    onSuccess: () => {
       // Invalidate applications list - we need tournamentId, so invalidate all
       queryClient.invalidateQueries({ queryKey: hostApplicationsKeys.all });
     },

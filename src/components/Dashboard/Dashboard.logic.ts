@@ -5,7 +5,6 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import {
-  useProfile,
   useUsers,
   useBlockUsers,
   useUnblockUsers,
@@ -35,7 +34,7 @@ export const useDashboardLogic = () => {
   }>({});
 
   // TanStack Query hooks
-  const { data: profileData } = useProfile(isAuthenticated && !user);
+  // const { data: profileData } = useProfile(isAuthenticated && !user);
   
   // Track if we're in search mode
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -237,7 +236,7 @@ export const useDashboardLogic = () => {
       console.log('Email copied:', email);
     } catch (error) {
       console.error('Failed to copy email:', error);
-      setUsersError('Failed to copy email');
+      // setUsersError('Failed to copy email');
     }
   };
 

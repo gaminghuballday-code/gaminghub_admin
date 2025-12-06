@@ -77,14 +77,9 @@ export const useTopUpPageLogic = () => {
 
     // If query is empty, clear results immediately
     if (!query.trim()) {
-      setTopUpSearchResults([]);
       setShowTopUpDropdown(false);
-      setSearchLoading(false);
       return;
     }
-
-    // Set loading state immediately
-    setSearchLoading(true);
 
     // Debounce the API call - wait 1000ms after user stops typing
     searchDebounceTimerRef.current = setTimeout(() => {
@@ -106,7 +101,7 @@ export const useTopUpPageLogic = () => {
       setTopUpSelectedUser(user);
       setTopUpUserQuery(`${user.name || 'N/A'} (${user.email})`);
       setShowTopUpDropdown(false);
-      setTopUpSearchResults([]);
+      setSearchQuery(''); // Clear search query to clear results
     } else {
       // Bulk mode - add to selected users if not already selected
       const userId = user.userId || user._id;
