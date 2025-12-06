@@ -4,6 +4,7 @@ import { useAppDispatch } from '@store/hooks';
 import { setCredentials, setUser, logout as logoutAction } from '@store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@utils/constants';
+import { useEffect } from 'react';
 
 // Query keys
 export const authKeys = {
@@ -73,14 +74,19 @@ export const useLogout = () => {
 export const useProfile = (enabled = true) => {
   const dispatch = useAppDispatch();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: authKeys.profile(),
     queryFn: () => authApi.getProfile(),
     enabled,
-    onSuccess: (user) => {
-      // Update Redux store with user data
-      dispatch(setUser(user));
-    },
   });
+
+  useEffect(() => {
+    if (query.isSuccess && query.data) {
+      // Update Redux store with user data
+      dispatch(setUser(query.data));
+    }
+  }, [query.isSuccess, query.data, dispatch]);
+
+  return query;
 };
 

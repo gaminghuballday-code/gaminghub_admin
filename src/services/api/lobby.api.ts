@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { apolloClient } from './graphql/client';
+import { GENERATE_LOBBIES_MUTATION } from './graphql/queries';
 
 export interface GenerateLobbyRequest {
   date: string; // Date string in ISO format (YYYY-MM-DD)
@@ -22,8 +23,13 @@ export const lobbyApi = {
    * @param request - Lobby generation parameters
    */
   generateLobbies: async (request: GenerateLobbyRequest): Promise<GenerateLobbyResponse> => {
-    const response = await apiClient.post<GenerateLobbyResponse>('/api/admin/generate-lobbies', request);
-    return response.data;
+    const response = await apolloClient.mutate<{ generateLobbies: GenerateLobbyResponse }>({
+      mutation: GENERATE_LOBBIES_MUTATION,
+      variables: {
+        input: request,
+      },
+    });
+    return response.data?.generateLobbies || { status: 200, success: true, message: '' };
   },
 };
 

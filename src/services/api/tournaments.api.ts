@@ -1,4 +1,10 @@
-import apiClient from './client';
+import { apolloClient } from './graphql/client';
+import {
+  GET_TOURNAMENTS_QUERY,
+  UPDATE_TOURNAMENT_MUTATION,
+  DELETE_TOURNAMENT_MUTATION,
+  UPDATE_ROOM_MUTATION,
+} from './graphql/queries';
 
 export interface Tournament {
   _id: string;
@@ -88,23 +94,24 @@ export const tournamentsApi = {
    * @param params - Query parameters for filtering tournaments
    */
   getTournaments: async (params?: GetTournamentsParams): Promise<Tournament[]> => {
-    const queryParams: Record<string, string> = {};
-    
-    if (params?.status) {
-      queryParams.status = params.status;
-    }
-    
-    if (params?.fromDate) {
-      queryParams.fromDate = params.fromDate;
-    }
-    
-    const response = await apiClient.get<TournamentsListResponse>('/api/admin/tournaments', {
-      params: queryParams,
+    const response = await apolloClient.query<{
+      tournaments: {
+        tournaments: Tournament[];
+        total?: number;
+      };
+    }>({
+      query: GET_TOURNAMENTS_QUERY,
+      variables: {
+        filters: {
+          status: params?.status || undefined,
+          fromDate: params?.fromDate || undefined,
+        },
+      },
+      fetchPolicy: 'network-only',
     });
     
-    if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
-      // Map _id to id for consistency, and format date if needed
-      return response.data.data.tournaments.map((tournament) => ({
+    if (response.data?.tournaments?.tournaments && Array.isArray(response.data.tournaments.tournaments)) {
+      return response.data.tournaments.tournaments.map((tournament) => ({
         ...tournament,
         id: tournament._id || tournament.id,
       }));
@@ -119,8 +126,16 @@ export const tournamentsApi = {
    * @param data - Tournament data to update
    */
   updateTournament: async (tournamentId: string, data: UpdateTournamentRequest): Promise<UpdateTournamentResponse> => {
-    const response = await apiClient.put<UpdateTournamentResponse>(`/api/admin/tournaments/${tournamentId}`, data);
-    return response.data;
+    const response = await apolloClient.mutate<{ updateTournament: UpdateTournamentResponse }>({
+      mutation: UPDATE_TOURNAMENT_MUTATION,
+      variables: {
+        input: {
+          tournamentId,
+          ...data,
+        },
+      },
+    });
+    return response.data?.updateTournament || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -128,8 +143,13 @@ export const tournamentsApi = {
    * @param tournamentId - Tournament ID to delete
    */
   deleteTournament: async (tournamentId: string): Promise<DeleteTournamentResponse> => {
-    const response = await apiClient.delete<DeleteTournamentResponse>(`/api/admin/tournaments/${tournamentId}`);
-    return response.data;
+    const response = await apolloClient.mutate<{ deleteTournament: DeleteTournamentResponse }>({
+      mutation: DELETE_TOURNAMENT_MUTATION,
+      variables: {
+        input: { tournamentId },
+      },
+    });
+    return response.data?.deleteTournament || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -138,8 +158,17 @@ export const tournamentsApi = {
    * @param data - Room data (roomId and password)
    */
   updateRoom: async (tournamentId: string, data: UpdateRoomRequest): Promise<UpdateRoomResponse> => {
-    const response = await apiClient.post<UpdateRoomResponse>(`/api/admin/tournaments/${tournamentId}/update-room`, data);
-    return response.data;
+    const response = await apolloClient.mutate<{ updateRoom: UpdateRoomResponse }>({
+      mutation: UPDATE_ROOM_MUTATION,
+      variables: {
+        input: {
+          tournamentId,
+          roomId: data.roomId,
+          password: data.password,
+        },
+      },
+    });
+    return response.data?.updateRoom || { status: 200, success: true, message: '' };
   },
 };
 

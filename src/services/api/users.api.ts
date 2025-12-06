@@ -1,4 +1,12 @@
-import apiClient from './client';
+import { apolloClient } from './graphql/client';
+import {
+  GET_USERS_QUERY,
+  BLOCK_USERS_MUTATION,
+  UNBLOCK_USERS_MUTATION,
+  TOP_UP_BALANCE_MUTATION,
+  BULK_TOP_UP_BALANCE_MUTATION,
+  GET_TOP_UP_TRANSACTIONS_QUERY,
+} from './graphql/queries';
 
 export interface AdminUser {
   _id?: string;
@@ -122,44 +130,39 @@ export const usersApi = {
    */
   getUsers: async (role?: string, query?: string, page?: number, limit?: number): Promise<{ users: AdminUser[]; pagination?: PaginationInfo }> => {
     try {
-      const params: Record<string, string> = {};
-      if (role) {
-        params.role = role;
-      }
-      if (query && query.trim()) {
-        params.query = query.trim();
-      }
-      if (page) {
-        params.page = page.toString();
-      }
-      if (limit) {
-        params.limit = limit.toString();
-      }
-      const response = await apiClient.get<UsersListResponse>('/api/admin/users', { params });
+      const response = await apolloClient.query<{
+        users: {
+          users: AdminUser[];
+          pagination: PaginationInfo;
+        };
+      }>({
+        query: GET_USERS_QUERY,
+        variables: {
+          input: {
+            role: role || undefined,
+            query: query?.trim() || undefined,
+            page: page || undefined,
+            limit: limit || undefined,
+          },
+        },
+        fetchPolicy: 'network-only',
+      });
       
-      // Expected format: { status, success, message, data: { users: [...], pagination: {...} } }
-      if (response.data?.data?.users && Array.isArray(response.data.data.users)) {
+      if (response.data?.users?.users && Array.isArray(response.data.users.users)) {
         // Map _id to userId for consistency
-        const mappedUsers = response.data.data.users.map(user => ({
+        const mappedUsers = response.data.users.users.map(user => ({
           ...user,
           userId: user._id || user.userId,
         }));
         
         return {
           users: mappedUsers,
-          pagination: response.data.data.pagination,
+          pagination: response.data.users.pagination,
         };
       }
       
-      // If format is wrong, throw error
-      throw new Error('Invalid API response format. Expected: { data: { users: [...], pagination: {...} } }');
+      throw new Error('Invalid API response format');
     } catch (error: any) {
-      // If it's our custom error, throw it
-      if (error.message && error.message.includes('Invalid API response format')) {
-        throw error;
-      }
-      
-      // Otherwise, rethrow the original error
       throw error;
     }
   },
@@ -169,10 +172,13 @@ export const usersApi = {
    * @param userIds - Array of user IDs to block
    */
   blockUsers: async (userIds: string[]): Promise<BlockUnblockResponse> => {
-    const response = await apiClient.post<BlockUnblockResponse>('/api/admin/users/block', {
-      userIds,
+    const response = await apolloClient.mutate<{ blockUsers: BlockUnblockResponse }>({
+      mutation: BLOCK_USERS_MUTATION,
+      variables: {
+        input: { userIds },
+      },
     });
-    return response.data;
+    return response.data?.blockUsers || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -180,10 +186,13 @@ export const usersApi = {
    * @param userIds - Array of user IDs to unblock
    */
   unblockUsers: async (userIds: string[]): Promise<BlockUnblockResponse> => {
-    const response = await apiClient.post<BlockUnblockResponse>('/api/admin/users/unblock', {
-      userIds,
+    const response = await apolloClient.mutate<{ unblockUsers: BlockUnblockResponse }>({
+      mutation: UNBLOCK_USERS_MUTATION,
+      variables: {
+        input: { userIds },
+      },
     });
-    return response.data;
+    return response.data?.unblockUsers || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -193,12 +202,17 @@ export const usersApi = {
    * @param description - Optional description for the top-up
    */
   topUpBalance: async (userId: string, amountGC: number, description?: string): Promise<TopUpResponse> => {
-    const response = await apiClient.post<TopUpResponse>('/api/wallet/add-balance', {
-      userId,
-      amountGC,
-      description: description || 'Top-up via Admin Panel',
+    const response = await apolloClient.mutate<{ topUpBalance: TopUpResponse }>({
+      mutation: TOP_UP_BALANCE_MUTATION,
+      variables: {
+        input: {
+          userId,
+          amountGC,
+          description: description || 'Top-up via Admin Panel',
+        },
+      },
     });
-    return response.data;
+    return response.data?.topUpBalance || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -208,12 +222,17 @@ export const usersApi = {
    * @param description - Optional description for the top-up
    */
   topUpBalanceBulk: async (userIds: string[], amountGC: number, description?: string): Promise<BulkTopUpResponse> => {
-    const response = await apiClient.post<BulkTopUpResponse>('/api/wallet/add-balance-bulk', {
-      userIds,
-      amountGC,
-      description: description || 'Bulk top-up via Admin Panel',
+    const response = await apolloClient.mutate<{ bulkTopUpBalance: BulkTopUpResponse }>({
+      mutation: BULK_TOP_UP_BALANCE_MUTATION,
+      variables: {
+        input: {
+          userIds,
+          amountGC,
+          description: description || 'Bulk top-up via Admin Panel',
+        },
+      },
     });
-    return response.data;
+    return response.data?.bulkTopUpBalance || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -222,32 +241,30 @@ export const usersApi = {
    */
   getTopUpTransactions: async (params?: TopUpTransactionsParams): Promise<{ transactions: TopUpTransaction[]; total?: number }> => {
     try {
-      const queryParams: Record<string, string> = {};
-      if (params?.limit) {
-        queryParams.limit = params.limit.toString();
-      }
-      if (params?.skip) {
-        queryParams.skip = params.skip.toString();
-      }
-      if (params?.status) {
-        queryParams.status = params.status;
-      }
-      if (params?.userId) {
-        queryParams.userId = params.userId;
-      }
-      if (params?.startDate) {
-        queryParams.startDate = params.startDate;
-      }
-      if (params?.endDate) {
-        queryParams.endDate = params.endDate;
-      }
-
-      const response = await apiClient.get<TopUpTransactionsResponse>('/api/admin/topup-transactions', { params: queryParams });
+      const response = await apolloClient.query<{
+        topUpTransactions: {
+          transactions: TopUpTransaction[];
+          total?: number;
+        };
+      }>({
+        query: GET_TOP_UP_TRANSACTIONS_QUERY,
+        variables: {
+          input: {
+            limit: params?.limit || undefined,
+            skip: params?.skip || undefined,
+            status: params?.status || undefined,
+            userId: params?.userId || undefined,
+            startDate: params?.startDate || undefined,
+            endDate: params?.endDate || undefined,
+          },
+        },
+        fetchPolicy: 'network-only',
+      });
       
-      if (response.data?.data?.transactions && Array.isArray(response.data.data.transactions)) {
+      if (response.data?.topUpTransactions?.transactions && Array.isArray(response.data.topUpTransactions.transactions)) {
         return {
-          transactions: response.data.data.transactions,
-          total: response.data.data.total,
+          transactions: response.data.topUpTransactions.transactions,
+          total: response.data.topUpTransactions.total,
         };
       }
       

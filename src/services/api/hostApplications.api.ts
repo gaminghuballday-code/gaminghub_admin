@@ -1,4 +1,14 @@
-import apiClient from './client';
+import { apolloClient } from './graphql/client';
+import {
+  GET_HOST_APPLICATIONS_QUERY,
+  APPROVE_APPLICATION_MUTATION,
+  REJECT_APPLICATION_MUTATION,
+  GET_ALL_HOSTS_WITH_ASSIGNMENTS_QUERY,
+  ASSIGN_HOST_MUTATION,
+  GET_HOST_STATISTICS_QUERY,
+  CREATE_HOST_MUTATION,
+  GET_ALL_HOSTS_QUERY,
+} from './graphql/queries';
 
 export interface HostApplication {
   _id: string;
@@ -175,15 +185,21 @@ export const hostApplicationsApi = {
    * @param tournamentId - Tournament ID to get applications for
    */
   getHostApplications: async (tournamentId: string): Promise<HostApplication[]> => {
-    const response = await apiClient.get<HostApplicationsListResponse>(
-      `/api/admin/host-applications`,
-      {
-        params: { tournamentId },
-      }
-    );
+    const response = await apolloClient.query<{
+      hostApplications: {
+        applications: HostApplication[];
+        total?: number;
+      };
+    }>({
+      query: GET_HOST_APPLICATIONS_QUERY,
+      variables: {
+        input: { tournamentId },
+      },
+      fetchPolicy: 'network-only',
+    });
     
-    if (response.data?.data?.applications && Array.isArray(response.data.data.applications)) {
-      return response.data.data.applications.map((app) => ({
+    if (response.data?.hostApplications?.applications && Array.isArray(response.data.hostApplications.applications)) {
+      return response.data.hostApplications.applications.map((app) => ({
         ...app,
         id: app._id || app.id,
       }));
@@ -197,10 +213,13 @@ export const hostApplicationsApi = {
    * @param applicationId - Application ID to approve
    */
   approveApplication: async (applicationId: string): Promise<ApproveRejectResponse> => {
-    const response = await apiClient.post<ApproveRejectResponse>(
-      `/api/admin/host-applications/${applicationId}/approve`
-    );
-    return response.data;
+    const response = await apolloClient.mutate<{ approveApplication: ApproveRejectResponse }>({
+      mutation: APPROVE_APPLICATION_MUTATION,
+      variables: {
+        input: { applicationId },
+      },
+    });
+    return response.data?.approveApplication || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -208,10 +227,13 @@ export const hostApplicationsApi = {
    * @param applicationId - Application ID to reject
    */
   rejectApplication: async (applicationId: string): Promise<ApproveRejectResponse> => {
-    const response = await apiClient.post<ApproveRejectResponse>(
-      `/api/admin/host-applications/${applicationId}/reject`
-    );
-    return response.data;
+    const response = await apolloClient.mutate<{ rejectApplication: ApproveRejectResponse }>({
+      mutation: REJECT_APPLICATION_MUTATION,
+      variables: {
+        input: { applicationId },
+      },
+    });
+    return response.data?.rejectApplication || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -219,13 +241,29 @@ export const hostApplicationsApi = {
    * @param tournamentId - Tournament ID to get hosts for
    */
   getAllHostsWithAssignments: async (tournamentId: string): Promise<HostWithAssignments[]> => {
-    const response = await apiClient.get<HostsListResponse>(
-      `/api/admin/tournaments/${tournamentId}/hosts`
-    );
+    const response = await apolloClient.query<{
+      hostsWithAssignments: {
+        tournament?: {
+          tournamentId: string;
+          date: string;
+          startTime: string;
+          game: string;
+          mode: string;
+          subMode: string;
+        };
+        hosts: HostWithAssignments[];
+        total?: number;
+      };
+    }>({
+      query: GET_ALL_HOSTS_WITH_ASSIGNMENTS_QUERY,
+      variables: {
+        input: { tournamentId },
+      },
+      fetchPolicy: 'network-only',
+    });
     
-    if (response.data?.data?.hosts && Array.isArray(response.data.data.hosts)) {
-      // Map the response to ensure consistent structure
-      return response.data.data.hosts.map(host => ({
+    if (response.data?.hostsWithAssignments?.hosts && Array.isArray(response.data.hostsWithAssignments.hosts)) {
+      return response.data.hostsWithAssignments.hosts.map(host => ({
         ...host,
         assignedLobbies: Array.isArray(host.assignedLobbies) ? host.assignedLobbies : [],
         totalLobbies: host.totalLobbies || 0,
@@ -242,11 +280,13 @@ export const hostApplicationsApi = {
    * @param data - Assignment data (tournamentId and hostId)
    */
   assignHost: async (data: AssignHostRequest): Promise<AssignHostResponse> => {
-    const response = await apiClient.post<AssignHostResponse>(
-      `/api/admin/assign-host`,
-      data
-    );
-    return response.data;
+    const response = await apolloClient.mutate<{ assignHost: AssignHostResponse }>({
+      mutation: ASSIGN_HOST_MUTATION,
+      variables: {
+        input: data,
+      },
+    });
+    return response.data?.assignHost || { status: 200, success: true, message: '' };
   },
 
   /**
@@ -254,29 +294,27 @@ export const hostApplicationsApi = {
    * @param params - Query parameters for filtering statistics
    */
   getHostStatistics: async (params?: GetHostStatisticsParams): Promise<HostStatisticsResponse['data']> => {
-    const queryParams: Record<string, string> = {};
-    
-    if (params?.date) {
-      queryParams.date = params.date;
-    }
-    if (params?.fromDate) {
-      queryParams.fromDate = params.fromDate;
-    }
-    if (params?.toDate) {
-      queryParams.toDate = params.toDate;
-    }
-    if (params?.hostId) {
-      queryParams.hostId = params.hostId;
-    }
+    const response = await apolloClient.query<{
+      hostStatistics: HostStatisticsResponse['data'];
+    }>({
+      query: GET_HOST_STATISTICS_QUERY,
+      variables: {
+        input: {
+          date: params?.date || undefined,
+          fromDate: params?.fromDate || undefined,
+          toDate: params?.toDate || undefined,
+          hostId: params?.hostId || undefined,
+        },
+      },
+      fetchPolicy: 'network-only',
+    });
 
-    const response = await apiClient.get<HostStatisticsResponse>(
-      '/api/admin/hosts/statistics',
-      {
-        params: queryParams,
-      }
-    );
-
-    return response.data.data;
+    return response.data?.hostStatistics || {
+      totalHosts: 0,
+      totalLobbies: 0,
+      filters: {},
+      hosts: [],
+    };
   },
 
   /**
@@ -284,23 +322,31 @@ export const hostApplicationsApi = {
    * @param data - Host creation data (email, name, password)
    */
   createHost: async (data: CreateHostRequest): Promise<CreateHostResponse> => {
-    const response = await apiClient.post<CreateHostResponse>(
-      '/api/admin/hosts/create',
-      data
-    );
-    return response.data;
+    const response = await apolloClient.mutate<{ createHost: CreateHostResponse }>({
+      mutation: CREATE_HOST_MUTATION,
+      variables: {
+        input: data,
+      },
+    });
+    return response.data?.createHost || { status: 200, success: true, message: '' };
   },
 
   /**
    * Get all hosts (Admin only)
    */
   getAllHosts: async (): Promise<Host[]> => {
-    const response = await apiClient.get<HostsListAllResponse>(
-      '/api/admin/hosts'
-    );
+    const response = await apolloClient.query<{
+      hosts: {
+        hosts: Host[];
+        total?: number;
+      };
+    }>({
+      query: GET_ALL_HOSTS_QUERY,
+      fetchPolicy: 'network-only',
+    });
     
-    if (response.data?.data?.hosts && Array.isArray(response.data.data.hosts)) {
-      return response.data.data.hosts.map(host => ({
+    if (response.data?.hosts?.hosts && Array.isArray(response.data.hosts.hosts)) {
+      return response.data.hosts.hosts.map(host => ({
         ...host,
         hostId: host._id || host.hostId,
       }));

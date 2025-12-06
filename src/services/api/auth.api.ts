@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { apolloClient } from './graphql/client';
+import { LOGIN_MUTATION, LOGOUT_MUTATION, GET_PROFILE_QUERY } from './graphql/queries';
 import type { LoginRequest, AuthResponse } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
@@ -9,14 +10,46 @@ export const authApi = {
    * Note: Redux state will be updated by the component calling this
    */
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/login', data);
+    const response = await apolloClient.mutate<{ 
+      login: {
+        accessToken: string;
+        refreshToken?: string;
+        user: {
+          _id?: string;
+          email: string;
+          name?: string;
+          role?: string;
+          isEmailVerified?: boolean;
+        };
+      };
+    }>({
+      mutation: LOGIN_MUTATION,
+      variables: {
+        input: {
+          email: data.email,
+          password: data.password,
+        },
+      },
+    });
     
-    // API returns { status, success, message, data: { accessToken, refreshToken, user } }
-    const authData = response.data.data;
+    const loginResponse = response.data?.login;
     
-    if (!authData.accessToken) {
+    if (!loginResponse?.accessToken) {
       throw new Error('Access token not received from server');
     }
+    
+    // Map _id to userId for consistency
+    const authData: AuthResponse = {
+      accessToken: loginResponse.accessToken,
+      refreshToken: loginResponse.refreshToken,
+      user: {
+        userId: loginResponse.user._id || '',
+        email: loginResponse.user.email,
+        name: loginResponse.user.name,
+        role: loginResponse.user.role,
+        isEmailVerified: loginResponse.user.isEmailVerified,
+      },
+    };
     
     return authData;
   },
@@ -28,22 +61,16 @@ export const authApi = {
   logout: async (): Promise<void> => {
     // Get refresh token from Redux store
     const state = store.getState();
-    const refreshToken:any = selectRefreshToken(state as any);
+    const refreshToken: any = selectRefreshToken(state as any);
     
     try {
-      // Send refresh token in request body if available
-      if (refreshToken) {
-        await apiClient.post('/api/auth/logout', { refreshToken });
-      } else {
-        await apiClient.post('/api/auth/logout');
-      }
+      await apolloClient.mutate({
+        mutation: LOGOUT_MUTATION,
+        variables: refreshToken ? { input: { refreshToken } } : { input: {} },
+      });
     } catch (error: any) {
-      // Silently ignore 404 or route not found errors
-      // Logout endpoint might not exist on backend, which is fine
-      if (error?.response?.status !== 404) {
-        console.warn('Logout API call failed:', error?.message || 'Unknown error');
-      }
-      // Continue with logout even if API call fails
+      // Silently ignore errors - logout should proceed even if API call fails
+      console.warn('Logout API call failed:', error?.message || 'Unknown error');
     }
     // Note: Redux state will be cleared by the component
   },
@@ -52,8 +79,16 @@ export const authApi = {
    * Get current user profile
    */
   getProfile: async (): Promise<AuthResponse['user']> => {
-    const response = await apiClient.get<AuthResponse['user']>('/api/auth/profile');
-    return response.data;
+    const response = await apolloClient.query<{ profile: AuthResponse['user'] }>({
+      query: GET_PROFILE_QUERY,
+      fetchPolicy: 'network-only',
+    });
+    
+    if (!response.data?.profile) {
+      throw new Error('Profile data not received from server');
+    }
+    
+    return response.data.profile;
   },
 };
 

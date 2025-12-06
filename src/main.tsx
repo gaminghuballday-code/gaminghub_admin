@@ -1,7 +1,9 @@
-import React, { StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ApolloProvider } from '@apollo/client/react'
+import { apolloClient } from './services/api/graphql/client'
 import { store } from './store/store'
 import { selectTheme } from './store/slices/themeSlice'
 import App from './App.tsx'
@@ -53,9 +55,11 @@ store.subscribe(() => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
+      <ApolloProvider client={apolloClient}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </ApolloProvider>
     </Provider>
   </StrictMode>,
 )
