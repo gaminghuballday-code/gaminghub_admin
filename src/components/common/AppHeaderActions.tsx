@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLogout } from '@services/api/hooks';
+import { useLogout, useUserLogout } from '@services/api/hooks';
 import ThemeToggle from '@components/common/ThemeToggle';
 import SettingsModal from '@components/common/SettingsModal';
 import ConfirmationModal from '@components/common/ConfirmationModal';
-import { ROUTES } from '@utils/constants';
+import { ROUTES, USER_ROUTES, isAdminDomain } from '@utils/constants';
 import './AppHeaderActions.scss';
 
 const AppHeaderActions: React.FC = () => {
@@ -12,7 +12,12 @@ const AppHeaderActions: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const logoutMutation = useLogout();
+  const isAdmin = isAdminDomain();
+  const adminLogoutMutation = useLogout();
+  const userLogoutMutation = useUserLogout();
+  const logoutMutation = isAdmin ? adminLogoutMutation : userLogoutMutation;
+  
+  const currentRoutes = isAdmin ? ROUTES : USER_ROUTES;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,12 +63,13 @@ const AppHeaderActions: React.FC = () => {
               onClick={() => {
                 const dropdown = dropdownRef.current?.querySelector('.dropdown-menu');
                 dropdown?.classList.remove('open');
-                navigate(ROUTES.PROFILE);
+                navigate(currentRoutes.PROFILE);
               }}
             >
               <span className="dropdown-icon">👤</span>
               <span>Profile</span>
             </button>
+            {isAdmin && (
             <button 
               className="dropdown-item" 
               onClick={() => {
@@ -75,6 +81,7 @@ const AppHeaderActions: React.FC = () => {
               <span className="dropdown-icon">❤️</span>
               <span>Health Status</span>
             </button>
+            )}
             <button 
               className="dropdown-item" 
               onClick={() => {

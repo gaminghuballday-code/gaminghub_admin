@@ -4,6 +4,9 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
   readonly VITE_API_TIMEOUT?: string
   readonly VITE_APP_TITLE?: string
+  readonly VITE_ADMIN_DOMAIN?: string
+  readonly VITE_USER_DOMAIN?: string
+  readonly VITE_GOOGLE_CLIENT_ID?: string
 }
 
 interface ImportMeta {

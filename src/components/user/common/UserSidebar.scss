@@ -1,0 +1,112 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.user-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 250px;
+  background: linear-gradient(180deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color-dark) 100%
+  );
+  border-right: 1px solid rgba(var(--border-color-rgb), 0.5);
+  @include flex-column;
+  z-index: 1000;
+  overflow: hidden;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-header {
+  @include flex-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 70px;
+}
+
+.sidebar-logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-nav {
+  @include flex-column;
+  flex: 1;
+  padding: $spacing-md 0;
+  gap: $spacing-xs;
+}
+
+.nav-item {
+  @include flex-between;
+  padding: $spacing-md $spacing-lg;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all $transition-fast;
+  border-left: 3px solid transparent;
+  border-radius: 0 $border-radius-md $border-radius-md 0;
+  margin: 0 $spacing-sm;
+  position: relative;
+
+  &:hover {
+    background: rgba(var(--primary-color-rgb), 0.1);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+  }
+
+  &.active {
+    background: rgba(var(--primary-color-rgb), 0.15);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+    font-weight: 600;
+  }
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  min-width: 24px;
+}
+
+.nav-text {
+  margin-left: $spacing-md;
+  font-size: 0.95rem;
+}
+
+.sidebar-footer {
+  padding: $spacing-lg;
+  border-top: 1px solid var(--border-color);
+}
+
+.user-info {
+  @include flex-column;
+  gap: $spacing-xs;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .user-sidebar {
+    width: 70px;
+
+    .nav-text {
+      display: none;
+    }
+  }
+}
+

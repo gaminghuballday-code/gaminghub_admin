@@ -1,0 +1,42 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+// Shared layout styles for all user pages
+.user-main {
+  flex: 1;
+  margin-left: 250px;
+  @include flex-column;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    margin-left: 70px;
+  }
+}
+
+.user-header {
+  @include flex-between;
+  padding: $spacing-lg $spacing-xl;
+  background: var(--background-color-light);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.user-content {
+  flex: 1;
+  padding: $spacing-xl;
+  @include flex-column;
+  gap: $spacing-xl;
+}
+

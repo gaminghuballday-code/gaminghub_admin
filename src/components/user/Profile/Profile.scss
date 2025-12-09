@@ -1,0 +1,49 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+@use '../common/UserLayout' as *;
+
+.user-profile-container {
+  @include flex-between;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+}
+
+.profile-card {
+  @include card;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.profile-details {
+  @include flex-column;
+  gap: $spacing-lg;
+  margin-top: $spacing-lg;
+}
+
+.profile-item {
+  @include flex-between;
+  padding: $spacing-md;
+  background: var(--background-color-light);
+  border-radius: $border-radius-md;
+  border: 1px solid var(--border-color);
+}
+
+.profile-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.profile-value {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.balance-value {
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+

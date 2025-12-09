@@ -4,7 +4,9 @@ import { Provider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { store } from './store/store'
 import { selectTheme } from './store/slices/themeSlice'
+import { isAdminDomain } from './utils/constants'
 import App from './App.tsx'
+import UserApp from './UserApp.tsx'
 import './assets/styles/dashboard.scss'
 
 // Create QueryClient instance - must be created outside component
@@ -50,11 +52,14 @@ store.subscribe(() => {
   document.documentElement.setAttribute('data-theme', theme);
 });
 
+// Determine which app to render based on domain
+const AppComponent = isAdminDomain() ? App : UserApp;
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <App />
+        <AppComponent />
       </QueryClientProvider>
     </Provider>
   </StrictMode>,

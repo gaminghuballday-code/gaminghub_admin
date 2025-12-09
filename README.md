@@ -86,6 +86,14 @@ VITE_API_TIMEOUT=10000
 
 # Application Title (optional, default: booyahx-admin)
 VITE_APP_TITLE=booyahx-admin
+
+# Domain Configuration for App Routing
+# Admin Domain: Subdomain that should load admin app (e.g., "admin" for admin.yourdomain.com)
+VITE_ADMIN_DOMAIN=admin
+
+# User Domain: Main domain that should load user app (e.g., "gaminghuballday.buzz")
+# Leave empty to use default (any domain that doesn't match admin domain)
+VITE_USER_DOMAIN=
 ```
 
 **Required:**
@@ -94,6 +102,13 @@ VITE_APP_TITLE=booyahx-admin
 **Optional:**
 - `VITE_API_TIMEOUT` - API request timeout in milliseconds (default: 10000)
 - `VITE_APP_TITLE` - Application title (default: booyahx-admin)
+- `VITE_ADMIN_DOMAIN` - Admin subdomain identifier (default: "admin")
+- `VITE_USER_DOMAIN` - Main domain for user app (optional)
+
+**Localhost Testing:**
+- Default: User app loads on `http://localhost:3000`
+- To test admin: `http://localhost:3000?mode=admin`
+- To test user: `http://localhost:3000?mode=user`
 
 ### Development
 

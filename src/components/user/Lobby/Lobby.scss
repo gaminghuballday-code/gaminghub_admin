@@ -1,0 +1,17 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+@use '../common/UserLayout' as *;
+
+.user-lobby-container {
+  @include flex-between;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+}
+
+.lobby-card {
+  @include card;
+}
+

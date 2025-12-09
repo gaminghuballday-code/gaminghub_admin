@@ -1,0 +1,43 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+@use '../common/UserLayout' as *;
+
+.user-wallet-container {
+  @include flex-between;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+}
+
+.wallet-card {
+  @include card;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.balance-display {
+  @include flex-between;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, 
+    rgba(var(--primary-color-rgb), 0.1) 0%,
+    rgba(var(--primary-color-rgb), 0.05) 100%
+  );
+  border-radius: $border-radius-lg;
+  margin: $spacing-lg 0;
+  border: 2px solid rgba(var(--primary-color-rgb), 0.3);
+}
+
+.balance-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.balance-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+

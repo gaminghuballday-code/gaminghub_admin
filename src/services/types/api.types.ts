@@ -17,6 +17,26 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name?: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
+  name?: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken?: string;
@@ -29,6 +49,10 @@ export interface User {
   name?: string;
   role?: string;
   isEmailVerified?: boolean;
+  balanceGC?: number;
+  isBlocked?: boolean;
+  _id?: string;
+  createdAt?: string;
 }
 
 // Health Check Types
