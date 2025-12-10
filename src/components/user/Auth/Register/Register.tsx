@@ -63,7 +63,7 @@ const UserRegister: React.FC = () => {
 
       <div className="register-card">
         <h1 className="register-title">Create Account</h1>
-        <p className="register-subtitle">Join GamingHub and start playing</p>
+        <p className="register-subtitle">Join Booyahx and start playing</p>
 
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">

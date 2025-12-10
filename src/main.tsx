@@ -53,7 +53,11 @@ store.subscribe(() => {
 });
 
 // Determine which app to render based on domain
-const AppComponent = isAdminDomain() ? App : UserApp;
+const isAdmin = isAdminDomain();
+const AppComponent = isAdmin ? App : UserApp;
+
+// Set document title based on domain
+document.title = isAdmin ? 'Booyahx Admin' : 'Booyahx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

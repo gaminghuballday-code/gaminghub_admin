@@ -11,7 +11,7 @@ const UserSidebar: React.FC = () => {
   return (
     <aside className="user-sidebar">
       <div className="sidebar-header">
-        <h2 className="sidebar-logo">GX</h2>
+        <h2 className="sidebar-logo">Booyahx</h2>
       </div>
 
       <nav className="sidebar-nav">

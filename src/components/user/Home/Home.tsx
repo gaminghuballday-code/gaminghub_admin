@@ -15,7 +15,7 @@ const UserHome: React.FC = () => {
 
       <main className="user-main">
         <header className="user-header">
-          <h1>Welcome to GamingHub</h1>
+          <h1>Welcome to Booyahx</h1>
           <AppHeaderActions />
         </header>
 
@@ -23,7 +23,7 @@ const UserHome: React.FC = () => {
           <div className="welcome-card">
             <h2 className="card-title">Welcome Back!</h2>
             <p className="card-content">
-              {user ? `Hello, ${user.name || user.email}!` : 'Welcome to GamingHub'}
+              {user ? `Hello, ${user.name || user.email}!` : 'Welcome to Booyahx'}
             </p>
             <p className="card-content-secondary">
               Join tournaments, compete with players, and win amazing prizes.
