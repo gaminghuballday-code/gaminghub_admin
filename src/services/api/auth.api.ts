@@ -2,7 +2,7 @@ import apiClient from './client';
 import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, AuthResponse, CsrfTokenResponse } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
-import { STORAGE_KEYS } from '../../utils/constants';
+import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
 
 export const authApi = {
   /**
@@ -11,7 +11,10 @@ export const authApi = {
    */
   getCsrfToken: async (): Promise<string> => {
     try {
-      const response = await apiClient.get<{ data: CsrfTokenResponse }>('/api/auth/csrf-token');
+      // Use admin endpoint for admin side, auth endpoint for user side
+      const isAdmin = isAdminDomain();
+      const endpoint = isAdmin ? '/api/admin/csrf-token' : '/api/auth/csrf-token';
+      const response = await apiClient.get<{ data: CsrfTokenResponse }>(endpoint);
       const csrfToken = response.data.data.csrfToken;
       
       if (!csrfToken) {
@@ -31,9 +34,13 @@ export const authApi = {
   /**
    * Login user
    * Note: Redux state will be updated by the component calling this
+   * Uses /api/admin/login for admin side, /api/auth/login for user side
    */
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/login', data);
+    // Use admin endpoint for admin side, auth endpoint for user side
+    const isAdmin = isAdminDomain();
+    const endpoint = isAdmin ? '/api/admin/login' : '/api/auth/login';
+    const response = await apiClient.post<{ data: AuthResponse }>(endpoint, data);
     
     // API returns { status, success, message, data: { accessToken, refreshToken, user } }
     const authData = response.data.data;
