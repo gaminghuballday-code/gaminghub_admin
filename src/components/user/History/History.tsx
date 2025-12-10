@@ -16,14 +16,8 @@ const UserHistory: React.FC = () => {
     });
   };
 
-  const formatTime = (timeString?: string) => {
-    if (!timeString) return 'N/A';
-    return timeString;
-  };
-
   const formatDateTime = (dateString?: string, timeString?: string) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
     const time = timeString || '';
     return `${formatDate(dateString)} ${time}`;
   };
