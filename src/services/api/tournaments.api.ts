@@ -114,6 +114,32 @@ export const tournamentsApi = {
   },
 
   /**
+   * Get tournaments list for users
+   * @param params - Query parameters for filtering tournaments by status
+   */
+  getUserTournaments: async (params?: { status?: string }): Promise<Tournament[]> => {
+    const queryParams: Record<string, string> = {};
+    
+    if (params?.status) {
+      queryParams.status = params.status;
+    }
+    
+    const response = await apiClient.get<TournamentsListResponse>('/api/tournament/list', {
+      params: queryParams,
+    });
+    
+    if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
+      // Map _id to id for consistency
+      return response.data.data.tournaments.map((tournament) => ({
+        ...tournament,
+        id: tournament._id || tournament.id,
+      }));
+    }
+    
+    return [];
+  },
+
+  /**
    * Update tournament (Admin only)
    * @param tournamentId - Tournament ID to update
    * @param data - Tournament data to update

@@ -12,6 +12,9 @@ export const tournamentsKeys = {
   lists: () => [...tournamentsKeys.all, 'list'] as const,
   list: (params?: GetTournamentsParams) =>
     [...tournamentsKeys.lists(), params] as const,
+  userLists: () => [...tournamentsKeys.all, 'user', 'list'] as const,
+  userList: (params?: { status?: string }) =>
+    [...tournamentsKeys.userLists(), params] as const,
 };
 
 /**
@@ -21,6 +24,17 @@ export const useTournaments = (params?: GetTournamentsParams, enabled = true) =>
   return useQuery({
     queryKey: tournamentsKeys.list(params),
     queryFn: () => tournamentsApi.getTournaments(params),
+    enabled,
+  });
+};
+
+/**
+ * Hook for fetching tournaments list for users
+ */
+export const useUserTournaments = (params?: { status?: string }, enabled = true) => {
+  return useQuery({
+    queryKey: tournamentsKeys.userList(params),
+    queryFn: () => tournamentsApi.getUserTournaments(params),
     enabled,
   });
 };
