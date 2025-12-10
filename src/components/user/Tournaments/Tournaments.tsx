@@ -1,15 +1,47 @@
-import { useUserTournaments } from '@services/api/hooks';
+import { useState } from 'react';
+import { useUserTournaments, useJoinTournament, useJoinedTournaments } from '@services/api/hooks';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
+import Toaster from '@components/common/Toaster';
 import './Tournaments.scss';
 
 const UserTournaments: React.FC = () => {
   const { data: tournaments = [], isLoading, error } = useUserTournaments();
+  const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments();
+  const joinTournamentMutation = useJoinTournament();
+  const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
+
+  // Create a Set of joined tournament IDs for quick lookup
+  const joinedTournamentIds = new Set(
+    joinedTournaments.map((t) => t._id || t.id).filter(Boolean) as string[]
+  );
+
+  const handleJoinTournament = async (tournamentId: string) => {
+    if (joinedTournamentIds.has(tournamentId)) {
+      return; // Already joined
+    }
+
+    setJoiningTournamentId(tournamentId);
+    try {
+      await joinTournamentMutation.mutateAsync({ tournamentId });
+      await refetchJoined();
+      // Show success message via Toaster (if available)
+    } catch (error: any) {
+      console.error('Failed to join tournament:', error);
+      // Error will be handled by Toaster
+    } finally {
+      setJoiningTournamentId(null);
+    }
+  };
+
+  const isJoining = (tournamentId: string) => joiningTournamentId === tournamentId;
+  const isJoined = (tournamentId: string) => joinedTournamentIds.has(tournamentId);
 
   return (
     <div className="user-tournaments-container">
       <UserSidebar />
+      <Toaster />
 
       <main className="user-main">
         <header className="user-header">
@@ -95,6 +127,21 @@ const UserTournaments: React.FC = () => {
                           <span className="detail-label">Region:</span>
                           <span className="detail-value">{tournament.region}</span>
                         </div>
+                      )}
+                    </div>
+                    <div className="tournament-actions">
+                      {isJoined(tournament._id || tournament.id || '') ? (
+                        <button className="tournament-join-button tournament-joined-button" disabled>
+                          Joined
+                        </button>
+                      ) : (
+                        <button
+                          className="tournament-join-button"
+                          onClick={() => handleJoinTournament(tournament._id || tournament.id || '')}
+                          disabled={isJoining(tournament._id || tournament.id || '')}
+                        >
+                          {isJoining(tournament._id || tournament.id || '') ? 'Joining...' : 'Join'}
+                        </button>
                       )}
                     </div>
                   </div>

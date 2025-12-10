@@ -179,8 +179,11 @@ export const useGenerateLobbyPageLogic = () => {
     const tournamentId = updatingRoomTournament._id || updatingRoomTournament.id || '';
     if (!tournamentId) return;
 
+    // For admin API, we need to omit tournamentId from data
+    const { tournamentId: _, ...roomData } = data;
+
     updateRoomMutation.mutate(
-      { tournamentId, data },
+      { tournamentId, data: roomData },
       {
         onSuccess: () => {
           setShowUpdateRoomModal(false);

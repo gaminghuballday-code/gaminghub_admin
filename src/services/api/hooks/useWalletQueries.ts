@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { walletApi, type UserTopUpRequest } from '../wallet.api';
+import { walletApi, type UserTopUpRequest, type WalletHistoryParams } from '../wallet.api';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 
@@ -8,6 +8,7 @@ export const walletKeys = {
   all: ['wallet'] as const,
   balance: () => [...walletKeys.all, 'balance'] as const,
   history: () => [...walletKeys.all, 'history'] as const,
+  walletHistory: (params?: WalletHistoryParams) => [...walletKeys.all, 'wallet-history', params] as const,
 };
 
 /**
@@ -62,6 +63,21 @@ export const useTopUpWallet = () => {
         duration: 5000,
       }));
     },
+  });
+};
+
+/**
+ * Hook for fetching wallet history (tournament winnings and transactions)
+ */
+export const useWalletHistory = (params?: WalletHistoryParams, enabled = true) => {
+  return useQuery({
+    queryKey: walletKeys.walletHistory(params),
+    queryFn: async () => {
+      const response = await walletApi.getWalletHistory(params);
+      return response.data?.history ?? [];
+    },
+    enabled,
+    refetchOnWindowFocus: false,
   });
 };
 

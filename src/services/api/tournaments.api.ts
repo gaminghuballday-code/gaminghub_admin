@@ -71,6 +71,7 @@ export interface DeleteTournamentResponse {
 }
 
 export interface UpdateRoomRequest {
+  tournamentId: string;
   roomId: string;
   password: string;
 }
@@ -80,6 +81,26 @@ export interface UpdateRoomResponse {
   success: boolean;
   message: string;
   data?: Tournament;
+}
+
+export interface JoinTournamentRequest {
+  tournamentId: string;
+}
+
+export interface JoinTournamentResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: Tournament;
+}
+
+export interface JoinedTournamentsResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data: {
+    tournaments: Tournament[];
+  };
 }
 
 export const tournamentsApi = {
@@ -163,9 +184,43 @@ export const tournamentsApi = {
    * @param tournamentId - Tournament ID to update room for
    * @param data - Room data (roomId and password)
    */
-  updateRoom: async (tournamentId: string, data: UpdateRoomRequest): Promise<UpdateRoomResponse> => {
+  updateRoom: async (tournamentId: string, data: Omit<UpdateRoomRequest, 'tournamentId'>): Promise<UpdateRoomResponse> => {
     const response = await apiClient.post<UpdateRoomResponse>(`/api/admin/tournaments/${tournamentId}/update-room`, data);
     return response.data;
+  },
+
+  /**
+   * Update room information for a tournament (Host or Admin only)
+   * @param data - Room data including tournamentId, roomId and password
+   */
+  updateRoomForUser: async (data: UpdateRoomRequest): Promise<UpdateRoomResponse> => {
+    const response = await apiClient.post<UpdateRoomResponse>('/api/tournament/update-room', data);
+    return response.data;
+  },
+
+  /**
+   * Join a tournament (User only)
+   * @param data - Tournament ID to join
+   */
+  joinTournament: async (data: JoinTournamentRequest): Promise<JoinTournamentResponse> => {
+    const response = await apiClient.post<JoinTournamentResponse>('/api/tournament/join', data);
+    return response.data;
+  },
+
+  /**
+   * Get tournaments that the user has joined (User only)
+   */
+  getJoinedTournaments: async (): Promise<Tournament[]> => {
+    const response = await apiClient.get<JoinedTournamentsResponse>('/api/tournament/joined');
+    
+    if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
+      return response.data.data.tournaments.map((tournament) => ({
+        ...tournament,
+        id: tournament._id || tournament.id,
+      }));
+    }
+    
+    return [];
   },
 };
 

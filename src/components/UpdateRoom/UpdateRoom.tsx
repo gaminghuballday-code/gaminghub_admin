@@ -19,6 +19,7 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({
   isUpdating,
 }) => {
   const [formData, setFormData] = useState<UpdateRoomRequest>({
+    tournamentId: '',
     roomId: '',
     password: '',
   });
@@ -26,7 +27,9 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({
 
   useEffect(() => {
     if (tournament) {
+      const tournamentId = tournament._id || tournament.id || '';
       setFormData({
+        tournamentId,
         roomId: tournament.room?.roomId || '',
         password: tournament.room?.password || '',
       });

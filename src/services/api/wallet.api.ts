@@ -52,6 +52,43 @@ export interface UserTopUpResponse {
   };
 }
 
+export interface WalletHistoryItem {
+  _id: string;
+  tournamentId?: string;
+  tournament?: {
+    _id: string;
+    game: string;
+    mode: string;
+    subMode: string;
+    date: string;
+    startTime: string;
+    prizePool: number;
+  };
+  winnings?: number;
+  rank?: number;
+  date?: string;
+  time?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletHistoryParams {
+  limit?: number;
+  skip?: number;
+}
+
+export interface WalletHistoryResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    history: WalletHistoryItem[];
+    total?: number;
+    limit?: number;
+    skip?: number;
+  };
+}
+
 export const walletApi = {
   /**
    * Get wallet balance for current user
@@ -74,6 +111,27 @@ export const walletApi = {
    */
   topUp: async (data: UserTopUpRequest): Promise<UserTopUpResponse> => {
     const response = await apiClient.post<UserTopUpResponse>('/api/wallet/topup', data);
+    return response.data;
+  },
+
+  /**
+   * Get wallet history (tournament winnings and transactions)
+   * @param params - Query parameters (limit, skip)
+   */
+  getWalletHistory: async (params?: WalletHistoryParams): Promise<WalletHistoryResponse> => {
+    const queryParams: Record<string, string> = {};
+    
+    if (params?.limit !== undefined) {
+      queryParams.limit = params.limit.toString();
+    }
+    
+    if (params?.skip !== undefined) {
+      queryParams.skip = params.skip.toString();
+    }
+    
+    const response = await apiClient.get<WalletHistoryResponse>('/api/wallet/history', {
+      params: queryParams,
+    });
     return response.data;
   },
 };

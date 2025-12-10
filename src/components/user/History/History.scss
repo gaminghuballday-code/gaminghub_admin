@@ -15,3 +15,132 @@
   @include card;
 }
 
+.history-loading,
+.history-error {
+  padding: $spacing-xl;
+  text-align: center;
+  color: var(--text-secondary);
+  @include flex-column;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.history-error {
+  color: var(--error-color);
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.history-table-container {
+  overflow-x: auto;
+  width: 100%;
+  margin-top: $spacing-lg;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: var(--background-color-light);
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: var(--background-color-light);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    color: var(--text-color);
+    vertical-align: middle;
+  }
+}
+
+.tournament-cell {
+  min-width: 200px;
+}
+
+.tournament-info {
+  @include flex-column;
+  gap: $spacing-xs;
+}
+
+.tournament-name {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.tournament-prize {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.datetime-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  min-width: 150px;
+}
+
+.winnings-cell {
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+
+  &.positive {
+    color: var(--primary-color);
+  }
+}
+
+.rank-cell {
+  white-space: nowrap;
+}
+
+.rank-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: $border-radius-sm;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.rank-top {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+  }
+
+  &.rank-normal {
+    background: rgba(var(--primary-color-rgb), 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.3);
+  }
+}
+
