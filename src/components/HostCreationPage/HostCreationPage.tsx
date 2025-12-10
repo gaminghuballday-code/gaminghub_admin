@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import AppHeaderActions from '@components/common/AppHeaderActions';
+import { Modal } from '@components/common/Modal';
 import { ROUTES } from '@utils/constants';
 import './HostCreationPage.scss';
 
@@ -257,23 +258,15 @@ const HostCreationPage: React.FC = () => {
       </main>
 
       {/* Host Details Modal */}
-      {showHostModal && selectedHost && (
-        <div className="host-modal-overlay" onClick={handleCloseModal}>
-          <div className="host-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="host-modal-header">
-              <h3>Host Details</h3>
-              <button
-                className="host-modal-close"
-                onClick={handleCloseModal}
-                aria-label="Close"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-            <div className="host-modal-body">
+      {selectedHost && (
+        <Modal
+          isOpen={showHostModal}
+          onClose={handleCloseModal}
+          className="modal-large"
+          title="Host Details"
+          showCloseButton={true}
+        >
+          <div className="host-modal-content">
               <div className="host-detail-section">
                 <div className="host-detail-item">
                   <span className="detail-label">Name:</span>
@@ -358,7 +351,7 @@ const HostCreationPage: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

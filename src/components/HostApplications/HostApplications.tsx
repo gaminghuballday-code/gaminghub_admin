@@ -12,6 +12,7 @@ import {
   useRejectApplication,
   useAssignHost,
 } from '@services/api/hooks';
+import { Modal } from '@components/common/Modal';
 import ConfirmationModal from '@components/common/ConfirmationModal';
 import './HostApplications.scss';
 
@@ -212,26 +213,16 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
     });
   };
 
-  if (!isOpen) return null;
-
   return (
     <>
-      <div className="host-applications-modal-overlay" onClick={onClose}>
-        <div className="host-applications-modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="host-applications-modal-header">
-            <h3 className="host-applications-modal-title">Assign Host to Tournament</h3>
-            <button
-              className="host-applications-modal-close"
-              onClick={onClose}
-              aria-label="Close"
-              disabled={loading}
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        className="modal-large"
+        title="Assign Host to Tournament"
+        showCloseButton={true}
+        closeOnOverlayClick={!loading}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
 
           {/* View Mode Toggle */}
           <div className="host-applications-view-toggle">
@@ -431,8 +422,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
               Close
             </button>
           </div>
-        </div>
-      </div>
+      </Modal>
 
       {/* Conflict Confirmation Modal */}
       {showConflictModal && hostToAssign && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGenerateLobbyLogic } from './GenerateLobby.logic';
+import { Modal } from '@components/common/Modal';
 import './GenerateLobby.scss';
 
 interface GenerateLobbyProps {
@@ -67,26 +68,15 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
   const timeHours = ['12', '3', '6', '9'];
   const priceOptions = [25, 50, 75, 100, 150, 200, 300];
 
-  if (!isOpen) return null;
-
   return (
-    <div className="generate-lobby-modal-overlay" onClick={handleClose}>
-      <div className="generate-lobby-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="generate-lobby-modal-header">
-          <h3 className="generate-lobby-modal-title">Generate Lobby</h3>
-          <button
-            className="generate-lobby-modal-close"
-            onClick={handleClose}
-            aria-label="Close"
-            disabled={isSubmitting}
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      className="modal-medium"
+      title="Generate Lobby"
+      showCloseButton={true}
+      closeOnOverlayClick={!isSubmitting}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-
         <form className="generate-lobby-form" onSubmit={handleFormSubmit}>
           <div className="generate-lobby-modal-body">
             {/* Date Selection */}
@@ -329,8 +319,7 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

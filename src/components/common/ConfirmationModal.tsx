@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal } from './Modal';
 import './ConfirmationModal.scss';
 
 interface ConfirmationModalProps {
@@ -20,12 +21,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-title">{title}</h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={onCancel}
+      className="modal-small"
+      title={title}
+      closeOnOverlayClick={true}
+    >
+      <div className="confirmation-modal-content">
         <div className="modal-message">{message}</div>
         <div className="modal-actions">
           <button className="modal-button modal-button-cancel" onClick={onCancel}>
@@ -36,7 +40,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

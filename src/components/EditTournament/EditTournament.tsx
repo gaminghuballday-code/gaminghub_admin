@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { type Tournament, type UpdateTournamentRequest } from '@services/api';
+import { Modal } from '@components/common/Modal';
 import './EditTournament.scss';
 
 interface EditTournamentProps {
@@ -60,26 +61,17 @@ const EditTournament: React.FC<EditTournamentProps> = ({
 
   const regions = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
 
-  if (!isOpen || !tournament) return null;
+  if (!tournament) return null;
 
   return (
-    <div className="edit-tournament-modal-overlay" onClick={onClose}>
-      <div className="edit-tournament-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="edit-tournament-modal-header">
-          <h3 className="edit-tournament-modal-title">Edit Tournament</h3>
-          <button
-            className="edit-tournament-modal-close"
-            onClick={onClose}
-            aria-label="Close"
-            disabled={isUpdating}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="modal-medium"
+      title="Edit Tournament"
+      showCloseButton={true}
+      closeOnOverlayClick={!isUpdating}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-
         <form className="edit-tournament-form" onSubmit={handleSubmit}>
           <div className="edit-tournament-modal-body">
             <div className="form-group">
@@ -176,8 +168,7 @@ const EditTournament: React.FC<EditTournamentProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

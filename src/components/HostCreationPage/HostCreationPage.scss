@@ -500,99 +500,10 @@
   transform: translateX(4px);
 }
 
-// Host Modal
-.host-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  z-index: 2000;
-  @include flex-center;
-  padding: $spacing-xl;
-  animation: fadeIn 0.2s ease;
-  pointer-events: auto;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
+// Host Modal specific styles
+// Base modal styles are in Modal.scss
 .host-modal-content {
-  background: linear-gradient(135deg, 
-    var(--background-color-light) 0%,
-    var(--background-color) 100%
-  );
-  border: 1px solid rgba(var(--border-color-rgb), 0.5);
-  border-radius: $border-radius-lg;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  max-width: 800px;
-  width: 100%;
-  max-height: 90vh;
   overflow-y: auto;
-  position: relative;
-  animation: slideUp 0.3s ease;
-  pointer-events: auto;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.host-modal-header {
-  @include flex-between;
-  padding: $spacing-xl;
-  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5);
-  position: sticky;
-  top: 0;
-  background: linear-gradient(135deg, 
-    var(--background-color-light) 0%,
-    var(--background-color) 100%
-  );
-  z-index: 10;
-
-  h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin: 0;
-  }
-}
-
-.host-modal-close {
-  padding: $spacing-xs;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all $transition-fast;
-  border-radius: $border-radius-sm;
-  @include flex-center;
-
-  &:hover {
-    background: rgba(var(--primary-color-rgb), 0.1);
-    color: var(--primary-color);
-    transform: rotate(90deg);
-  }
-}
-
-.host-modal-body {
-  padding: $spacing-xl;
 }
 
 .host-detail-section {
