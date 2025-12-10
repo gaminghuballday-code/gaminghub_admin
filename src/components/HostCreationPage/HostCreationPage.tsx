@@ -349,7 +349,6 @@ const HostCreationPage: React.FC = () => {
                   <p>No statistics available for this host.</p>
                 </div>
               )}
-            </div>
           </div>
         </Modal>
       )}
