@@ -204,9 +204,9 @@ export const signInWithGoogle = async (clientId: string): Promise<{ idToken: str
               // Note: OAuth2 token client returns access_token, not credential
               // We need to use this token to get user info from Google's userinfo endpoint
               // For now, resolve with access_token as idToken (backend should handle this)
-              resolve({
+                resolve({
                 idToken: response.access_token,
-              });
+                });
             } else {
               reject(new Error('No access token received'));
             }
