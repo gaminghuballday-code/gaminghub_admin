@@ -49,32 +49,38 @@ export const isAdminDomain = (): boolean => {
   if (modeParam === 'admin') return true;
   if (modeParam === 'user') return false;
   
-  // Check environment variable for admin domain
-  const adminDomain = import.meta.env.VITE_ADMIN_DOMAIN || 'admin';
-  const userDomain = import.meta.env.VITE_USER_DOMAIN || '';
+  // Get domain configuration from environment variables
+  const adminSubdomain = import.meta.env.VITE_ADMIN_DOMAIN || 'admin';
+  const userDomain = import.meta.env.VITE_USER_DOMAIN || 'gaminghuballday.buzz';
   
-  // If user domain is set and current hostname matches it, return false (user app)
-  if (userDomain && hostname === userDomain) {
-    return false;
-  }
-  
-  // Check if hostname starts with admin subdomain or contains admin
-  if (hostname.startsWith(`${adminDomain}.`) || hostname.includes(adminDomain)) {
-    return true;
-  }
-  
-  // For localhost: default to user app unless explicitly set to admin
+  // For localhost: check localStorage preference first
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Check if there's a localStorage preference
     const savedMode = localStorage.getItem('app_mode');
     if (savedMode === 'admin') return true;
     if (savedMode === 'user') return false;
-    
     // Default to user app on localhost (can be changed via ?mode=admin)
     return false;
   }
   
-  // Production: if hostname doesn't match admin domain, it's user app
+  // Explicitly check if hostname is admin subdomain (e.g., admin.gaminghuballday.buzz)
+  // Pattern: adminSubdomain.userDomain or adminSubdomain.anything
+  if (adminSubdomain && hostname.startsWith(`${adminSubdomain}.`)) {
+    return true; // Admin app
+  }
+  
+  // Explicitly check if hostname matches user domain exactly (e.g., gaminghuballday.buzz)
+  // This takes priority - if it matches user domain, it's user app
+  if (userDomain && hostname === userDomain) {
+    return false; // User app
+  }
+  
+  // If hostname ends with user domain (e.g., www.gaminghuballday.buzz), it's user app
+  // But exclude admin subdomain (already checked above)
+  if (userDomain && hostname.endsWith(`.${userDomain}`) && !hostname.startsWith(`${adminSubdomain}.`)) {
+    return false; // User app
+  }
+  
+  // Default: if hostname doesn't match admin subdomain pattern, it's user app
   return false;
 };
 

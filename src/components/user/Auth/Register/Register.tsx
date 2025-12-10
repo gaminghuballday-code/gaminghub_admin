@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { animate, stagger } from 'animejs';
 import { useRegisterLogic } from './Register.logic';
 import { USER_ROUTES } from '@utils/constants';
@@ -19,7 +19,6 @@ const UserRegister: React.FC = () => {
     handleGoogleLogin,
   } = useRegisterLogic();
 
-  const navigate = useNavigate();
   const leftSideRef = useRef<HTMLDivElement>(null);
   const rightSideRef = useRef<HTMLDivElement>(null);
 

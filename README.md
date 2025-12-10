@@ -130,6 +130,77 @@ npm run build
 npm run preview
 ```
 
+## Vercel Deployment
+
+### Single Codebase for Admin and User Apps
+
+This project uses a single codebase that automatically detects which app to load based on the domain:
+
+- **Admin App**: Loads on `admin.gaminghuballday.buzz` (or subdomain matching `VITE_ADMIN_DOMAIN`)
+- **User App**: Loads on `gaminghuballday.buzz` (or domain matching `VITE_USER_DOMAIN`)
+
+### Setup Instructions for Vercel
+
+#### Option 1: Single Vercel Project (Recommended)
+
+1. **Deploy to Vercel** with your main domain (e.g., `gaminghuballday.buzz`)
+
+2. **Set Environment Variables in Vercel Dashboard**:
+   ```
+   VITE_API_BASE_URL=https://api.gaminghuballday.buzz
+   VITE_ADMIN_DOMAIN=admin
+   VITE_USER_DOMAIN=gaminghuballday.buzz
+   ```
+
+3. **Add Domain Aliases**:
+   - Main domain: `gaminghuballday.buzz` → User App
+   - Subdomain: `admin.gaminghuballday.buzz` → Admin App
+
+4. **Domain Detection Logic**:
+   - If hostname starts with `admin.` → Admin App
+   - If hostname matches `gaminghuballday.buzz` → User App
+   - Default → User App
+
+#### Option 2: Separate Vercel Projects
+
+If you prefer separate deployments:
+
+**Admin Project:**
+- Domain: `admin.gaminghuballday.buzz`
+- Environment Variables:
+  ```
+  VITE_API_BASE_URL=https://api.gaminghuballday.buzz
+  VITE_ADMIN_DOMAIN=admin
+  VITE_USER_DOMAIN=gaminghuballday.buzz
+  ```
+
+**User Project:**
+- Domain: `gaminghuballday.buzz`
+- Environment Variables:
+  ```
+  VITE_API_BASE_URL=https://api.gaminghuballday.buzz
+  VITE_ADMIN_DOMAIN=admin
+  VITE_USER_DOMAIN=gaminghuballday.buzz
+  ```
+
+### Troubleshooting
+
+**Issue**: User domain showing admin UI
+
+**Solution**: 
+1. Check Vercel environment variables:
+   - `VITE_USER_DOMAIN` should be set to `gaminghuballday.buzz`
+   - `VITE_ADMIN_DOMAIN` should be set to `admin`
+2. Rebuild the project after setting environment variables
+3. Clear browser cache and hard refresh
+
+**Issue**: Admin domain showing user UI
+
+**Solution**:
+1. Ensure admin subdomain is configured: `admin.gaminghuballday.buzz`
+2. Check that `VITE_ADMIN_DOMAIN=admin` is set
+3. Verify domain alias in Vercel dashboard
+
 ## API Integration
 
 The project is configured to work with the BooyahX Backend API:
