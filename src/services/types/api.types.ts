@@ -37,6 +37,16 @@ export interface GoogleLoginRequest {
   name?: string;
 }
 
+export interface UpdateProfileRequest {
+  name?: string;
+  age?: number;
+  gender?: string;
+  ign?: string;
+  paymentMethod?: string;
+  phoneNumber?: string;
+  paymentUPI?: string;
+}
+
 export interface CsrfTokenResponse {
   csrfToken: string;
   message?: string;
@@ -59,6 +69,12 @@ export interface User {
   isBlocked?: boolean;
   _id?: string;
   createdAt?: string;
+  age?: number;
+  gender?: string;
+  ign?: string;
+  paymentMethod?: string;
+  phoneNumber?: string;
+  paymentUPI?: string;
 }
 
 // Health Check Types

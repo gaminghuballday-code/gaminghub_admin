@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, AuthResponse, CsrfTokenResponse } from '../types/api.types';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, AuthResponse, CsrfTokenResponse, UpdateProfileRequest } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
 import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
@@ -134,8 +134,16 @@ export const authApi = {
    * Get current user profile
    */
   getProfile: async (): Promise<AuthResponse['user']> => {
-    const response = await apiClient.get<AuthResponse['user']>('/api/auth/profile');
-    return response.data;
+    const response = await apiClient.get<{ data: AuthResponse['user'] }>('/api/profile');
+    return response.data.data;
+  },
+
+  /**
+   * Update current user profile
+   */
+  updateProfile: async (data: { name?: string }): Promise<AuthResponse['user']> => {
+    const response = await apiClient.put<{ data: AuthResponse['user'] }>('/api/profile', data);
+    return response.data.data;
   },
 };
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authApi, type AuthResponse, type LoginRequest, type RegisterRequest, type ForgotPasswordRequest } from '../index';
+import { authApi, type AuthResponse, type LoginRequest, type RegisterRequest, type ForgotPasswordRequest, type UpdateProfileRequest } from '../index';
 import { useAppDispatch } from '@store/hooks';
 import { setCredentials, setUser, logout as logoutAction } from '@store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
@@ -176,5 +176,31 @@ export const useUserProfile = (enabled = true) => {
   }, [query.data, dispatch]);
 
   return query;
+};
+
+/**
+ * Hook for updating user profile mutation
+ */
+export const useUpdateProfile = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileRequest) => authApi.updateProfile(data),
+    onSuccess: (data: AuthResponse['user']) => {
+      // Update Redux store with updated user data
+      dispatch(setUser(data));
+      
+      // Invalidate and refetch profile
+      queryClient.invalidateQueries({ queryKey: userAuthKeys.profile() });
+      
+      // Show success message
+      dispatch(addToast({
+        message: 'Profile updated successfully!',
+        type: 'success',
+        duration: 4000,
+      }));
+    },
+  });
 };
 
