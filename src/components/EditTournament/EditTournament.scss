@@ -45,7 +45,6 @@
   display: flex;
   flex-direction: column;
   pointer-events: auto;
-}
 
   &::before {
     content: '';
@@ -57,7 +56,7 @@
     background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
     z-index: 1;
   }
-
+}
 
 @keyframes slideUp {
   from {
