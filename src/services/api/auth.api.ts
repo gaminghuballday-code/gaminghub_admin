@@ -22,7 +22,7 @@ export const authApi = {
       }
       
       // Store CSRF token in localStorage
-      localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
+        localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
       
       return csrfToken;
     } catch (error: any) {

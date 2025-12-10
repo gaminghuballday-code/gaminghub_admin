@@ -145,7 +145,7 @@ export const useGoogleLogin = () => {
       
       // Show success message
       dispatch(addToast({
-        message: 'Successfully signed in with Google!',
+        message: data.message ?? 'Successfully signed in with Google!',
         type: 'success',
         duration: 4000,
       }));
