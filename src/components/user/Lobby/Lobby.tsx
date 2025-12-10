@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useJoinedTournaments, useUpdateRoomForUser } from '@services/api/hooks';
+import { useJoinedTournaments, useUpdateRoomForUser, useApplyRoomUpdate } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import type { Tournament, UpdateRoomRequest } from '@services/api';
@@ -15,17 +15,62 @@ const UserLobby: React.FC = () => {
   const { data: joinedTournaments = [], isLoading, error, refetch: refetchJoined } = useJoinedTournaments();
   const user = useAppSelector(selectUser);
   const updateRoomMutation = useUpdateRoomForUser();
+  const applyRoomUpdateMutation = useApplyRoomUpdate();
   const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
   const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
+  const [applyingTournamentId, setApplyingTournamentId] = useState<string | null>(null);
 
-  // Check if user is host or admin for a tournament
+  // Check if user is host
+  const isHostUser = user?.role === 'host';
+  
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
+
+  // Check if user can update room (assigned host with permission, or admin)
   const canUpdateRoom = (tournament: Tournament): boolean => {
     if (!user) return false;
     const userId = user._id || user.userId;
     const tournamentHostId = tournament.hostId;
-    const isHost = tournamentHostId && (tournamentHostId === userId);
-    const isAdmin = user.role === 'admin';
-    return isHost || isAdmin;
+    const isAssignedHost = tournamentHostId && (tournamentHostId === userId);
+    
+    // Admin can always update
+    if (isAdmin) return true;
+    
+    // Host needs to be assigned AND have permission
+    if (isHostUser && isAssignedHost) {
+      return tournament.roomUpdatePermission === true;
+    }
+    
+    return false;
+  };
+
+  // Check if host can apply for permission
+  const canApplyForRoomUpdate = (tournament: Tournament): boolean => {
+    if (!isHostUser || !user) return false;
+    const userId = user._id || user.userId;
+    const tournamentHostId = tournament.hostId;
+    const isAssignedHost = tournamentHostId && (tournamentHostId === userId);
+    
+    // Can apply if: is assigned host AND (no permission yet OR application is rejected)
+    if (isAssignedHost) {
+      const hasPermission = tournament.roomUpdatePermission === true;
+      const applicationStatus = tournament.roomUpdateApplicationStatus;
+      return !hasPermission && applicationStatus !== 'pending';
+    }
+    
+    return false;
+  };
+
+  const handleApplyRoomUpdate = async (tournamentId: string) => {
+    setApplyingTournamentId(tournamentId);
+    try {
+      await applyRoomUpdateMutation.mutateAsync({ tournamentId });
+      await refetchJoined();
+    } catch (error: any) {
+      console.error('Failed to apply for room update:', error);
+    } finally {
+      setApplyingTournamentId(null);
+    }
   };
 
   const handleUpdateRoom = (tournament: Tournament) => {
@@ -166,6 +211,20 @@ const UserLobby: React.FC = () => {
                           disabled={updateRoomMutation.isPending}
                         >
                           {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
+                        </button>
+                      )}
+                      {canApplyForRoomUpdate(tournament) && (
+                        <button
+                          className="tournament-join-button tournament-apply-button"
+                          onClick={() => handleApplyRoomUpdate(tournament._id || tournament.id || '')}
+                          disabled={applyingTournamentId === (tournament._id || tournament.id)}
+                        >
+                          {applyingTournamentId === (tournament._id || tournament.id) ? 'Applying...' : 'Apply for Room Update'}
+                        </button>
+                      )}
+                      {tournament.roomUpdateApplicationStatus === 'pending' && (
+                        <button className="tournament-join-button tournament-pending-button" disabled>
+                          Application Pending
                         </button>
                       )}
                     </div>

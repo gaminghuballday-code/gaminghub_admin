@@ -5,6 +5,7 @@ import {
   type UpdateTournamentRequest,
   type UpdateRoomRequest,
   type JoinTournamentRequest,
+  type ApplyRoomUpdateRequest,
 } from '../index';
 
 // Query keys
@@ -128,6 +129,21 @@ export const useJoinedTournaments = (enabled = true) => {
     queryKey: tournamentsKeys.joined(),
     queryFn: () => tournamentsApi.getJoinedTournaments(),
     enabled,
+  });
+};
+
+/**
+ * Hook for applying room update permission (Host only)
+ */
+export const useApplyRoomUpdate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ApplyRoomUpdateRequest) => tournamentsApi.applyRoomUpdate(data),
+    onSuccess: () => {
+      // Invalidate joined tournaments to refresh permission status
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.joined() });
+    },
   });
 };
 

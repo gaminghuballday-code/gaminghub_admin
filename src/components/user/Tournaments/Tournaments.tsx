@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useUserTournaments, useJoinTournament, useJoinedTournaments } from '@services/api/hooks';
+import { useAppSelector } from '@store/hooks';
+import { selectUser } from '@store/slices/authSlice';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
@@ -9,8 +11,12 @@ import './Tournaments.scss';
 const UserTournaments: React.FC = () => {
   const { data: tournaments = [], isLoading, error } = useUserTournaments();
   const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments();
+  const user = useAppSelector(selectUser);
   const joinTournamentMutation = useJoinTournament();
   const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
+
+  // Check if user is host - hosts should not see join button
+  const isHost = user?.role === 'host';
 
   // Create a Set of joined tournament IDs for quick lookup
   const joinedTournamentIds = new Set(
@@ -129,21 +135,23 @@ const UserTournaments: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <div className="tournament-actions">
-                      {isJoined(tournament._id || tournament.id || '') ? (
-                        <button className="tournament-join-button tournament-joined-button" disabled>
-                          Joined
-                        </button>
-                      ) : (
-                        <button
-                          className="tournament-join-button"
-                          onClick={() => handleJoinTournament(tournament._id || tournament.id || '')}
-                          disabled={isJoining(tournament._id || tournament.id || '')}
-                        >
-                          {isJoining(tournament._id || tournament.id || '') ? 'Joining...' : 'Join'}
-                        </button>
-                      )}
-                    </div>
+                    {!isHost && (
+                      <div className="tournament-actions">
+                        {isJoined(tournament._id || tournament.id || '') ? (
+                          <button className="tournament-join-button tournament-joined-button" disabled>
+                            Joined
+                          </button>
+                        ) : (
+                          <button
+                            className="tournament-join-button"
+                            onClick={() => handleJoinTournament(tournament._id || tournament.id || '')}
+                            disabled={isJoining(tournament._id || tournament.id || '')}
+                          >
+                            {isJoining(tournament._id || tournament.id || '') ? 'Joining...' : 'Join'}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

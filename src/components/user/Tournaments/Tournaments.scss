@@ -226,6 +226,32 @@
       box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
     }
   }
+
+  &.tournament-apply-button {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+    border-color: rgba(59, 130, 246, 0.5);
+    color: #3b82f6;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+      border-color: #3b82f6;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+  }
+
+  &.tournament-pending-button {
+    background: rgba(107, 114, 128, 0.1);
+    border-color: rgba(107, 114, 128, 0.5);
+    color: #6b7280;
+    cursor: default;
+
+    &:hover {
+      background: rgba(107, 114, 128, 0.1);
+      border-color: rgba(107, 114, 128, 0.5);
+      transform: none;
+      box-shadow: none;
+    }
+  }
 }
 
 .tournament-room {

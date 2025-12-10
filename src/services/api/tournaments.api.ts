@@ -31,6 +31,8 @@ export interface Tournament {
   joinedTeams?: number;
   availableTeams?: number;
   playersPerTeam?: number;
+  roomUpdatePermission?: boolean; // Whether host has permission to update room
+  roomUpdateApplicationStatus?: 'pending' | 'approved' | 'rejected'; // Host application status
 }
 
 export interface TournamentsListResponse {
@@ -100,6 +102,19 @@ export interface JoinedTournamentsResponse {
   message: string;
   data: {
     tournaments: Tournament[];
+  };
+}
+
+export interface ApplyRoomUpdateRequest {
+  tournamentId: string;
+}
+
+export interface ApplyRoomUpdateResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    applicationId?: string;
   };
 }
 
@@ -221,6 +236,15 @@ export const tournamentsApi = {
     }
     
     return [];
+  },
+
+  /**
+   * Apply for room update permission (Host only)
+   * @param data - Tournament ID to apply for
+   */
+  applyRoomUpdate: async (data: ApplyRoomUpdateRequest): Promise<ApplyRoomUpdateResponse> => {
+    const response = await apiClient.post<ApplyRoomUpdateResponse>('/api/tournament/apply-room-update', data);
+    return response.data;
   },
 };
 
