@@ -37,6 +37,11 @@ export interface GoogleLoginRequest {
   name?: string;
 }
 
+export interface CsrfTokenResponse {
+  csrfToken: string;
+  message?: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken?: string;

@@ -4,6 +4,7 @@ import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 import { useUserRegister, useGoogleLogin } from '@services/api/hooks/useUserAuthQueries';
 import { getGoogleIdToken } from '@utils/googleAuth';
+import { authApi } from '@services/api/auth.api';
 
 interface RegisterFormData extends RegisterRequest {
   confirmPassword?: string;
@@ -103,12 +104,26 @@ export const useRegisterLogic = () => {
       return;
     }
 
-    const { confirmPassword, ...registerData } = formData;
-    registerMutation.mutate(registerData, {
-      onError: () => {
-        // Error will be handled by API interceptor and shown via toaster
-      },
-    });
+    try {
+      // Fetch CSRF token before registration
+      await authApi.getCsrfToken();
+      
+      const { confirmPassword, ...registerData } = formData;
+      registerMutation.mutate(registerData, {
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+        },
+      });
+    } catch (error: any) {
+      // CSRF token fetch failed, but continue with registration anyway
+      console.warn('CSRF token fetch failed, continuing with registration:', error);
+      const { confirmPassword, ...registerData } = formData;
+      registerMutation.mutate(registerData, {
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+        },
+      });
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -125,6 +140,9 @@ export const useRegisterLogic = () => {
 
     setGoogleLoading(true);
     try {
+      // Fetch CSRF token before Google login
+      await authApi.getCsrfToken();
+      
       // Get Google ID token
       const { idToken, name } = await getGoogleIdToken(googleClientId);
       
@@ -139,11 +157,33 @@ export const useRegisterLogic = () => {
       });
     } catch (error: any) {
       setGoogleLoading(false);
-      dispatch(addToast({
-        message: error.message || 'Failed to sign in with Google',
-        type: 'error',
-        duration: 5000,
-      }));
+      // If CSRF token fetch failed, still try Google login
+      if (error.message?.includes('CSRF')) {
+        console.warn('CSRF token fetch failed, continuing with Google login');
+        try {
+          const { idToken, name } = await getGoogleIdToken(googleClientId);
+          googleLoginMutation.mutate({ idToken, name }, {
+            onError: () => {
+              setGoogleLoading(false);
+            },
+            onSuccess: () => {
+              setGoogleLoading(false);
+            },
+          });
+        } catch (googleError: any) {
+          dispatch(addToast({
+            message: googleError.message || 'Failed to sign in with Google',
+            type: 'error',
+            duration: 5000,
+          }));
+        }
+      } else {
+        dispatch(addToast({
+          message: error.message || 'Failed to sign in with Google',
+          type: 'error',
+          duration: 5000,
+        }));
+      }
     }
   };
 

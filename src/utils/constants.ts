@@ -34,6 +34,7 @@ export const ROUTES = ADMIN_ROUTES;
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
   USER: 'user',
+  CSRF_TOKEN: 'csrf_token',
 } as const;
 
 // Domain detection

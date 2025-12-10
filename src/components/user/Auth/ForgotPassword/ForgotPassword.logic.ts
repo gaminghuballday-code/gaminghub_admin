@@ -3,6 +3,7 @@ import type { ForgotPasswordRequest } from '@services/types/api.types';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 import { useForgotPassword } from '@services/api/hooks/useUserAuthQueries';
+import { authApi } from '@services/api/auth.api';
 
 export const useForgotPasswordLogic = () => {
   const dispatch = useAppDispatch();
@@ -54,14 +55,30 @@ export const useForgotPasswordLogic = () => {
       return;
     }
 
-    forgotPasswordMutation.mutate(formData, {
-      onSuccess: () => {
-        setSuccess(true);
-      },
-      onError: () => {
-        // Error will be handled by API interceptor and shown via toaster
-      },
-    });
+    try {
+      // Fetch CSRF token before forgot password request
+      await authApi.getCsrfToken();
+      
+      forgotPasswordMutation.mutate(formData, {
+        onSuccess: () => {
+          setSuccess(true);
+        },
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+        },
+      });
+    } catch (error: any) {
+      // CSRF token fetch failed, but continue with forgot password anyway
+      console.warn('CSRF token fetch failed, continuing with forgot password:', error);
+      forgotPasswordMutation.mutate(formData, {
+        onSuccess: () => {
+          setSuccess(true);
+        },
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+        },
+      });
+    }
   };
 
   return {

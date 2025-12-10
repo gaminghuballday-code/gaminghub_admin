@@ -9,11 +9,14 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  pointer-events: auto;
 }
 
 .update-room-modal-content {
@@ -25,6 +28,7 @@
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-color);
+  pointer-events: auto;
 }
 
 .update-room-modal-header {

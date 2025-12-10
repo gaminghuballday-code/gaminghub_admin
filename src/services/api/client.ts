@@ -4,6 +4,7 @@ import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, logout } from '../../store/slices/authSlice';
 import { addToast } from '../../store/slices/toastSlice';
+import { STORAGE_KEYS } from '../../utils/constants';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
 // This avoids CORS issues by making requests from the same origin
@@ -18,18 +19,43 @@ const pendingRequests = new Map<string, CancelTokenSource>();
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
+  withCredentials: true, // Enable sending cookies (for XSRF-TOKEN cookie)
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-  // Request interceptor - Add auth token, deduplicate requests, and show loading
+  // Request interceptor - Add auth token, CSRF token, deduplicate requests, and show loading
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const state = store.getState();
     const token = selectAccessToken(state);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Add CSRF token for state-changing requests (POST, PUT, DELETE, PATCH)
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      // Try to get CSRF token from localStorage first
+      let csrfToken = localStorage.getItem(STORAGE_KEYS.CSRF_TOKEN);
+      
+      // If not in localStorage, try to get from XSRF-TOKEN cookie (set by backend)
+      if (!csrfToken) {
+        const cookies = document.cookie.split(';');
+        const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
+        if (xsrfCookie) {
+          csrfToken = decodeURIComponent(xsrfCookie.split('=')[1]);
+          // Store in localStorage for future use
+          if (csrfToken) {
+            localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
+          }
+        }
+      }
+      
+      if (csrfToken && config.headers) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
     }
 
     // Request deduplication - cancel duplicate requests within 200ms
@@ -66,6 +92,22 @@ apiClient.interceptors.response.use(
     // Clean up pending request
     const requestKey = `${response.config.method?.toUpperCase()}_${response.config.url}`;
     pendingRequests.delete(requestKey);
+    
+    // Update CSRF token from response header or cookie if present
+    const csrfTokenFromHeader = response.headers['x-csrf-token'];
+    if (csrfTokenFromHeader) {
+      localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfTokenFromHeader);
+    } else {
+      // Also check for XSRF-TOKEN cookie (backend sets this)
+      const cookies = document.cookie.split(';');
+      const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
+      if (xsrfCookie) {
+        const csrfTokenFromCookie = decodeURIComponent(xsrfCookie.split('=')[1]);
+        if (csrfTokenFromCookie) {
+          localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfTokenFromCookie);
+        }
+      }
+    }
     
     // Show success toast if response has a message (exclude GET requests)
     // GET requests are usually just data fetching, so don't show success toasts

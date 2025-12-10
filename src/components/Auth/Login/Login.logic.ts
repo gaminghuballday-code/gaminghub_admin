@@ -3,6 +3,7 @@ import type { LoginRequest } from '@services/types/api.types';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 import { useLogin } from '@services/api/hooks';
+import { authApi } from '@services/api/auth.api';
 
 export const useLoginLogic = () => {
   const dispatch = useAppDispatch();
@@ -70,13 +71,27 @@ export const useLoginLogic = () => {
       return;
     }
 
-    // Use TanStack Query mutation
-    loginMutation.mutate(formData, {
-      onError: () => {
-        // Error will be handled by API interceptor and shown via toaster
-        // Only keep error state for validation errors (handled in validateForm)
-      },
-    });
+    try {
+      // Fetch CSRF token before login
+      await authApi.getCsrfToken();
+      
+      // Use TanStack Query mutation
+      loginMutation.mutate(formData, {
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+          // Only keep error state for validation errors (handled in validateForm)
+        },
+      });
+    } catch (error: any) {
+      // CSRF token fetch failed, but continue with login anyway
+      // (some backends might not require CSRF token)
+      console.warn('CSRF token fetch failed, continuing with login:', error);
+      loginMutation.mutate(formData, {
+        onError: () => {
+          // Error will be handled by API interceptor and shown via toaster
+        },
+      });
+    }
   };
 
   return {
