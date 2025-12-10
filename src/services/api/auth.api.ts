@@ -14,16 +14,18 @@ export const authApi = {
       const response = await apiClient.get<{ data: CsrfTokenResponse }>('/api/auth/csrf-token');
       const csrfToken = response.data.data.csrfToken;
       
-      // Store CSRF token in localStorage
-      if (csrfToken) {
-        localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
+      if (!csrfToken) {
+        throw new Error('CSRF token not received from server');
       }
+      
+      // Store CSRF token in localStorage
+      localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
       
       return csrfToken;
     } catch (error: any) {
       console.error('Failed to fetch CSRF token:', error);
-      // Return empty string if CSRF token fetch fails (some backends might not require it)
-      return '';
+      // Re-throw error so calling code can handle it properly
+      throw error;
     }
   },
   /**

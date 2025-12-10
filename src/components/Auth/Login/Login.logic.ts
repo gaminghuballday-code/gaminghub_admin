@@ -72,8 +72,19 @@ export const useLoginLogic = () => {
     }
 
     try {
-      // Fetch CSRF token before login
-      await authApi.getCsrfToken();
+      // Fetch CSRF token before login - REQUIRED
+      const csrfToken = await authApi.getCsrfToken();
+      
+      if (!csrfToken) {
+        const errorMsg = 'Failed to get CSRF token. Please try again.';
+        setError(errorMsg);
+        dispatch(addToast({
+          message: errorMsg,
+          type: 'error',
+          duration: 5000,
+        }));
+        return;
+      }
       
       // Use TanStack Query mutation
       loginMutation.mutate(formData, {
@@ -83,14 +94,17 @@ export const useLoginLogic = () => {
         },
       });
     } catch (error: any) {
-      // CSRF token fetch failed, but continue with login anyway
-      // (some backends might not require CSRF token)
-      console.warn('CSRF token fetch failed, continuing with login:', error);
-      loginMutation.mutate(formData, {
-        onError: () => {
-          // Error will be handled by API interceptor and shown via toaster
-        },
-      });
+      // CSRF token fetch failed - block login
+      const errorMsg = error?.response?.status === 404 
+        ? 'CSRF token endpoint not found. Please contact administrator.'
+        : 'Failed to get CSRF token. Please try again.';
+      setError(errorMsg);
+      dispatch(addToast({
+        message: errorMsg,
+        type: 'error',
+        duration: 5000,
+      }));
+      console.error('CSRF token fetch failed, login blocked:', error);
     }
   };
 
