@@ -12,6 +12,7 @@ export const ADMIN_ROUTES = {
   TOP_UP: '/top-up',
   HOST_CREATION: '/host-creation',
   USER_HISTORY: '/user-history',
+  ENQUIRIES: '/enquiries',
 } as const;
 
 // User Routes

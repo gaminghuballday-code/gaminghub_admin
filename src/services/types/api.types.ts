@@ -97,3 +97,48 @@ export interface InquiryResponse {
   success?: boolean;
 }
 
+// Admin Enquiry Types
+export interface Enquiry {
+  _id: string;
+  id?: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  replied?: boolean;
+  replyMessage?: string;
+  repliedAt?: string;
+  repliedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface EnquiryReplyRequest {
+  enquiryId: string;
+  replyMessage: string;
+}
+
+export interface EnquiryReplyResponse {
+  message: string;
+  success?: boolean;
+  data?: {
+    enquiry: Enquiry;
+  };
+}
+
+export interface EnquiriesListResponse {
+  status: string;
+  success: boolean;
+  message?: string;
+  data: {
+    enquiries: Enquiry[];
+    total?: number;
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+

@@ -132,6 +132,19 @@ const Dashboard: React.FC = () => {
             <span className="nav-icon">📜</span>
             {sidebarOpen && <span className="nav-text">User History</span>}
           </Link>
+          <Link 
+            to={ROUTES.ENQUIRIES} 
+            className={`nav-item ${location.pathname === ROUTES.ENQUIRIES ? 'active' : ''}`}
+            onClick={(e) => {
+              // Prevent navigation if already on enquiries page
+              if (location.pathname === ROUTES.ENQUIRIES) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <span className="nav-icon">📧</span>
+            {sidebarOpen && <span className="nav-text">Enquiries</span>}
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
