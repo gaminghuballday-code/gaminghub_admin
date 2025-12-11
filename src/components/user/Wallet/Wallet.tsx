@@ -2,40 +2,131 @@ import { useState } from 'react';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
-import { useWalletBalance, useTopUpHistory, useTopUpWallet } from '@services/api/hooks/useWalletQueries';
+import { useWalletBalance, useTopUpHistory } from '@services/api/hooks/useWalletQueries';
+import { useCreatePaymentOrder, useVerifyPayment } from '@services/api/hooks/usePaymentQueries';
+import { useAppSelector, useAppDispatch } from '@store/hooks';
+import { selectUser } from '@store/slices/authSlice';
+import { addToast } from '@store/slices/toastSlice';
 import type { TopUpHistoryItem } from '@services/api/wallet.api';
 import './Wallet.scss';
 
 const UserWallet: React.FC = () => {
   const { data: balance, isLoading: balanceLoading, refetch: refetchBalance } = useWalletBalance();
   const { data: history, isLoading: historyLoading } = useTopUpHistory();
-  const topUpMutation = useTopUpWallet();
+  const createOrderMutation = useCreatePaymentOrder();
+  const verifyPaymentMutation = useVerifyPayment();
+  const user = useAppSelector(selectUser);
+  const dispatch = useAppDispatch();
 
   const [topUpAmount, setTopUpAmount] = useState('');
-  const [topUpDescription, setTopUpDescription] = useState('');
   const [showTopUpForm, setShowTopUpForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleTopUp = async (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseFloat(topUpAmount);
+    const amountINR = parseFloat(topUpAmount);
     
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amountINR) || amountINR < 1) {
       return;
     }
 
-    topUpMutation.mutate(
-      {
-        amountGC: amount,
-        description: topUpDescription.trim() || undefined,
-      },
-      {
-        onSuccess: () => {
-          setTopUpAmount('');
-          setTopUpDescription('');
-          setShowTopUpForm(false);
-        },
+    setIsProcessing(true);
+
+    try {
+      // Step 1: Create order from backend
+      const orderResult = await createOrderMutation.mutateAsync({
+        amountINR: amountINR,
+      });
+
+      if (!orderResult.success || !orderResult.data) {
+        throw new Error(orderResult.message || 'Failed to create order');
       }
-    );
+
+      const orderData = orderResult.data;
+
+      // Step 2: Initialize Razorpay
+      if (!window.Razorpay && !(window as any).Razorpay) {
+        throw new Error('Razorpay SDK not loaded. Please refresh the page.');
+      }
+
+      const Razorpay = window.Razorpay || (window as any).Razorpay;
+
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount, // Amount in paise
+        currency: orderData.currency, // INR
+        name: 'BooyahX Gaming',
+        description: `Top-up ${orderData.amountGC} GC`,
+        order_id: orderData.orderId,
+        
+        // Handler function - called when payment is successful
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            // Step 3: Verify payment on backend
+            await verifyPaymentMutation.mutateAsync({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            // Refresh wallet balance and history
+            refetchBalance();
+            
+            // Reset form
+            setTopUpAmount('');
+            setShowTopUpForm(false);
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            // Error toast is handled by the hook
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        
+        // Prefill user details
+        prefill: {
+          email: orderData.prefill?.email || user?.email || '',
+          name: orderData.prefill?.name || user?.name || '',
+        },
+        
+        // Theme customization
+        theme: {
+          color: '#3399cc',
+        },
+        
+        // Modal settings
+        modal: {
+          ondismiss: () => {
+            // User closed the payment modal
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      // Create Razorpay instance and open checkout
+      const razorpay = new Razorpay(options);
+      razorpay.open();
+
+      // Handle payment failure
+      razorpay.on('payment.failed', (response) => {
+        console.error('Payment failed:', response.error);
+        setIsProcessing(false);
+        dispatch(addToast({
+          message: `Payment failed: ${response.error.description || 'Please try again.'}`,
+          type: 'error',
+          duration: 6000,
+        }));
+      });
+
+    } catch (error: any) {
+      console.error('Payment initiation error:', error);
+      setIsProcessing(false);
+      // Error toast is handled by API interceptor
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -121,12 +212,12 @@ const UserWallet: React.FC = () => {
               )}
             </div>
 
-            {/* Top Up Form */}
+            {/* Top Up Form - Razorpay Payment */}
             {showTopUpForm && (
-              <form className="topup-form" onSubmit={handleTopUp}>
+              <form className="topup-form" onSubmit={handlePayment}>
                 <div className="form-group">
                   <label htmlFor="amount" className="form-label">
-                    Amount (GC)
+                    Amount (INR)
                   </label>
                   <input
                     type="number"
@@ -134,26 +225,15 @@ const UserWallet: React.FC = () => {
                     className="form-input"
                     value={topUpAmount}
                     onChange={(e) => setTopUpAmount(e.target.value)}
-                    placeholder="Enter amount"
+                    placeholder="Enter amount in INR (Minimum ₹1)"
                     min="1"
-                    step="0.01"
+                    step="1"
                     required
-                    disabled={topUpMutation.isPending}
+                    disabled={isProcessing || createOrderMutation.isPending}
                   />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="description" className="form-label">
-                    Description (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="description"
-                    className="form-input"
-                    value={topUpDescription}
-                    onChange={(e) => setTopUpDescription(e.target.value)}
-                    placeholder="Add description"
-                    disabled={topUpMutation.isPending}
-                  />
+                  <small className="form-hint">
+                    1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment.
+                  </small>
                 </div>
                 <div className="form-actions">
                   <button
@@ -162,18 +242,17 @@ const UserWallet: React.FC = () => {
                     onClick={() => {
                       setShowTopUpForm(false);
                       setTopUpAmount('');
-                      setTopUpDescription('');
                     }}
-                    disabled={topUpMutation.isPending}
+                    disabled={isProcessing || createOrderMutation.isPending}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     className="submit-button"
-                    disabled={topUpMutation.isPending || !topUpAmount || parseFloat(topUpAmount) <= 0}
+                    disabled={isProcessing || createOrderMutation.isPending || !topUpAmount || parseFloat(topUpAmount) < 1}
                   >
-                    {topUpMutation.isPending ? 'Processing...' : 'Top Up'}
+                    {isProcessing || createOrderMutation.isPending ? 'Processing...' : 'Pay Now'}
                   </button>
                 </div>
               </form>

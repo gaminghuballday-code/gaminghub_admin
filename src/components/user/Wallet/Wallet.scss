@@ -189,6 +189,13 @@
   }
 }
 
+.form-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: $spacing-xs;
+  line-height: 1.4;
+}
+
 .form-actions {
   display: flex;
   gap: $spacing-md;

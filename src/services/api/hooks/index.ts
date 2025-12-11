@@ -7,4 +7,5 @@ export * from './useTournamentsQueries';
 export * from './useLobbyQueries';
 export * from './useHealthQueries';
 export * from './useWalletQueries';
+export * from './usePaymentQueries';
 
