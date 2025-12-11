@@ -51,14 +51,20 @@ export const inquiryApi = {
       { params: queryParams }
     );
 
-    if (response.data?.data?.enquiries && Array.isArray(response.data.data.enquiries)) {
+    // API returns 'inquiries' (not 'enquiries') and pagination.totalItems
+    const inquiries = response.data?.data?.inquiries || response.data?.data?.enquiries;
+    
+    if (inquiries && Array.isArray(inquiries)) {
+      const pagination = response.data?.data?.pagination;
       return {
-        enquiries: response.data.data.enquiries.map((enquiry) => ({
+        enquiries: inquiries.map((enquiry) => ({
           ...enquiry,
           id: enquiry._id || enquiry.id,
+          // Determine replied status from repliedAt field
+          replied: enquiry.replied !== undefined ? enquiry.replied : !!enquiry.repliedAt,
         })),
-        total: response.data.data.total,
-        pagination: response.data.data.pagination,
+        total: pagination?.totalItems || response.data?.data?.total || inquiries.length,
+        pagination: pagination,
       };
     }
 

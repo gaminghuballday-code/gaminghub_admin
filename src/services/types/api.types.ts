@@ -127,17 +127,24 @@ export interface EnquiryReplyResponse {
 }
 
 export interface EnquiriesListResponse {
-  status: string;
+  status: number;
   success: boolean;
   message?: string;
   data: {
-    enquiries: Enquiry[];
+    filters?: {
+      status?: string | null;
+      search?: string | null;
+    };
+    inquiries?: Enquiry[]; // API returns 'inquiries'
+    enquiries?: Enquiry[]; // Fallback for backwards compatibility
     total?: number;
     pagination?: {
-      page: number;
-      limit: number;
-      total: number;
+      currentPage: number;
       totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
     };
   };
 }

@@ -43,8 +43,12 @@ export const useEnquiriesPageLogic = () => {
   } = useEnquiries(queryParams, isAuthenticated);
   
   const enquiries = enquiriesData?.enquiries || [];
-  const totalEnquiries = enquiriesData?.total || 0;
-  const totalPages = Math.ceil(totalEnquiries / pageLimit);
+  // Use pagination from API if available, otherwise calculate
+  const pagination = enquiriesData?.pagination;
+  const totalEnquiries = pagination?.totalItems || enquiriesData?.total || 0;
+  const totalPages = pagination?.totalPages || Math.ceil(totalEnquiries / pageLimit);
+  const hasNextPage = pagination?.hasNextPage ?? (currentPage < totalPages);
+  const hasPrevPage = pagination?.hasPrevPage ?? (currentPage > 1);
   
   const replyMutation = useReplyToEnquiry();
   
@@ -121,6 +125,8 @@ export const useEnquiriesPageLogic = () => {
     totalEnquiries,
     currentPage,
     totalPages,
+    hasNextPage,
+    hasPrevPage,
     pageLimit,
     repliedFilter,
     subjectFilter,

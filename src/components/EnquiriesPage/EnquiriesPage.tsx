@@ -16,6 +16,8 @@ const EnquiriesPage: React.FC = () => {
     totalEnquiries,
     currentPage,
     totalPages,
+    hasNextPage,
+    hasPrevPage,
     // pageLimit,
     repliedFilter,
     subjectFilter,
@@ -239,7 +241,7 @@ const EnquiriesPage: React.FC = () => {
                 ))}
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {totalPages > 0 && (
                   <div className="pagination">
                     <div className="pagination-info">
                       Page {currentPage} of {totalPages} ({totalEnquiries} total)
@@ -248,14 +250,14 @@ const EnquiriesPage: React.FC = () => {
                       <button
                         className="pagination-button"
                         onClick={handlePreviousPage}
-                        disabled={currentPage === 1}
+                        disabled={!hasPrevPage}
                       >
                         Previous
                       </button>
                       <button
                         className="pagination-button"
                         onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
+                        disabled={!hasNextPage}
                       >
                         Next
                       </button>
