@@ -640,7 +640,6 @@ const Dashboard: React.FC = () => {
           </div>
         </aside>
       )}
-
     </div>
   );
 };

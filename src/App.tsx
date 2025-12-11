@@ -4,7 +4,8 @@ import ProtectedRoute from '@components/common/ProtectedRoute';
 import Loading from '@components/common/Loading';
 import GlobalLoader from '@components/common/GlobalLoader';
 import Toaster from '@components/common/Toaster';
-import { ROUTES } from '@utils/constants';
+import Layout from '@components/common/Layout';
+import { ROUTES, STATIC_ROUTES } from '@utils/constants';
 
 // Code splitting with lazy loading
 const Login = lazy(() => import('@components/Auth/Login/Login'));
@@ -16,13 +17,21 @@ const TopUpPage = lazy(() => import('@components/TopUpPage/TopUpPage'));
 const HostCreationPage = lazy(() => import('@components/HostCreationPage/HostCreationPage'));
 const UserHistoryPage = lazy(() => import('@components/UserHistoryPage/UserHistoryPage'));
 
+// Static pages (public - no authentication required)
+const CancellationRefunds = lazy(() => import('@components/common/StaticPages/CancellationRefunds'));
+const TermsConditions = lazy(() => import('@components/common/StaticPages/TermsConditions'));
+const Shipping = lazy(() => import('@components/common/StaticPages/Shipping'));
+const Privacy = lazy(() => import('@components/common/StaticPages/Privacy'));
+const ContactUs = lazy(() => import('@components/common/StaticPages/ContactUs'));
+
 function App() {
   return (
     <BrowserRouter>
       <GlobalLoader />
       <Toaster />
-      <Suspense fallback={<Loading />}>
-        <Routes>
+      <Layout>
+        <Suspense fallback={<Loading />}>
+          <Routes>
           <Route path={ROUTES.LOGIN} element={<Login />} />
           <Route
             path={ROUTES.DASHBOARD}
@@ -80,10 +89,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* Static pages - public access */}
+          <Route path={STATIC_ROUTES.CANCELLATION_REFUNDS} element={<CancellationRefunds />} />
+          <Route path={STATIC_ROUTES.TERMS_CONDITIONS} element={<TermsConditions />} />
+          <Route path={STATIC_ROUTES.SHIPPING} element={<Shipping />} />
+          <Route path={STATIC_ROUTES.PRIVACY} element={<Privacy />} />
+          <Route path={STATIC_ROUTES.CONTACT_US} element={<ContactUs />} />
           <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-        </Routes>
-      </Suspense>
+          </Routes>
+        </Suspense>
+      </Layout>
     </BrowserRouter>
   );
 }

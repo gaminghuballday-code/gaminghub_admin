@@ -28,6 +28,15 @@ export const USER_ROUTES = {
   WALLET: '/wallet',
 } as const;
 
+// Static Pages (Public - accessible from both admin and user)
+export const STATIC_ROUTES = {
+  CANCELLATION_REFUNDS: '/cancellation-refunds',
+  TERMS_CONDITIONS: '/terms-conditions',
+  SHIPPING: '/shipping',
+  PRIVACY: '/privacy',
+  CONTACT_US: '/contact-us',
+} as const;
+
 // Legacy ROUTES for backward compatibility (admin routes)
 export const ROUTES = ADMIN_ROUTES;
 

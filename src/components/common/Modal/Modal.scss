@@ -21,7 +21,7 @@
   animation: modalFadeIn 0.3s ease;
   pointer-events: auto;
   padding: $spacing-lg;
-  overflow-y: auto;
+  overflow: hidden;
   // Ensure modal is on top of everything
   isolation: isolate;
 }

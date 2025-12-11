@@ -9,6 +9,7 @@
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
+  padding-bottom: 200px; // Space for footer
 }
 
 .user-content {
@@ -19,6 +20,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: $spacing-lg;
+  padding-bottom: calc(#{$spacing-lg} + 200px); // Extra padding for footer
 }
 
 .wallet-card {
@@ -187,6 +189,24 @@
   &::placeholder {
     color: var(--text-secondary);
   }
+
+  // Hide number input arrows (for any number inputs that might be used)
+  &[type="number"] {
+    -moz-appearance: textfield;
+    
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
 }
 
 .form-hint {

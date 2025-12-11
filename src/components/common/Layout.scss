@@ -1,0 +1,26 @@
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+
+.app-content {
+  width: 100%;
+  min-height: 0;
+}
+
+.app-footer-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  
+  &.has-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 250px;
+    right: 0;
+    width: calc(100% - 250px);
+    
+    @media (max-width: 768px) {
+      left: 70px;
+      width: calc(100% - 70px);
+    }
+  }
+}

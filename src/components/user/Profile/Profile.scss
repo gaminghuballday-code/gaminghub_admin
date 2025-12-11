@@ -9,6 +9,7 @@
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
+  padding-bottom: 200px; // Space for footer
 }
 
 .profile-loading {
@@ -186,8 +187,6 @@
   @include flex-column;
   gap: $spacing-lg;
   min-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
 
   @media (max-width: 480px) {
     min-width: 100%;

@@ -21,14 +21,33 @@ const UserWallet: React.FC = () => {
   const [topUpAmount, setTopUpAmount] = useState('');
   const [showTopUpForm, setShowTopUpForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [amountError, setAmountError] = useState('');
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Allow only numbers (positive integers)
+    const numericValue = value.replace(/[^0-9]/g, '');
+    
+    if (value !== numericValue) {
+      setAmountError('Only numbers are allowed');
+    } else {
+      setAmountError('');
+    }
+    
+    setTopUpAmount(numericValue);
+  };
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const amountINR = parseFloat(topUpAmount);
     
-    if (isNaN(amountINR) || amountINR < 1) {
+    if (isNaN(amountINR) || amountINR < 50) {
+      setAmountError('Minimum top-up amount is ₹50');
       return;
     }
+    
+    setAmountError('');
 
     setIsProcessing(true);
 
@@ -78,6 +97,7 @@ const UserWallet: React.FC = () => {
             
             // Reset form
             setTopUpAmount('');
+            setAmountError('');
             setShowTopUpForm(false);
           } catch (error) {
             console.error('Payment verification error:', error);
@@ -220,19 +240,24 @@ const UserWallet: React.FC = () => {
                     Amount (INR)
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     id="amount"
                     className="form-input"
                     value={topUpAmount}
-                    onChange={(e) => setTopUpAmount(e.target.value)}
-                    placeholder="Enter amount in INR (Minimum ₹1)"
-                    min="1"
-                    step="1"
+                    onChange={handleAmountChange}
+                    placeholder="Enter amount in INR (Minimum ₹50)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     required
                     disabled={isProcessing || createOrderMutation.isPending}
                   />
+                  {amountError && (
+                    <small className="form-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '4px' }}>
+                      {amountError}
+                    </small>
+                  )}
                   <small className="form-hint">
-                    1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment.
+                    1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment. Minimum top-up: ₹50
                   </small>
                 </div>
                 <div className="form-actions">
@@ -242,6 +267,7 @@ const UserWallet: React.FC = () => {
                     onClick={() => {
                       setShowTopUpForm(false);
                       setTopUpAmount('');
+                      setAmountError('');
                     }}
                     disabled={isProcessing || createOrderMutation.isPending}
                   >
@@ -250,7 +276,7 @@ const UserWallet: React.FC = () => {
                   <button
                     type="submit"
                     className="submit-button"
-                    disabled={isProcessing || createOrderMutation.isPending || !topUpAmount || parseFloat(topUpAmount) < 1}
+                    disabled={isProcessing || createOrderMutation.isPending || !topUpAmount || parseFloat(topUpAmount) < 50 || !!amountError}
                   >
                     {isProcessing || createOrderMutation.isPending ? 'Processing...' : 'Pay Now'}
                   </button>

@@ -10,6 +10,7 @@
     var(--background-color) 100%
   );
   position: relative;
+  padding-bottom: 200px; // Space for footer
 }
 
 .dashboard-sidebar {
@@ -189,9 +190,18 @@
   margin-left: 250px;
   transition: margin-left $transition-normal;
   min-height: 100vh;
+  width: calc(100% - 250px);
+  max-width: 100%;
+  overflow-x: hidden;
 
   .closed ~ & {
     margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+
+  @media (max-width: 768px) {
+    margin-left: 70px;
+    width: calc(100% - 70px);
   }
 }
 
