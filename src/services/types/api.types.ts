@@ -84,3 +84,16 @@ export interface HealthResponse {
   uptime?: number;
 }
 
+// Inquiry Types
+export interface InquiryRequest {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export interface InquiryResponse {
+  message: string;
+  success?: boolean;
+}
+

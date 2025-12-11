@@ -1,9 +1,13 @@
+import BackButton from '../BackButton';
 import './StaticPages.scss';
 
 const Privacy: React.FC = () => {
   return (
     <div className="static-page-container">
       <div className="static-page-content">
+        <div className="static-page-header">
+          <BackButton />
+        </div>
         <h1 className="static-page-title">Privacy Policy</h1>
         
         <section className="static-page-section">

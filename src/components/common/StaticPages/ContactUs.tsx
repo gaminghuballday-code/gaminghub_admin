@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { inquiryApi } from '../../../services/api';
+import BackButton from '../BackButton';
 import './StaticPages.scss';
 
 const ContactUs: React.FC = () => {
@@ -9,6 +11,8 @@ const ContactUs: React.FC = () => {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -16,22 +20,36 @@ const ContactUs: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log('Contact form submitted:', formData);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      await inquiryApi.submitInquiry(formData);
     setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 5000);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to submit inquiry. Please try again.');
+      console.error('Error submitting inquiry:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="static-page-container">
         <div className="static-page-content">
+        <div className="static-page-header">
+          <BackButton />
+        </div>
         <h1 className="static-page-title">Contact Us</h1>
         
         <section className="static-page-section">
@@ -68,6 +86,11 @@ const ContactUs: React.FC = () => {
             </div>
           ) : (
             <form className="contact-form" onSubmit={handleSubmit}>
+              {error && (
+                <div className="contact-error">
+                  <p>{error}</p>
+                </div>
+              )}
               <div className="form-group">
                 <label htmlFor="name">Name *</label>
                 <input
@@ -126,8 +149,12 @@ const ContactUs: React.FC = () => {
                 />
               </div>
 
-              <button type="submit" className="contact-submit-button">
-                Send Message
+              <button 
+                type="submit" 
+                className="contact-submit-button"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           )}
