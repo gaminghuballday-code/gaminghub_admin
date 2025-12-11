@@ -60,6 +60,60 @@ export interface PaymentStatusResponse {
   };
 }
 
+// QR Code Payment Types
+export interface CreateQRCodeRequest {
+  amountINR: number; // Minimum 1 INR
+}
+
+export interface CreateQRCodeResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    qrCodeId: string;
+    qrCodeImage: string; // Base64 or URL of QR code image
+    amountINR: number;
+    amountGC: number;
+    expiresAt?: string;
+  };
+}
+
+export interface QRCodeStatusResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    qrCodeId: string;
+    status: string; // 'active', 'paid', 'closed', 'expired'
+    amountINR: number;
+    amountGC: number;
+    paymentId?: string;
+    paidAt?: string;
+    expiresAt?: string;
+  };
+}
+
+export interface QRCodePaymentsResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    payments: Array<{
+      paymentId: string;
+      amountINR: number;
+      amountGC: number;
+      status: string;
+      paidAt: string;
+    }>;
+  };
+}
+
+export interface CloseQRCodeResponse {
+  status: number;
+  success: boolean;
+  message: string;
+}
+
 export const paymentApi = {
   /**
    * Create payment order
@@ -85,6 +139,42 @@ export const paymentApi = {
    */
   getPaymentStatus: async (orderId: string): Promise<PaymentStatusResponse> => {
     const response = await apiClient.get<PaymentStatusResponse>(`/api/payment/status/${orderId}`);
+    return response.data;
+  },
+
+  /**
+   * Create Razorpay QR code for receiving payment
+   * @param data - QR code creation data (amountINR)
+   */
+  createQRCode: async (data: CreateQRCodeRequest): Promise<CreateQRCodeResponse> => {
+    const response = await apiClient.post<CreateQRCodeResponse>('/api/payment/create-qr', data);
+    return response.data;
+  },
+
+  /**
+   * Get QR code status and payments
+   * @param qrCodeId - QR code ID
+   */
+  getQRCodeStatus: async (qrCodeId: string): Promise<QRCodeStatusResponse> => {
+    const response = await apiClient.get<QRCodeStatusResponse>(`/api/payment/qr-status/${qrCodeId}`);
+    return response.data;
+  },
+
+  /**
+   * Fetch payments for a QR code
+   * @param qrCodeId - QR code ID
+   */
+  getQRCodePayments: async (qrCodeId: string): Promise<QRCodePaymentsResponse> => {
+    const response = await apiClient.get<QRCodePaymentsResponse>(`/api/payment/qr-payments/${qrCodeId}`);
+    return response.data;
+  },
+
+  /**
+   * Close a QR code
+   * @param qrCodeId - QR code ID
+   */
+  closeQRCode: async (qrCodeId: string): Promise<CloseQRCodeResponse> => {
+    const response = await apiClient.post<CloseQRCodeResponse>(`/api/payment/close-qr/${qrCodeId}`);
     return response.data;
   },
 };

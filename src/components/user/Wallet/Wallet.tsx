@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import { useWalletBalance, useTopUpHistory } from '@services/api/hooks/useWalletQueries';
-import { useCreatePaymentOrder, useVerifyPayment } from '@services/api/hooks/usePaymentQueries';
+import { 
+  useCreatePaymentOrder, 
+  useVerifyPayment,
+  useCreateQRCode,
+  useQRCodeStatus,
+  useCloseQRCode
+} from '@services/api/hooks/usePaymentQueries';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import { addToast } from '@store/slices/toastSlice';
@@ -22,6 +28,22 @@ const UserWallet: React.FC = () => {
   const [showTopUpForm, setShowTopUpForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [amountError, setAmountError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'qr'>('qr'); // Default to QR code
+  const [qrCodeId, setQrCodeId] = useState<string | null>(null);
+  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
+  
+  const createQRCodeMutation = useCreateQRCode();
+  const qrStatusQuery = useQRCodeStatus(
+    qrCodeId,
+    !!qrCodeId && paymentMethod === 'qr'
+  );
+  const closeQRCodeMutation = useCloseQRCode();
+  
+  // Extract the actual status data from the API response
+  // The query returns QRCodeStatusResponse which has a nested 'data' property
+  const qrStatus = qrStatusQuery.data && 'data' in qrStatusQuery.data 
+    ? qrStatusQuery.data.data 
+    : undefined;
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -36,6 +58,89 @@ const UserWallet: React.FC = () => {
     }
     
     setTopUpAmount(numericValue);
+  };
+
+  // Poll QR code status and handle payment completion
+  useEffect(() => {
+    if (qrCodeId && paymentMethod === 'qr' && qrStatus) {
+      const status = qrStatus.status;
+      
+      if (status === 'paid') {
+        // Payment successful
+        dispatch(addToast({
+          message: `Payment successful! ${qrStatus.amountGC} GC added to your wallet.`,
+          type: 'success',
+          duration: 5000,
+        }));
+        
+        // Refresh wallet balance and history
+        refetchBalance();
+        
+        // Close QR code and reset
+        closeQRCodeMutation.mutate(qrCodeId, {
+          onSuccess: () => {
+            resetQRCodePayment();
+          },
+        });
+      } else if (status === 'expired' || status === 'closed') {
+        // QR code expired or closed
+        dispatch(addToast({
+          message: 'QR code expired or closed. Please create a new one.',
+          type: 'warning',
+          duration: 5000,
+        }));
+        resetQRCodePayment();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrStatus?.status, qrCodeId, paymentMethod, dispatch, refetchBalance]);
+
+  const resetQRCodePayment = () => {
+    setQrCodeId(null);
+    setQrCodeImage(null);
+    setTopUpAmount('');
+    setAmountError('');
+  };
+
+  const handleQRCodePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountINR = parseFloat(topUpAmount);
+    
+    if (isNaN(amountINR) || amountINR < 50) {
+      setAmountError('Minimum top-up amount is ₹50');
+      return;
+    }
+    
+    setAmountError('');
+    setIsProcessing(true);
+
+    try {
+      const result = await createQRCodeMutation.mutateAsync({
+        amountINR: amountINR,
+      });
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'Failed to create QR code');
+      }
+
+      setQrCodeImage(result.data.qrCodeImage);
+      setQrCodeId(result.data.qrCodeId);
+      
+      dispatch(addToast({
+        message: 'QR code generated! Scan with your UPI app to pay.',
+        type: 'success',
+        duration: 4000,
+      }));
+    } catch (error: any) {
+      console.error('QR code creation error:', error);
+      dispatch(addToast({
+        message: error?.message || 'Failed to create QR code. Please try again.',
+        type: 'error',
+        duration: 6000,
+      }));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -232,56 +337,169 @@ const UserWallet: React.FC = () => {
               )}
             </div>
 
-            {/* Top Up Form - Razorpay Payment */}
-            {showTopUpForm && (
-              <form className="topup-form" onSubmit={handlePayment}>
-                <div className="form-group">
-                  <label htmlFor="amount" className="form-label">
-                    Amount (INR)
-                  </label>
-                  <input
-                    type="text"
-                    id="amount"
-                    className="form-input"
-                    value={topUpAmount}
-                    onChange={handleAmountChange}
-                    placeholder="Enter amount in INR (Minimum ₹50)"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    required
-                    disabled={isProcessing || createOrderMutation.isPending}
-                  />
-                  {amountError && (
-                    <small className="form-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '4px' }}>
-                      {amountError}
-                    </small>
-                  )}
-                  <small className="form-hint">
-                    1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment. Minimum top-up: ₹50
-                  </small>
+            {/* Top Up Form */}
+            {showTopUpForm && !qrCodeId && (
+              <>
+                {/* Payment Method Selection */}
+                <div className="payment-method-selector">
+                  <label className="form-label">Payment Method</label>
+                  <div className="payment-method-options">
+                    <button
+                      type="button"
+                      className={`payment-method-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
+                      onClick={() => setPaymentMethod('qr')}
+                      disabled={isProcessing}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <path d="M3 9h18M9 21V9"></path>
+                      </svg>
+                      QR Code (Simple)
+                    </button>
+                    <button
+                      type="button"
+                      className={`payment-method-btn ${paymentMethod === 'razorpay' ? 'active' : ''}`}
+                      onClick={() => setPaymentMethod('razorpay')}
+                      disabled={isProcessing}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                      </svg>
+                      Card/UPI
+                    </button>
+                  </div>
                 </div>
-                <div className="form-actions">
+
+                <form 
+                  className="topup-form" 
+                  onSubmit={paymentMethod === 'qr' ? handleQRCodePayment : handlePayment}
+                >
+                  <div className="form-group">
+                    <label htmlFor="amount" className="form-label">
+                      Amount (INR)
+                    </label>
+                    <input
+                      type="text"
+                      id="amount"
+                      className="form-input"
+                      value={topUpAmount}
+                      onChange={handleAmountChange}
+                      placeholder="Enter amount in INR (Minimum ₹50)"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      required
+                      disabled={isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending}
+                    />
+                    {amountError && (
+                      <small className="form-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '4px' }}>
+                        {amountError}
+                      </small>
+                    )}
+                    <small className="form-hint">
+                      1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment. Minimum top-up: ₹50
+                    </small>
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="cancel-button"
+                      onClick={() => {
+                        setShowTopUpForm(false);
+                        setTopUpAmount('');
+                        setAmountError('');
+                        resetQRCodePayment();
+                      }}
+                      disabled={isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="submit-button"
+                      disabled={
+                        isProcessing || 
+                        createOrderMutation.isPending || 
+                        createQRCodeMutation.isPending ||
+                        !topUpAmount || 
+                        parseFloat(topUpAmount) < 50 || 
+                        !!amountError
+                      }
+                    >
+                      {isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending 
+                        ? 'Processing...' 
+                        : paymentMethod === 'qr' 
+                          ? 'Generate QR Code' 
+                          : 'Pay Now'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* QR Code Display */}
+            {qrCodeId && qrCodeImage && (
+              <div className="qr-code-payment-container">
+                <div className="qr-code-header">
+                  <h3>Scan QR Code to Pay</h3>
                   <button
                     type="button"
-                    className="cancel-button"
+                    className="close-qr-button"
                     onClick={() => {
+                      if (qrCodeId) {
+                        closeQRCodeMutation.mutate(qrCodeId);
+                      }
+                      resetQRCodePayment();
                       setShowTopUpForm(false);
-                      setTopUpAmount('');
-                      setAmountError('');
                     }}
-                    disabled={isProcessing || createOrderMutation.isPending}
+                    title="Close"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="submit-button"
-                    disabled={isProcessing || createOrderMutation.isPending || !topUpAmount || parseFloat(topUpAmount) < 50 || !!amountError}
-                  >
-                    {isProcessing || createOrderMutation.isPending ? 'Processing...' : 'Pay Now'}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
                 </div>
-              </form>
+                
+                <div className="qr-code-content">
+                  <div className="qr-code-image-wrapper">
+                    <img 
+                      src={qrCodeImage} 
+                      alt="Payment QR Code" 
+                      className="qr-code-image"
+                    />
+                    {qrStatus?.status === 'active' && (
+                      <div className="qr-code-pulse"></div>
+                    )}
+                  </div>
+                  
+                  <div className="qr-code-info">
+                    <div className="qr-amount-info">
+                      <span className="qr-amount-label">Amount to Pay:</span>
+                      <span className="qr-amount-value">₹{topUpAmount}</span>
+                    </div>
+                    <p className="qr-instructions">
+                      Scan this QR code with any UPI app (PhonePe, Google Pay, Paytm, etc.) to complete payment
+                    </p>
+                    
+                    {qrStatus?.status === 'active' && (
+                      <div className="qr-status-checking">
+                        <Loading />
+                        <span>Waiting for payment...</span>
+                      </div>
+                    )}
+                    
+                    {qrStatus?.status === 'paid' && (
+                      <div className="qr-status-success">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Payment received! Updating wallet...</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
