@@ -212,6 +212,7 @@
 
 .enquiries-content {
   flex: 1;
+  min-height: 0;
   padding: $spacing-xl;
   display: flex;
   flex-direction: column;
@@ -237,6 +238,8 @@
   border: 1px solid rgba(var(--border-color-rgb), 0.5);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
   padding: $spacing-lg;
+  border-radius: $border-radius-lg;
+  flex-shrink: 0;
 }
 
 .filters-row {
@@ -281,7 +284,7 @@
 .enquiries-list {
   @include card;
   @include flex-column;
-  gap: $spacing-md;
+  gap: 0;
   width: 100%;
   background: linear-gradient(135deg, 
     var(--background-color-light) 0%,
@@ -289,7 +292,8 @@
   );
   border: 1px solid rgba(var(--border-color-rgb), 0.5);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
-  overflow: hidden;
+  overflow: visible;
+  border-radius: $border-radius-lg;
 }
 
 .enquiries-list-header {
@@ -301,6 +305,9 @@
   border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.3);
   @include flex-between;
   align-items: center;
+  flex-shrink: 0;
+  border-top-left-radius: $border-radius-lg;
+  border-top-right-radius: $border-radius-lg;
 }
 
 .enquiries-count {
@@ -313,7 +320,8 @@
   padding: $spacing-lg;
   border-bottom: 1px solid rgba(var(--border-color-rgb), 0.3);
   transition: all $transition-fast;
-  cursor: pointer;
+  cursor: default;
+  background: transparent;
 
   &:hover {
     background: rgba(var(--primary-color-rgb), 0.05);
@@ -322,13 +330,19 @@
   &:last-child {
     border-bottom: none;
   }
+
+  &:first-child {
+    border-top-left-radius: $border-radius-lg;
+    border-top-right-radius: $border-radius-lg;
+  }
 }
 
 .enquiry-header {
   @include flex-between;
   align-items: flex-start;
   margin-bottom: $spacing-md;
-  gap: $spacing-md;
+  gap: $spacing-lg;
+  flex-wrap: wrap;
 }
 
 .enquiry-info {
@@ -342,6 +356,7 @@
   align-items: center;
   gap: $spacing-md;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .enquiry-name {
@@ -408,6 +423,8 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .enquiry-reply-info {
@@ -548,6 +565,10 @@
   @include flex-between;
   align-items: center;
   border-top: 1px solid rgba(var(--border-color-rgb), 0.3);
+  flex-shrink: 0;
+  background: rgba(var(--background-color-rgb), 0.5);
+  border-bottom-left-radius: $border-radius-lg;
+  border-bottom-right-radius: $border-radius-lg;
 }
 
 .pagination-info {

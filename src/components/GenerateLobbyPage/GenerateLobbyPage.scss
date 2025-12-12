@@ -222,6 +222,7 @@
 
 .generate-lobby-page-content {
   flex: 1;
+  min-height: 0;
   padding: $spacing-xl;
   display: flex;
   flex-direction: column;
