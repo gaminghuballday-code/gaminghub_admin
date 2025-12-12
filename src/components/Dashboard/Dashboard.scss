@@ -189,12 +189,12 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  height: 100vh;
+  min-height: 100vh;
   width: calc(100% - 250px);
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 
   .closed ~ & {
     margin-left: 70px;
@@ -429,7 +429,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: $spacing-lg;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
   padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
   

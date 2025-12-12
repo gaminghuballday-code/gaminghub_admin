@@ -166,11 +166,11 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  height: 100vh;
+  min-height: 100vh;
   width: calc(100% - 250px);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   
   @media (max-width: 768px) {
     margin-left: 70px;
@@ -226,7 +226,7 @@
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
   padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
   
