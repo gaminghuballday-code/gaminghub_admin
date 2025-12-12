@@ -4,13 +4,13 @@
 
 .enquiries-page-container {
   @include flex-between;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .enquiries-sidebar {
@@ -228,6 +228,8 @@
 // Filters Section
 .filters-section {
   @include card;
+  @include flex-column;
+  gap: $spacing-md;
   width: 100%;
   background: linear-gradient(135deg, 
     var(--background-color-light) 0%,
@@ -241,18 +243,15 @@
 }
 
 .filters-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: $spacing-md;
-  flex-wrap: nowrap;
+  align-items: end;
 }
 
 .filter-group {
   @include flex-column;
   gap: $spacing-xs;
-  min-width: 200px;
-  flex-shrink: 0;
 }
 
 .filter-label {
@@ -630,12 +629,7 @@
   }
 
   .filters-row {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .filter-group {
-    min-width: 150px;
+    grid-template-columns: 1fr;
   }
 
   .enquiry-header {
