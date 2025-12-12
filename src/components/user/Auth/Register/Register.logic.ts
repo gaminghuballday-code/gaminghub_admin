@@ -24,6 +24,7 @@ export const useRegisterLogic = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -110,6 +111,10 @@ export const useRegisterLogic = () => {
       
       const { confirmPassword, ...registerData } = formData;
       registerMutation.mutate(registerData, {
+        onSuccess: () => {
+          // Show OTP modal after successful registration
+          setShowOtpModal(true);
+        },
         onError: () => {
           // Error will be handled by API interceptor and shown via toaster
         },
@@ -119,6 +124,10 @@ export const useRegisterLogic = () => {
       console.warn('CSRF token fetch failed, continuing with registration:', error);
       const { confirmPassword, ...registerData } = formData;
       registerMutation.mutate(registerData, {
+        onSuccess: () => {
+          // Show OTP modal after successful registration
+          setShowOtpModal(true);
+        },
         onError: () => {
           // Error will be handled by API interceptor and shown via toaster
         },
@@ -194,6 +203,8 @@ export const useRegisterLogic = () => {
     error,
     showPassword,
     showConfirmPassword,
+    showOtpModal,
+    setShowOtpModal,
     togglePasswordVisibility,
     toggleConfirmPasswordVisibility,
     handleInputChange,

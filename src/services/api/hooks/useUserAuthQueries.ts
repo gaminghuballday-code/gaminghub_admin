@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authApi, type AuthResponse, type LoginRequest, type RegisterRequest, type ForgotPasswordRequest, type UpdateProfileRequest } from '../index';
+import { authApi, type AuthResponse, type LoginRequest, type RegisterRequest, type ForgotPasswordRequest, type ResetPasswordRequest, type UpdateProfileRequest, type VerifyOtpRequest } from '../index';
 import { useAppDispatch } from '@store/hooks';
 import { setCredentials, setUser, logout as logoutAction } from '@store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
@@ -50,6 +50,51 @@ export const useUserRegister = () => {
 
   return useMutation({
     mutationFn: (data: RegisterRequest) => authApi.register(data),
+    onSuccess: (response) => {
+      // If response has accessToken, it's the old flow (registration completed immediately)
+      if ('accessToken' in response) {
+        // Update Redux store with user and tokens
+        dispatch(setCredentials({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          user: response.user,
+        }));
+        
+        // Invalidate and refetch profile
+        queryClient.invalidateQueries({ queryKey: userAuthKeys.profile() });
+        
+        // Show success message
+        dispatch(addToast({
+          message: 'Account created successfully!',
+          type: 'success',
+          duration: 4000,
+        }));
+        
+        // Navigate to user home
+        navigate(USER_ROUTES.HOME);
+      } else {
+        // OTP flow - don't navigate or set credentials yet
+        // Show message that OTP has been sent
+        dispatch(addToast({
+          message: response.message || 'OTP sent to your email. Please verify to complete registration.',
+          type: 'success',
+          duration: 5000,
+        }));
+      }
+    },
+  });
+};
+
+/**
+ * Hook for verify OTP mutation
+ */
+export const useVerifyOtp = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: VerifyOtpRequest) => authApi.verifyOtp(data),
     onSuccess: (data: AuthResponse) => {
       // Update Redux store with user and tokens
       dispatch(setCredentials({
@@ -78,17 +123,19 @@ export const useUserRegister = () => {
  * Hook for forgot password mutation
  */
 export const useForgotPassword = () => {
-  const dispatch = useAppDispatch();
-
   return useMutation({
     mutationFn: (data: ForgotPasswordRequest) => authApi.forgotPassword(data),
-    onSuccess: () => {
-      dispatch(addToast({
-        message: 'Password reset email sent! Please check your inbox.',
-        type: 'success',
-        duration: 6000,
-      }));
-    },
+    // Backend will send the toast message, no need for frontend toaster
+  });
+};
+
+/**
+ * Hook for reset password mutation
+ */
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (data: ResetPasswordRequest) => authApi.resetPassword(data),
+    // Backend will send the toast message, no need for frontend toaster
   });
 };
 
@@ -142,13 +189,6 @@ export const useGoogleLogin = () => {
       
       // Invalidate and refetch profile
       queryClient.invalidateQueries({ queryKey: userAuthKeys.profile() });
-      
-      // Show success message
-      dispatch(addToast({
-        message: data.message ?? 'Successfully signed in with Google!',
-        type: 'success',
-        duration: 4000,
-      }));
       
       // Navigate to user home
       navigate(USER_ROUTES.HOME);

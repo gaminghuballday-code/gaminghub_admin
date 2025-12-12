@@ -1,0 +1,140 @@
+@use '../../../../assets/styles/variables' as *;
+
+.otp-modal-content {
+  padding: $spacing-lg;
+  text-align: center;
+}
+
+.otp-modal-message {
+  color: var(--text-color-secondary);
+  margin-bottom: $spacing-xl;
+  font-size: 0.95rem;
+  line-height: 1.6;
+
+  strong {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+}
+
+.otp-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-lg;
+}
+
+.otp-inputs {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: center;
+  margin-bottom: $spacing-md;
+}
+
+.otp-input {
+  width: 50px;
+  height: 60px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  border-radius: $border-radius-md;
+  background: var(--background-color);
+  color: var(--text-color);
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: var(--text-color-tertiary);
+  }
+}
+
+.otp-submit-button {
+  width: 100%;
+  max-width: 300px;
+  padding: $spacing-md $spacing-lg;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: $spacing-md;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.otp-resend {
+  margin-top: $spacing-xl;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.otp-resend-text {
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+}
+
+.otp-resend-button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--primary-color-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .otp-input {
+    width: 45px;
+    height: 55px;
+    font-size: 1.3rem;
+  }
+
+  .otp-inputs {
+    gap: $spacing-sm;
+  }
+
+  .otp-modal-content {
+    padding: $spacing-md;
+  }
+}

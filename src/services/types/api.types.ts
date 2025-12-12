@@ -28,13 +28,20 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  token: string;
-  password: string;
+  email: string;
+  otp: string;
+  newPassword: string;
 }
 
 export interface GoogleLoginRequest {
   idToken: string;
   name?: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+  password: string;
 }
 
 export interface UpdateProfileRequest {

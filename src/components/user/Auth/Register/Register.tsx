@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { animate, stagger } from 'animejs';
 import { useRegisterLogic } from './Register.logic';
 import { USER_ROUTES } from '@utils/constants';
+import OtpModal from './OtpModal';
 import './Register.scss';
 
 const UserRegister: React.FC = () => {
@@ -12,6 +13,8 @@ const UserRegister: React.FC = () => {
     googleLoading,
     showPassword,
     showConfirmPassword,
+    showOtpModal,
+    setShowOtpModal,
     togglePasswordVisibility,
     toggleConfirmPasswordVisibility,
     handleInputChange,
@@ -221,6 +224,14 @@ const UserRegister: React.FC = () => {
         <div className="gaming-element gaming-triangle gaming-triangle-2"></div>
         <div className="gaming-element gaming-circle gaming-circle-2"></div>
       </div>
+
+      {/* OTP Verification Modal */}
+      <OtpModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        email={formData.email}
+        password={formData.password}
+      />
     </div>
   );
 };

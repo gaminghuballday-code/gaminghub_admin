@@ -12,7 +12,7 @@ export const useForgotPasswordLogic = () => {
     email: '',
   });
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,7 +61,8 @@ export const useForgotPasswordLogic = () => {
       
       forgotPasswordMutation.mutate(formData, {
         onSuccess: () => {
-          setSuccess(true);
+          // Open OTP modal after OTP is sent
+          setShowOtpModal(true);
         },
         onError: () => {
           // Error will be handled by API interceptor and shown via toaster
@@ -72,7 +73,8 @@ export const useForgotPasswordLogic = () => {
       console.warn('CSRF token fetch failed, continuing with forgot password:', error);
       forgotPasswordMutation.mutate(formData, {
         onSuccess: () => {
-          setSuccess(true);
+          // Open OTP modal after OTP is sent
+          setShowOtpModal(true);
         },
         onError: () => {
           // Error will be handled by API interceptor and shown via toaster
@@ -84,7 +86,8 @@ export const useForgotPasswordLogic = () => {
   return {
     formData,
     loading: forgotPasswordMutation.isPending,
-    success,
+    showOtpModal,
+    setShowOtpModal,
     error,
     handleInputChange,
     handleSubmit,

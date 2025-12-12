@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import { animate, stagger } from 'animejs';
 import { useForgotPasswordLogic } from './ForgotPassword.logic';
 import { USER_ROUTES } from '@utils/constants';
+import ForgotPasswordOtpModal from './ForgotPasswordOtpModal';
 import './ForgotPassword.scss';
 
 const UserForgotPassword: React.FC = () => {
   const {
     formData,
     loading,
-    success,
+    showOtpModal,
+    setShowOtpModal,
     handleInputChange,
     handleSubmit,
   } = useForgotPasswordLogic();
@@ -59,47 +61,35 @@ const UserForgotPassword: React.FC = () => {
       <div className="forgot-password-card">
         <h1 className="forgot-password-title">Forgot Password</h1>
         <p className="forgot-password-subtitle">
-          {success 
-            ? 'Check your email for password reset instructions'
-            : 'Enter your email address and we\'ll send you a link to reset your password'}
+          Enter your email address and we'll send you an OTP to reset your password
         </p>
 
-        {!success ? (
-          <form onSubmit={handleSubmit} className="forgot-password-form">
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="form-input"
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="forgot-password-button"
+        <form onSubmit={handleSubmit} className="forgot-password-form">
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="form-input"
+              placeholder="Enter your email"
+              required
               disabled={loading}
-            >
-              {loading ? 'Sending...' : 'Send Reset Link'}
-            </button>
-          </form>
-        ) : (
-          <div className="success-message">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <p>We've sent a password reset link to your email address.</p>
+            />
           </div>
-        )}
+
+          <button
+            type="submit"
+            className="forgot-password-button"
+            disabled={loading}
+          >
+            {loading ? 'Sending OTP...' : 'Send OTP'}
+          </button>
+        </form>
 
         {/* Links */}
         <div className="auth-links">
@@ -116,6 +106,13 @@ const UserForgotPassword: React.FC = () => {
         <div className="gaming-element gaming-triangle gaming-triangle-2"></div>
         <div className="gaming-element gaming-circle gaming-circle-2"></div>
       </div>
+
+      {/* OTP Verification Modal */}
+      <ForgotPasswordOtpModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        email={formData.email}
+      />
     </div>
   );
 };

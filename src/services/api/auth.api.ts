@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, AuthResponse, CsrfTokenResponse, } from '../types/api.types';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, VerifyOtpRequest, AuthResponse, CsrfTokenResponse, } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
 import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
@@ -54,17 +54,20 @@ export const authApi = {
 
   /**
    * Register new user
+   * Returns message if OTP is required, or AuthResponse if registration completes immediately
    */
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/register', data);
+  register: async (data: RegisterRequest): Promise<{ message?: string } | AuthResponse> => {
+    const response = await apiClient.post<{ data: AuthResponse | { message: string }, message?: string }>('/api/auth/register', data);
     
-    const authData = response.data.data;
+    const responseData = response.data.data;
     
-    if (!authData.accessToken) {
-      throw new Error('Access token not received from server');
+    // If response has accessToken, registration completed immediately (old flow)
+    if ('accessToken' in responseData && responseData.accessToken) {
+      return responseData as AuthResponse;
     }
     
-    return authData;
+    // Otherwise, OTP was sent (new flow)
+    return { message: response.data.message || 'OTP sent to your email' };
   },
 
   /**
@@ -76,7 +79,7 @@ export const authApi = {
   },
 
   /**
-   * Reset password with token
+   * Reset password with OTP and new password
    */
   resetPassword: async (data: ResetPasswordRequest): Promise<{ message: string }> => {
     const response = await apiClient.post<{ message: string }>('/api/auth/reset-password', data);
@@ -144,6 +147,22 @@ export const authApi = {
   updateProfile: async (data: { name?: string }): Promise<AuthResponse['user']> => {
     const response = await apiClient.put<{ data: AuthResponse['user'] }>('/api/profile', data);
     return response.data.data;
+  },
+
+  /**
+   * Verify OTP and set password
+   * This completes the registration process
+   */
+  verifyOtp: async (data: VerifyOtpRequest): Promise<AuthResponse> => {
+    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/verify-otp', data);
+    
+    const authData = response.data.data;
+    
+    if (!authData.accessToken) {
+      throw new Error('Access token not received from server');
+    }
+    
+    return authData;
   },
 };
 
