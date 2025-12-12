@@ -4,13 +4,13 @@
 
 .user-history-page-container {
   @include flex-between;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .user-history-sidebar {
@@ -166,11 +166,11 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  height: 100vh;
+  min-height: 100vh;
   width: calc(100% - 250px);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
   
   @media (max-width: 768px) {
     margin-left: 70px;
