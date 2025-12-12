@@ -4,13 +4,13 @@
 
 .enquiries-page-container {
   @include flex-between;
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .enquiries-sidebar {
@@ -166,11 +166,11 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  min-height: 100vh;
+  height: 100vh;
   width: calc(100% - 250px);
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: hidden;
   
   @media (max-width: 768px) {
     margin-left: 70px;
