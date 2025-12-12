@@ -137,12 +137,34 @@
   padding: $spacing-xl;
 }
 
+.wallet-action-buttons {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+
 .topup-button {
   @include button-primary;
-  align-self: flex-start;
   padding: $spacing-md $spacing-xl;
   font-size: 1rem;
   font-weight: 600;
+}
+
+
+.withdraw-button {
+  @include button-primary;
+  padding: $spacing-md $spacing-xl;
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+  border: 2px solid rgb(239, 68, 68);
+
+  &:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+  }
 }
 
 .topup-form {
@@ -618,12 +640,49 @@
   background: rgba(251, 191, 36, 0.1);
 }
 
-.qr-status-success {
-  color: rgb(34, 197, 94);
-  background: rgba(34, 197, 94, 0.1);
+  .qr-status-success {
+    color: rgb(34, 197, 94);
+    background: rgba(34, 197, 94, 0.1);
 
-  svg {
-    flex-shrink: 0;
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+// Modal Forms
+.topup-deposit-form,
+.withdraw-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  padding: $spacing-md 0;
+}
+
+.input-with-max-button {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: stretch;
+
+  .form-input {
+    flex: 1;
+  }
+}
+
+.max-button {
+  @include button-secondary;
+  padding: $spacing-md $spacing-lg;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 60px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -702,12 +761,26 @@
     font-size: 1.75rem;
   }
 
-  .topup-button {
+  .wallet-action-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .topup-button,
+  .withdraw-button {
     width: 100%;
   }
 
   .history-table {
     min-width: 500px;
+  }
+
+  .input-with-max-button {
+    flex-direction: column;
+
+    .max-button {
+      width: 100%;
+    }
   }
 }
 

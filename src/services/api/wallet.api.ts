@@ -89,6 +89,21 @@ export interface WalletHistoryResponse {
   };
 }
 
+export interface UserWithdrawRequest {
+  amountGC: number;
+  description?: string;
+}
+
+export interface UserWithdrawResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    balanceGC: number;
+    transaction?: TopUpHistoryItem;
+  };
+}
+
 export const walletApi = {
   /**
    * Get wallet balance for current user
@@ -132,6 +147,14 @@ export const walletApi = {
     const response = await apiClient.get<WalletHistoryResponse>('/api/wallet/history', {
       params: queryParams,
     });
+    return response.data;
+  },
+
+  /**
+   * Withdraw from wallet (User self withdraw)
+   */
+  withdraw: async (data: UserWithdrawRequest): Promise<UserWithdrawResponse> => {
+    const response = await apiClient.post<UserWithdrawResponse>('/api/wallet/withdraw', data);
     return response.data;
   },
 };

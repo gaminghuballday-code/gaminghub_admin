@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { walletApi, type UserTopUpRequest, type WalletHistoryParams } from '../wallet.api';
+import { walletApi, type UserTopUpRequest, type UserWithdrawRequest, type WalletHistoryParams } from '../wallet.api';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 
@@ -78,6 +78,31 @@ export const useWalletHistory = (params?: WalletHistoryParams, enabled = true) =
     },
     enabled,
     refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook for withdraw wallet mutation
+ */
+export const useWithdrawWallet = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UserWithdrawRequest) => walletApi.withdraw(data),
+    onSuccess: (response) => {
+      // Invalidate and refetch balance and history
+      queryClient.invalidateQueries({ queryKey: walletKeys.balance() });
+      queryClient.invalidateQueries({ queryKey: walletKeys.history() });
+      
+      // Show success message with pending approval info
+      const message = response.message || 'Withdraw request submitted successfully!';
+      dispatch(addToast({
+        message: `${message} Waiting for admin approval.`,
+        type: 'success',
+        duration: 5000,
+      }));
+    },
   });
 };
 

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
-import { useWalletBalance, useTopUpHistory } from '@services/api/hooks/useWalletQueries';
+import Modal from '@components/common/Modal/Modal';
+import { useWalletBalance, useTopUpHistory, useTopUpWallet, useWithdrawWallet } from '@services/api/hooks/useWalletQueries';
 import { 
   useCreatePaymentOrder, 
   useVerifyPayment,
@@ -21,6 +22,8 @@ const UserWallet: React.FC = () => {
   const { data: history, isLoading: historyLoading } = useTopUpHistory();
   const createOrderMutation = useCreatePaymentOrder();
   const verifyPaymentMutation = useVerifyPayment();
+  const topUpWalletMutation = useTopUpWallet();
+  const withdrawWalletMutation = useWithdrawWallet();
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
 
@@ -28,9 +31,14 @@ const UserWallet: React.FC = () => {
   const [showTopUpForm, setShowTopUpForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [amountError, setAmountError] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'qr'>('qr'); // Default to QR code
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'qr' | 'deposit'>('qr'); // Default to QR code
   const [qrCodeId, setQrCodeId] = useState<string | null>(null);
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
+  
+  // New states for Withdraw modal
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawError, setWithdrawError] = useState('');
   
   const createQRCodeMutation = useCreateQRCode();
   const qrStatusQuery = useQRCodeStatus(
@@ -282,6 +290,103 @@ const UserWallet: React.FC = () => {
     return <span className={typeClass}>{typeLabel}</span>;
   };
 
+  // Handle Deposit (integrated into Top Up form)
+  const handleDepositSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountGC = parseFloat(topUpAmount);
+    
+    if (isNaN(amountGC) || amountGC <= 0) {
+      setAmountError('Please enter a valid amount');
+      return;
+    }
+    
+    setAmountError('');
+    setIsProcessing(true);
+    
+    try {
+      await topUpWalletMutation.mutateAsync({
+        amountGC: amountGC,
+        description: 'Top-up deposit via wallet',
+      });
+      
+      setShowTopUpForm(false);
+      setTopUpAmount('');
+      setAmountError('');
+      refetchBalance();
+    } catch (error: any) {
+      setAmountError(error?.message || 'Failed to process deposit');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle Withdraw
+  const handleWithdrawClick = () => {
+    // Check if payment UPI is set
+    if (!user?.paymentUPI) {
+      dispatch(addToast({
+        message: 'Please update your Payment UPI in your profile before withdrawing.',
+        type: 'warning',
+        duration: 6000,
+      }));
+      return;
+    }
+    
+    setWithdrawAmount('');
+    setWithdrawError('');
+    setShowWithdrawModal(true);
+  };
+
+  const handleWithdrawAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = value.replace(/[^0-9]/g, '');
+    
+    if (value !== numericValue) {
+      setWithdrawError('Only numbers are allowed');
+    } else {
+      setWithdrawError('');
+    }
+    
+    setWithdrawAmount(numericValue);
+  };
+
+  const handleMaxWithdrawClick = () => {
+    if (balance && balance > 0) {
+      setWithdrawAmount(balance.toString());
+      setWithdrawError('');
+    }
+  };
+
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountGC = parseFloat(withdrawAmount);
+    
+    if (isNaN(amountGC) || amountGC <= 0) {
+      setWithdrawError('Please enter a valid amount');
+      return;
+    }
+    
+    if (!balance || amountGC > balance) {
+      setWithdrawError('Insufficient balance');
+      return;
+    }
+    
+    setWithdrawError('');
+    
+    try {
+      await withdrawWalletMutation.mutateAsync({
+        amountGC: amountGC,
+        description: 'Withdraw request',
+      });
+      
+      setShowWithdrawModal(false);
+      setWithdrawAmount('');
+      refetchBalance();
+    } catch (error: any) {
+      setWithdrawError(error?.message || 'Failed to process withdraw request');
+    }
+  };
+
   return (
     <div className="user-wallet-container">
       <UserSidebar />
@@ -327,12 +432,20 @@ const UserWallet: React.FC = () => {
                     <span className="balance-label">Current Balance</span>
                     <span className="balance-amount">{balance?.toLocaleString('en-IN') ?? 0} GC</span>
                   </div>
-                  <button
-                    className="topup-button"
-                    onClick={() => setShowTopUpForm(!showTopUpForm)}
-                  >
-                    {showTopUpForm ? 'Cancel' : 'Top Up'}
-                  </button>
+                  <div className="wallet-action-buttons">
+                    <button
+                      className="topup-button"
+                      onClick={() => setShowTopUpForm(!showTopUpForm)}
+                    >
+                      {showTopUpForm ? 'Cancel' : 'Top Up'}
+                    </button>
+                    <button
+                      className="withdraw-button"
+                      onClick={handleWithdrawClick}
+                    >
+                      Withdraw
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -347,7 +460,11 @@ const UserWallet: React.FC = () => {
                     <button
                       type="button"
                       className={`payment-method-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
-                      onClick={() => setPaymentMethod('qr')}
+                      onClick={() => {
+                        setPaymentMethod('qr');
+                        setTopUpAmount('');
+                        setAmountError('');
+                      }}
                       disabled={isProcessing}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -359,7 +476,11 @@ const UserWallet: React.FC = () => {
                     <button
                       type="button"
                       className={`payment-method-btn ${paymentMethod === 'razorpay' ? 'active' : ''}`}
-                      onClick={() => setPaymentMethod('razorpay')}
+                      onClick={() => {
+                        setPaymentMethod('razorpay');
+                        setTopUpAmount('');
+                        setAmountError('');
+                      }}
                       disabled={isProcessing}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -368,16 +489,37 @@ const UserWallet: React.FC = () => {
                       </svg>
                       Card/UPI
                     </button>
+                    <button
+                      type="button"
+                      className={`payment-method-btn ${paymentMethod === 'deposit' ? 'active' : ''}`}
+                      onClick={() => {
+                        setPaymentMethod('deposit');
+                        setTopUpAmount('');
+                        setAmountError('');
+                      }}
+                      disabled={isProcessing}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                      </svg>
+                      Deposit
+                    </button>
                   </div>
                 </div>
 
                 <form 
                   className="topup-form" 
-                  onSubmit={paymentMethod === 'qr' ? handleQRCodePayment : handlePayment}
+                  onSubmit={
+                    paymentMethod === 'deposit' 
+                      ? handleDepositSubmit 
+                      : paymentMethod === 'qr' 
+                        ? handleQRCodePayment 
+                        : handlePayment
+                  }
                 >
                   <div className="form-group">
                     <label htmlFor="amount" className="form-label">
-                      Amount (INR)
+                      {paymentMethod === 'deposit' ? 'Amount (GC)' : 'Amount (INR)'}
                     </label>
                     <input
                       type="text"
@@ -385,11 +527,20 @@ const UserWallet: React.FC = () => {
                       className="form-input"
                       value={topUpAmount}
                       onChange={handleAmountChange}
-                      placeholder="Enter amount in INR (Minimum ₹50)"
+                      placeholder={
+                        paymentMethod === 'deposit' 
+                          ? 'Enter amount in GC' 
+                          : 'Enter amount in INR (Minimum ₹50)'
+                      }
                       inputMode="numeric"
                       pattern="[0-9]*"
                       required
-                      disabled={isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending}
+                      disabled={
+                        isProcessing || 
+                        createOrderMutation.isPending || 
+                        createQRCodeMutation.isPending ||
+                        topUpWalletMutation.isPending
+                      }
                     />
                     {amountError && (
                       <small className="form-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '4px' }}>
@@ -397,7 +548,9 @@ const UserWallet: React.FC = () => {
                       </small>
                     )}
                     <small className="form-hint">
-                      1 INR = 1 GC. You will receive {topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment. Minimum top-up: ₹50
+                      {paymentMethod === 'deposit' 
+                        ? `Enter the amount you want to deposit to your wallet`
+                        : `1 INR = 1 GC. You will receive ${topUpAmount ? parseFloat(topUpAmount) || 0 : 0} GC after payment. Minimum top-up: ₹50`}
                     </small>
                   </div>
                   <div className="form-actions">
@@ -409,8 +562,14 @@ const UserWallet: React.FC = () => {
                         setTopUpAmount('');
                         setAmountError('');
                         resetQRCodePayment();
+                        setPaymentMethod('qr');
                       }}
-                      disabled={isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending}
+                      disabled={
+                        isProcessing || 
+                        createOrderMutation.isPending || 
+                        createQRCodeMutation.isPending ||
+                        topUpWalletMutation.isPending
+                      }
                     >
                       Cancel
                     </button>
@@ -421,16 +580,23 @@ const UserWallet: React.FC = () => {
                         isProcessing || 
                         createOrderMutation.isPending || 
                         createQRCodeMutation.isPending ||
+                        topUpWalletMutation.isPending ||
                         !topUpAmount || 
-                        parseFloat(topUpAmount) < 50 || 
+                        (paymentMethod !== 'deposit' && parseFloat(topUpAmount) < 50) ||
+                        (paymentMethod === 'deposit' && parseFloat(topUpAmount) <= 0) ||
                         !!amountError
                       }
                     >
-                      {isProcessing || createOrderMutation.isPending || createQRCodeMutation.isPending 
+                      {isProcessing || 
+                       createOrderMutation.isPending || 
+                       createQRCodeMutation.isPending ||
+                       topUpWalletMutation.isPending
                         ? 'Processing...' 
-                        : paymentMethod === 'qr' 
-                          ? 'Generate QR Code' 
-                          : 'Pay Now'}
+                        : paymentMethod === 'deposit'
+                          ? 'Deposit'
+                          : paymentMethod === 'qr' 
+                            ? 'Generate QR Code' 
+                            : 'Pay Now'}
                     </button>
                   </div>
                 </form>
@@ -564,6 +730,90 @@ const UserWallet: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Withdraw Modal */}
+      <Modal
+        isOpen={showWithdrawModal}
+        onClose={() => {
+          setShowWithdrawModal(false);
+          setWithdrawAmount('');
+          setWithdrawError('');
+        }}
+        title="Withdraw Funds"
+        showCloseButton={true}
+      >
+        <form className="withdraw-form" onSubmit={handleWithdrawSubmit}>
+          <div className="form-group">
+            <label htmlFor="withdraw-amount" className="form-label">
+              Amount (GC)
+            </label>
+            <div className="input-with-max-button">
+              <input
+                type="text"
+                id="withdraw-amount"
+                className="form-input"
+                value={withdrawAmount}
+                onChange={handleWithdrawAmountChange}
+                placeholder="Enter amount to withdraw"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                required
+                disabled={withdrawWalletMutation.isPending}
+              />
+              <button
+                type="button"
+                className="max-button"
+                onClick={handleMaxWithdrawClick}
+                disabled={withdrawWalletMutation.isPending || !balance || balance <= 0}
+                title={`Max: ${balance?.toLocaleString('en-IN') ?? 0} GC`}
+              >
+                Max
+              </button>
+            </div>
+            {withdrawError && (
+              <small className="form-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '4px' }}>
+                {withdrawError}
+              </small>
+            )}
+            <small className="form-hint">
+              Available balance: {balance?.toLocaleString('en-IN') ?? 0} GC
+            </small>
+            {user?.paymentUPI && (
+              <small className="form-hint" style={{ marginTop: '8px', display: 'block' }}>
+                Funds will be sent to: {user.paymentUPI}
+              </small>
+            )}
+          </div>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="cancel-button"
+              onClick={() => {
+                setShowWithdrawModal(false);
+                setWithdrawAmount('');
+                setWithdrawError('');
+              }}
+              disabled={withdrawWalletMutation.isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={
+                withdrawWalletMutation.isPending ||
+                !withdrawAmount ||
+                parseFloat(withdrawAmount) <= 0 ||
+                !balance ||
+                parseFloat(withdrawAmount) > balance ||
+                !!withdrawError
+              }
+            >
+              {withdrawWalletMutation.isPending ? 'Processing...' : 'Withdraw'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
