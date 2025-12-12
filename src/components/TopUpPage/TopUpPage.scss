@@ -11,7 +11,6 @@
   );
   position: relative;
   overflow-x: hidden;
-  overflow-y: visible; // Allow content to extend beyond viewport
 }
 
 .top-up-sidebar {
@@ -229,8 +228,11 @@
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 200px); // Space for fixed footer
-  -webkit-overflow-scrolling: touch; // Smooth scrolling on mobile
+  padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
+  
+  @media (max-width: 768px) {
+    padding-bottom: calc(#{$spacing-lg} + 200px); // More space on mobile
+  }
 }
 
 .top-up-card {

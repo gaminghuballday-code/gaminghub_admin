@@ -11,7 +11,6 @@
   );
   position: relative;
   overflow-x: hidden;
-  overflow-y: visible; // Allow content to extend beyond viewport
 }
 
 .host-creation-sidebar {
@@ -167,7 +166,6 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  min-height: 100vh;
   height: 100vh;
   width: calc(100% - 250px);
   display: flex;
@@ -230,8 +228,11 @@
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 200px); // Space for fixed footer
-  -webkit-overflow-scrolling: touch; // Smooth scrolling on mobile
+  padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
+  
+  @media (max-width: 768px) {
+    padding-bottom: calc(#{$spacing-lg} + 200px); // More space on mobile
+  }
 }
 
 .host-creation-card {
@@ -458,8 +459,6 @@
 .hosts-list {
   @include flex-column;
   gap: $spacing-md;
-  width: 100%;
-  max-height: none; // Allow full height, let parent handle scrolling
 }
 
 .host-item {
