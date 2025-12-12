@@ -11,6 +11,7 @@
   );
   position: relative;
   overflow-x: hidden;
+  overflow-y: visible; // Allow content to extend beyond viewport
 }
 
 .user-history-sidebar {
@@ -227,7 +228,8 @@
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 120px); // Space for fixed footer
+  padding-bottom: calc(#{$spacing-xl} + 200px); // Space for fixed footer
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on mobile
 }
 
 .user-history-card {
@@ -243,7 +245,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
   transition: all $transition-normal;
   position: relative;
-  overflow: hidden;
+  overflow: visible; // Allow content to be fully visible, no clipping
 
   &::before {
     content: '';
@@ -464,6 +466,8 @@
 .transactions-list {
   width: 100%;
   overflow-x: auto;
+  overflow-y: visible; // Let parent handle vertical scrolling, no internal scroll
+  max-height: none; // Remove any height constraints
 }
 
 .transactions-header {

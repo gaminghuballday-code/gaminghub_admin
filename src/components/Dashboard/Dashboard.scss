@@ -11,6 +11,7 @@
   );
   position: relative;
   overflow-x: hidden;
+  overflow-y: visible; // Allow content to extend beyond viewport
 }
 
 .dashboard-sidebar {
@@ -431,7 +432,8 @@
   gap: $spacing-lg;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 120px); // Space for fixed footer
+  padding-bottom: calc(#{$spacing-xl} + 200px); // Space for fixed footer
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on mobile
 }
 
 .dashboard-card {
@@ -833,6 +835,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: $spacing-md;
+  width: 100%;
+  max-height: none; // Remove any height constraints
 }
 
 .user-card {
