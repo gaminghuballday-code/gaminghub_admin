@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useUserTournaments, useJoinTournament, useJoinedTournaments } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
+import type { Tournament, TournamentRules } from '@services/api';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import Toaster from '@components/common/Toaster';
+import Modal from '@components/common/Modal/Modal';
 import './Tournaments.scss';
+import '../Lobby/Lobby.scss';
 
 const UserTournaments: React.FC = () => {
   const { data: tournaments = [], isLoading, error } = useUserTournaments();
@@ -14,6 +17,8 @@ const UserTournaments: React.FC = () => {
   const user = useAppSelector(selectUser);
   const joinTournamentMutation = useJoinTournament();
   const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
+  const [showRulesModal, setShowRulesModal] = useState(false);
+  const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
 
   // Check if user is host - hosts should not see join button
   const isHost = user?.role === 'host';
@@ -39,6 +44,16 @@ const UserTournaments: React.FC = () => {
     } finally {
       setJoiningTournamentId(null);
     }
+  };
+
+  const handleOpenRulesModal = (tournament: Tournament) => {
+    setRulesTournament(tournament);
+    setShowRulesModal(true);
+  };
+
+  const handleCloseRulesModal = () => {
+    setShowRulesModal(false);
+    setRulesTournament(null);
   };
 
   const isJoining = (tournamentId: string) => joiningTournamentId === tournamentId;
@@ -143,9 +158,9 @@ const UserTournaments: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    {!isHost && (
-                      <div className="tournament-actions">
-                        {isJoined(tournament._id || tournament.id || '') ? (
+                    <div className="tournament-actions">
+                      {!isHost && (
+                        isJoined(tournament._id || tournament.id || '') ? (
                           <button className="tournament-join-button tournament-joined-button" disabled>
                             Joined
                           </button>
@@ -157,9 +172,16 @@ const UserTournaments: React.FC = () => {
                           >
                             {isJoining(tournament._id || tournament.id || '') ? 'Joining...' : 'Join'}
                           </button>
-                        )}
-                      </div>
-                    )}
+                        )
+                      )}
+                      <button
+                        className="tournament-join-button tournament-rules-button"
+                        type="button"
+                        onClick={() => handleOpenRulesModal(tournament as Tournament)}
+                      >
+                        View Rules
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -169,6 +191,117 @@ const UserTournaments: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Lobby Rules Modal (same structure as Lobby page) */}
+      {showRulesModal && rulesTournament && (
+        <Modal
+          isOpen={showRulesModal}
+          onClose={handleCloseRulesModal}
+          showCloseButton
+          title="Lobby Rules"
+          className="modal-medium"
+        >
+          <div className="lobby-rules">
+            {(() => {
+              const rules =
+                typeof rulesTournament.rules === 'object' && rulesTournament.rules !== null
+                  ? (rulesTournament.rules as TournamentRules)
+                  : undefined;
+
+              const hasStructuredContent =
+                !!rules &&
+                (
+                  !!rules.description ||
+                  (Array.isArray(rules.generalRules) && rules.generalRules.length > 0) ||
+                  (Array.isArray(rules.mapRotation) && rules.mapRotation.length > 0) ||
+                  (rules.positionPoints && typeof rules.positionPoints === 'object') ||
+                  !!rules.rules
+                );
+
+              return (
+                <>
+                  <h4 className="lobby-rules-title">
+                    {rules?.title
+                      ? rules.title
+                      : `${rulesTournament.game} - ${rulesTournament.mode} ${rulesTournament.subMode}`}
+                  </h4>
+
+                  {rules?.description && (
+                    <p className="lobby-rules-text">
+                      {rules.description}
+                    </p>
+                  )}
+
+                  {Array.isArray(rules?.generalRules) && rules.generalRules.length > 0 && (
+                    <div className="lobby-rules-section">
+                      <h5 className="lobby-rules-subtitle">General Rules</h5>
+                      <ul className="lobby-rules-list">
+                        {rules.generalRules.map((rule, idx) => (
+                          <li key={idx}>{rule}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {Array.isArray(rules?.mapRotation) && rules.mapRotation.length > 0 && (
+                    <div className="lobby-rules-section">
+                      <h5 className="lobby-rules-subtitle">Map Rotation</h5>
+                      <div className="lobby-rules-tags">
+                        {rules.mapRotation.map((mapName, idx) => (
+                          <span key={idx} className="lobby-rules-tag">
+                            {mapName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {rules?.positionPoints && typeof rules.positionPoints === 'object' && (
+                    <div className="lobby-rules-section">
+                      <h5 className="lobby-rules-subtitle">Position Points</h5>
+                      <ul className="lobby-rules-list">
+                        {Object.entries(rules.positionPoints as Record<string | number, unknown>)
+                          .sort(([aKey], [bKey]) => Number(aKey) - Number(bKey))
+                          .map(([position, points]) => (
+                            <li key={position}>
+                              Position {position}: {String(points)}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {rules?.rules && (
+                    <div className="lobby-rules-section">
+                      <h5 className="lobby-rules-subtitle">Additional Rules</h5>
+                      {Array.isArray(rules.rules) ? (
+                        <ul className="lobby-rules-list">
+                          {(rules.rules as unknown[])
+                            .map((item) => String(item))
+                            .filter((text) => text.trim().length > 0)
+                            .map((text, idx) => (
+                              <li key={idx}>{text}</li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <p className="lobby-rules-text">
+                          {String(rules.rules)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {!hasStructuredContent && (
+                    <p className="lobby-rules-text">
+                      No rules have been provided for this lobby.
+                    </p>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

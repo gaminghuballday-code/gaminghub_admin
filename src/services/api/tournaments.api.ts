@@ -1,11 +1,25 @@
 import apiClient from './client';
 
+export interface TournamentRules {
+  mode?: string;
+  subMode?: string;
+  title?: string;
+  description?: string;
+  generalRules?: string[];
+  mapRotation?: string[];
+  // Allow backend to add extra fields without breaking the frontend
+  [key: string]: unknown;
+}
+
 export interface Tournament {
   _id: string;
   id?: string; // For backward compatibility
   game: string;
   mode: string;
   subMode: string;
+  // Optional per-lobby / per-tournament rules coming from API
+  // Backend currently sends an object with description, generalRules, mapRotation, etc.
+  rules?: TournamentRules | string | null;
   entryFee: number;
   maxPlayers: number;
   availableSlots?: number;

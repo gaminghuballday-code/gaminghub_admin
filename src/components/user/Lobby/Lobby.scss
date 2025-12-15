@@ -69,3 +69,65 @@
   }
 }
 
+.lobby-rules {
+  @include flex-column;
+  gap: $spacing-md;
+  color: var(--text-color);
+
+  .lobby-rules-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .lobby-rules-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-line; // preserve line breaks from API text
+  }
+
+  .lobby-rules-section {
+    @include flex-column;
+    gap: $spacing-sm;
+  }
+
+  .lobby-rules-subtitle {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .lobby-rules-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    li {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      line-height: 1.5;
+    }
+  }
+
+  .lobby-rules-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+  }
+
+  .lobby-rules-tag {
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-sm;
+    background: rgba(var(--primary-color-rgb), 0.08);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.4);
+    font-size: 0.8rem;
+    color: var(--primary-color);
+  }
+}
+
