@@ -156,8 +156,8 @@ export const tournamentsApi = {
       console.log(`Found ${tournaments.length} tournaments in response.data.data.tournaments`);
     }
     // Check for response.data.tournaments (alternative structure)
-    else if (response.data?.tournaments && Array.isArray(response.data.tournaments)) {
-      tournaments = response.data.tournaments;
+    else if ('tournaments' in response.data && Array.isArray((response.data as any).tournaments)) {
+      tournaments = (response.data as any).tournaments;
       console.log(`Found ${tournaments.length} tournaments in response.data.tournaments`);
     }
     // Check if response.data is directly an array
