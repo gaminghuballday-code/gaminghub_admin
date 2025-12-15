@@ -17,6 +17,11 @@ const UserTournaments: React.FC = () => {
   const user = useAppSelector(selectUser);
   const joinTournamentMutation = useJoinTournament();
   const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joiningTournament, setJoiningTournament] = useState<Tournament | null>(null);
+  const [teamName, setTeamName] = useState('');
+  const [playerNames, setPlayerNames] = useState<string[]>([]);
+  const [joinFormError, setJoinFormError] = useState<string | null>(null);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
 
@@ -28,21 +33,80 @@ const UserTournaments: React.FC = () => {
     joinedTournaments.map((t) => t._id || t.id).filter(Boolean) as string[]
   );
 
-  const handleJoinTournament = async (tournamentId: string) => {
+  const openJoinModal = (tournament: Tournament) => {
+    const tournamentId = tournament._id || tournament.id;
+    if (!tournamentId) return;
     if (joinedTournamentIds.has(tournamentId)) {
       return; // Already joined
     }
 
     setJoiningTournamentId(tournamentId);
+    setJoiningTournament(tournament);
+    setShowJoinModal(true);
+    setJoinFormError(null);
+
+    const primaryName =
+      user?.name ||
+      user?.ign ||
+      (user?.email ? user.email.split('@')[0] : '') ||
+      '';
+
+    // Max 5 players including the one who is registering.
+    // First slot is pre-filled with current user, remaining 4 optional.
+    setPlayerNames([
+      primaryName,
+      '',
+      '',
+      '',
+      '',
+    ]);
+
+    // Pre-fill team name with IGN or username if available (user can change)
+    setTeamName(
+      tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo'
+        ? `${primaryName || 'My'} Team`
+        : primaryName || ''
+    );
+  };
+
+  const closeJoinModal = () => {
+    setShowJoinModal(false);
+    setJoiningTournament(null);
+    setJoiningTournamentId(null);
+    setJoinFormError(null);
+  };
+
+  const handleSubmitJoin = async () => {
+    if (!joiningTournament) return;
+    const tournamentId = joiningTournament._id || joiningTournament.id;
+    if (!tournamentId) return;
+
+    const trimmedTeamName = teamName.trim();
+    if (!trimmedTeamName) {
+      setJoinFormError('Team name is required.');
+      return;
+    }
+
+    const players = playerNames
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
+    if (players.length === 0) {
+      setJoinFormError('At least one player name is required.');
+      return;
+    }
+
     try {
-      await joinTournamentMutation.mutateAsync({ tournamentId });
+      await joinTournamentMutation.mutateAsync({
+        tournamentId,
+        teamName: trimmedTeamName,
+        players,
+      });
       await refetchJoined();
-      // Show success message via Toaster (if available)
+      closeJoinModal();
     } catch (error: any) {
       console.error('Failed to join tournament:', error);
-      // Error will be handled by Toaster
-    } finally {
-      setJoiningTournamentId(null);
+      setJoinFormError(error?.message || 'Failed to join tournament. Please try again.');
     }
   };
 
@@ -167,10 +231,12 @@ const UserTournaments: React.FC = () => {
                         ) : (
                           <button
                             className="tournament-join-button"
-                            onClick={() => handleJoinTournament(tournament._id || tournament.id || '')}
-                            disabled={isJoining(tournament._id || tournament.id || '')}
+                            onClick={() => openJoinModal(tournament as Tournament)}
+                            disabled={isJoining(tournament._id || tournament.id || '') || joinTournamentMutation.isPending}
                           >
-                            {isJoining(tournament._id || tournament.id || '') ? 'Joining...' : 'Join'}
+                            {isJoining(tournament._id || tournament.id || '') && joinTournamentMutation.isPending
+                              ? 'Joining...'
+                              : 'Join'}
                           </button>
                         )
                       )}
@@ -191,6 +257,90 @@ const UserTournaments: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Join Tournament Modal */}
+      {showJoinModal && joiningTournament && (
+        <Modal
+          isOpen={showJoinModal}
+          onClose={closeJoinModal}
+          showCloseButton
+          title="Join Tournament"
+          className="modal-medium"
+        >
+          <div className="lobby-rules join-tournament-modal">
+            <h4 className="lobby-rules-title">
+              {joiningTournament.game} - {joiningTournament.mode} {joiningTournament.subMode}
+            </h4>
+
+            <div className="lobby-rules-section">
+              <label className="lobby-rules-subtitle" htmlFor="team-name-input">
+                Team Name (required)
+              </label>
+              <input
+                id="team-name-input"
+                type="text"
+                className="tournament-input tournament-input-full"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Enter your team name"
+              />
+            </div>
+
+            <div className="lobby-rules-section">
+              <h5 className="lobby-rules-subtitle">Players (max 5)</h5>
+              <ul className="lobby-rules-list">
+                {playerNames.map((name, index) => (
+                  <li key={index}>
+                    <div className="player-input-row">
+                      <span className="player-input-label">
+                        Player {index + 1}
+                        {index === 0 ? ' (you)' : ''}
+                      </span>
+                      <input
+                        type="text"
+                        className="tournament-input"
+                        value={name}
+                        onChange={(e) => {
+                          const updated = [...playerNames];
+                          updated[index] = e.target.value;
+                          setPlayerNames(updated);
+                        }}
+                        placeholder={index === 0 ? 'Your name' : 'Optional player name'}
+                        disabled={index === 0}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {joinFormError && (
+              <p className="lobby-rules-text" style={{ color: 'var(--error-color, #f44336)' }}>
+                {joinFormError}
+              </p>
+            )}
+
+            <div className="tournament-actions" style={{ marginTop: '1rem' }}>
+              <button
+                className="tournament-join-button"
+                type="button"
+                onClick={handleSubmitJoin}
+                disabled={joinTournamentMutation.isPending}
+              >
+                {joinTournamentMutation.isPending ? 'Joining...' : 'Confirm Join'}
+              </button>
+              <button
+                className="tournament-join-button tournament-joined-button"
+                type="button"
+                onClick={closeJoinModal}
+                disabled={joinTournamentMutation.isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Lobby Rules Modal (same structure as Lobby page) */}
       {showRulesModal && rulesTournament && (

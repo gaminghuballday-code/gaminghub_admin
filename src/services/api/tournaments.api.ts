@@ -123,6 +123,10 @@ export interface UpdateRoomResponse {
 
 export interface JoinTournamentRequest {
   tournamentId: string;
+  // Optional team name and players list for squad/duo tournaments.
+  // Backend can ignore these for solo modes if not needed.
+  teamName?: string;
+  players?: string[];
 }
 
 export interface JoinTournamentResponse {

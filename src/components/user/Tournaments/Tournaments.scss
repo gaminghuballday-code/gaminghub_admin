@@ -286,3 +286,71 @@
   border-radius: $border-radius-sm;
 }
 
+// Join Tournament modal enhancements
+.join-tournament-modal {
+  .lobby-rules-title {
+    margin-bottom: $spacing-md;
+  }
+
+  .lobby-rules-section {
+    background: rgba(var(--background-color-rgb), 0.4);
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    border: 1px solid rgba(var(--border-color-rgb), 0.4);
+  }
+
+  .lobby-rules-subtitle {
+    margin-bottom: $spacing-sm;
+  }
+
+  .lobby-rules-list {
+    gap: $spacing-xs;
+  }
+}
+
+.tournament-input {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-sm;
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  background: rgba(var(--background-color-rgb), 0.8);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color $transition-fast, box-shadow $transition-fast, background $transition-fast;
+
+  &::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.8;
+  }
+
+  &:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.4);
+    background: rgba(var(--background-color-rgb), 1);
+  }
+
+  &:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+    background: rgba(var(--background-color-rgb), 0.6);
+  }
+}
+
+.tournament-input-full {
+  width: 100%;
+}
+
+.player-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 130px) 1fr;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.player-input-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
