@@ -22,6 +22,19 @@ const UserHistory: React.FC = () => {
     return `${formatDate(dateString)} ${time}`;
   };
 
+  const formatTimestamp = (timestamp?: string, fallbackDate?: string, fallbackTime?: string) => {
+    if (timestamp) {
+      return new Date(timestamp).toLocaleString('en-IN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+    return formatDateTime(fallbackDate, fallbackTime);
+  };
+
   return (
     <div className="user-history-container">
       <UserSidebar />
@@ -53,7 +66,7 @@ const UserHistory: React.FC = () => {
                       <th>Tournament</th>
                       <th>Date & Time</th>
                       <th>Winnings (GC)</th>
-                      <th>Rank</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -64,9 +77,26 @@ const UserHistory: React.FC = () => {
                         const gameMode = tournament 
                           ? `${tournament.game} - ${tournament.mode} ${tournament.subMode ? `(${tournament.subMode})` : ''}`
                           : 'Tournament';
-                        const dateTime = formatDateTime(tournament?.date || item.date, tournament?.startTime || item.time);
-                        const winnings = item.winnings || 0;
-                        const rank = item.rank;
+                        const dateTime = formatTimestamp(
+                          (item as any).timestamp || item.createdAt,
+                          tournament?.date || item.date,
+                          tournament?.startTime || item.time
+                        );
+                        const rawAmount = item.winnings ?? (item as any).amountGC ?? 0;
+                        const type = (item as any).type;
+                        // For join/deduction show negative, others as positive
+                        const winnings = type === 'join' || type === 'deduction' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+                        const description = (item as any).description;
+
+                        const getTypeLabel = (value?: string) => {
+                          if (!value) return '';
+                          const normalized = value.toLowerCase();
+                          if (normalized === 'topup') return 'Top Up';
+                          if (normalized === 'deduction') return 'Deduction';
+                          if (normalized === 'refund') return 'Refund';
+                          if (normalized === 'join') return 'Join';
+                          return value.charAt(0).toUpperCase() + value.slice(1);
+                        };
 
                         return (
                           <tr key={item._id}>
@@ -82,13 +112,21 @@ const UserHistory: React.FC = () => {
                             <td className={`winnings-cell ${winnings > 0 ? 'positive' : ''}`}>
                               {winnings > 0 ? `+${winnings}` : winnings} GC
                             </td>
-                            <td className="rank-cell">
-                              {rank ? (
-                                <span className={`rank-badge rank-${rank <= 3 ? 'top' : 'normal'}`}>
-                                  #{rank}
-                                </span>
+                            <td className="status-cell">
+                              {type ? (
+                                <div className="status-info">
+                                  <span className={`type-badge type-${type.toLowerCase()}`}>{getTypeLabel(type)}</span>
+                                  {description && (
+                                    <div className="status-info-icon">
+                                      <span className="info-icon">i</span>
+                                      <div className="status-info-tooltip">
+                                        {description}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
-                                <span className="rank-badge">-</span>
+                                <span className="status-placeholder">-</span>
                               )}
                             </td>
                           </tr>

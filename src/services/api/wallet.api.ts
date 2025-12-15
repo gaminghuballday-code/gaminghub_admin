@@ -68,6 +68,11 @@ export interface WalletHistoryItem {
   rank?: number;
   date?: string;
   time?: string;
+  // Wallet transaction fields (for joins/topups/refunds, etc.)
+  type?: string; // e.g. "join", "topup", "refund"
+  status?: string; // e.g. "success", "pending", "failed"
+  description?: string; // human readable reason / message
+  amountGC?: number;
   createdAt: string;
   updatedAt: string;
 }

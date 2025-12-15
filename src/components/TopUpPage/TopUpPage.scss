@@ -186,7 +186,7 @@
 
 .top-up-header {
   @include flex-between;
-  padding: $spacing-xl $spacing-lg;
+  padding: $spacing-md $spacing-lg;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%

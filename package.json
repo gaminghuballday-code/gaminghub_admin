@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
+    "dev:user": "vite --mode development --port 3001",
+    "dev:admin": "vite --mode development --port 3002",
+    "dev:both": "npm-run-all --parallel dev:user dev:admin",
     "build": "tsc -b && vite build",
     "build:dev": "tsc -b && vite build --mode development",
     "build:production": "tsc -b && vite build --mode production",
@@ -37,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "npm-run-all": "^4.1.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"

@@ -102,7 +102,12 @@ const UserTournaments: React.FC = () => {
                       </div>
                       <div className="tournament-detail-item">
                         <span className="detail-label">Prize Pool:</span>
-                        <span className="detail-value prize-pool">₹{tournament.prizePool}</span>
+                        <span className="detail-value prize-pool">
+                          ₹
+                          {tournament.winnerPrizePool ??
+                            tournament.potentialPrizePool?.winnerPrizePool ??
+                            tournament.prizePool}
+                        </span>
                       </div>
                       {/* Show Teams for Squad/Duo, Players for Solo */}
                       {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (
@@ -115,7 +120,9 @@ const UserTournaments: React.FC = () => {
                             )}
                           </span>
                         </div>
-                      ) : (
+                      )
+                       : 
+                       (
                         <div className="tournament-detail-item">
                           <span className="detail-label">Players:</span>
                           <span className="detail-value">
@@ -127,7 +134,8 @@ const UserTournaments: React.FC = () => {
                             )}
                           </span>
                         </div>
-                      )}
+                      )
+                      }
                       {tournament.region && (
                         <div className="tournament-detail-item">
                           <span className="detail-label">Region:</span>

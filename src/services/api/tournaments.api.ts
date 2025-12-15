@@ -20,6 +20,28 @@ export interface Tournament {
     password: string | null;
   };
   prizePool: number;
+  winnerPrizePool?: number;
+  totalPrizePool?: number;
+  platformFee?: number;
+  hostFee?: number;
+  casterFee?: number;
+  totalFees?: number;
+  potentialPrizePool?: {
+    totalPrizePool: number;
+    platformFee: number;
+    hostFee: number;
+    casterFee: number;
+    totalFees: number;
+    winnerPrizePool: number;
+  };
+  currentPrizePool?: {
+    totalPrizePool: number;
+    platformFee: number;
+    hostFee: number;
+    casterFee: number;
+    totalFees: number;
+    winnerPrizePool: number;
+  };
   status: 'upcoming' | 'live' | 'completed';
   results: Array<{
     userId: string;

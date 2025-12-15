@@ -19,6 +19,7 @@ const UserLobby: React.FC = () => {
   const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
   const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
   const [applyingTournamentId, setApplyingTournamentId] = useState<string | null>(null);
+  const [activePrizePoolTab, setActivePrizePoolTab] = useState<Record<string, 'expected' | 'current'>>({});
 
   // Check if user is host
   const isHostUser = user?.role === 'host';
@@ -95,6 +96,56 @@ const UserLobby: React.FC = () => {
     }
   };
 
+  // Calculate current prize pool based on joined teams/players
+  const calculateCurrentPrizePool = (tournament: Tournament): number => {
+    // If currentPrizePool is already provided, use it
+    if (tournament.currentPrizePool?.winnerPrizePool !== undefined) {
+      return tournament.currentPrizePool.winnerPrizePool;
+    }
+
+    // Calculate based on joined participants
+    let totalEntryFees = 0;
+    
+    // For team-based tournaments (squad/duo)
+    if ((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined) {
+      const joinedTeams = tournament.joinedTeams !== undefined ? tournament.joinedTeams : 0;
+      totalEntryFees = tournament.entryFee * joinedTeams;
+    } else {
+      // For solo tournaments
+      const joinedCount = tournament.joinedCount !== undefined 
+        ? tournament.joinedCount 
+        : (tournament.participants?.length || 0);
+      totalEntryFees = tournament.entryFee * joinedCount;
+    }
+
+    // Calculate fees - use percentage from potentialPrizePool if available
+    let platformFee = 0;
+    let hostFee = 0;
+    let casterFee = 0;
+
+    if (tournament.potentialPrizePool && tournament.potentialPrizePool.totalPrizePool > 0) {
+      // Calculate fee percentages from potentialPrizePool
+      const platformFeePercent = (tournament.potentialPrizePool.platformFee / tournament.potentialPrizePool.totalPrizePool) * 100;
+      const hostFeePercent = (tournament.potentialPrizePool.hostFee / tournament.potentialPrizePool.totalPrizePool) * 100;
+      const casterFeePercent = (tournament.potentialPrizePool.casterFee / tournament.potentialPrizePool.totalPrizePool) * 100;
+
+      // Apply same percentages to current total entry fees
+      platformFee = (totalEntryFees * platformFeePercent) / 100;
+      hostFee = (totalEntryFees * hostFeePercent) / 100;
+      casterFee = (totalEntryFees * casterFeePercent) / 100;
+    } else {
+      // Fallback to fixed fees if available
+      platformFee = tournament.platformFee || tournament.currentPrizePool?.platformFee || 0;
+      hostFee = tournament.hostFee || tournament.currentPrizePool?.hostFee || 0;
+      casterFee = tournament.casterFee || tournament.currentPrizePool?.casterFee || 0;
+    }
+
+    const totalFees = platformFee + hostFee + casterFee;
+
+    // Current prize pool = total entry fees - total fees
+    return Math.max(0, totalEntryFees - totalFees);
+  };
+
   return (
     <div className="user-lobby-container">
       <UserSidebar />
@@ -122,7 +173,7 @@ const UserLobby: React.FC = () => {
             ) : joinedTournaments.length > 0 ? (
               <div className="tournaments-list">
                 {joinedTournaments.map((tournament) => (
-                  <div key={tournament._id || tournament.id} className="tournament-card">
+                  <div key={tournament._id || tournament.id} className="tournament-card" data-tournament-id={tournament._id || tournament.id}>
                     <div className="tournament-header">
                       <div className="tournament-game-mode">
                         <span className="tournament-game">{tournament.game}</span>
@@ -151,9 +202,41 @@ const UserLobby: React.FC = () => {
                         <span className="detail-label">Entry Fee:</span>
                         <span className="detail-value">₹{tournament.entryFee}</span>
                       </div>
-                      <div className="tournament-detail-item">
-                        <span className="detail-label">Prize Pool:</span>
-                        <span className="detail-value prize-pool">₹{tournament.prizePool}</span>
+                      <div className="tournament-detail-item prize-pool-container">
+                        <div className="prize-pool-tabs">
+                          <button 
+                            className={`prize-pool-tab ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'expected' ? 'active' : ''}`}
+                            onClick={() => {
+                              const tournamentId = tournament._id || tournament.id || '';
+                              setActivePrizePoolTab(prev => ({ ...prev, [tournamentId]: 'expected' }));
+                            }}
+                          >
+                            Total Prize Pool
+                          </button>
+                          <button 
+                            className={`prize-pool-tab ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'current' ? 'active' : ''}`}
+                            onClick={() => {
+                              const tournamentId = tournament._id || tournament.id || '';
+                              setActivePrizePoolTab(prev => ({ ...prev, [tournamentId]: 'current' }));
+                            }}
+                          >
+                            Current Prize Pool
+                          </button>
+                        </div>
+                        <div className="prize-pool-content-wrapper">
+                          <div className={`prize-pool-content ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'expected' ? 'active' : ''}`}>
+                            <span className="detail-label">Expected Prize Pool:</span>
+                            <span className="detail-value prize-pool">
+                              ₹{tournament.winnerPrizePool ?? tournament.potentialPrizePool?.winnerPrizePool ?? tournament.prizePool ?? 0}
+                            </span>
+                          </div>
+                          <div className={`prize-pool-content ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'current' ? 'active' : ''}`}>
+                            <span className="detail-label">Current Prize Pool:</span>
+                            <span className="detail-value prize-pool">
+                              ₹{calculateCurrentPrizePool(tournament)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       {/* Show Teams for Squad/Duo, Players for Solo */}
                       {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (

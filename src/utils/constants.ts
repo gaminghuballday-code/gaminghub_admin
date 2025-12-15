@@ -71,6 +71,11 @@ export const isAdminDomain = (): boolean => {
       localStorage.setItem('app_mode', 'admin');
       return true;
     }
+    // Port 3001 is for user app
+    if (port === '3001') {
+      localStorage.setItem('app_mode', 'user');
+      return false;
+    }
     // Check localStorage preference for other ports
     const savedMode = localStorage.getItem('app_mode');
     if (savedMode === 'admin') return true;
