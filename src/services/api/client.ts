@@ -144,28 +144,43 @@ apiClient.interceptors.response.use(
     };
 
     if (error.response?.data) {
-      const data = error.response.data as { message?: string; errors?: Record<string, string[]> };
-      if (data.message) {
-        apiError.message = data.message;
+      const data = error.response.data as any;
+
+      // Prefer top-level message when available
+      if (typeof data.message === 'string' && data.message.trim().length > 0) {
+        apiError.message = data.message.trim();
       }
+
+      // Fallbacks for common API shapes: { data: { message } } or { error: string }
+      else if (data.data && typeof data.data === 'object') {
+        const nestedMessage = (data.data as any).message;
+        if (typeof nestedMessage === 'string' && nestedMessage.trim().length > 0) {
+          apiError.message = nestedMessage.trim();
+        }
+      } else if (typeof data.error === 'string' && data.error.trim().length > 0) {
+        apiError.message = data.error.trim();
+      }
+
       if (data.errors) {
-        apiError.errors = data.errors;
+        apiError.errors = data.errors as Record<string, string[]>;
       }
     }
 
-    // Handle 401 Unauthorized - Clear token via Redux and redirect to login
+    // Handle 401 Unauthorized - show toast, clear token and redirect to login (if not already there)
     if (error.response?.status === 401) {
       const isOnLoginPage = window.location.pathname.includes('/login');
-      
-      // If on login page, show error toast for invalid credentials
-      if (isOnLoginPage && apiError.message && apiError.message.trim().length > 0) {
+
+      // Always show an error toast if we have a meaningful message
+      if (apiError.message && apiError.message.trim().length > 0) {
         store.dispatch(addToast({
           message: apiError.message.trim(),
           type: 'error',
           duration: 6000,
         }));
-      } else {
-        // If not on login page, logout and redirect (don't show toast as redirecting)
+      }
+
+      // If not already on login page, logout and redirect
+      if (!isOnLoginPage) {
         store.dispatch(logout());
         window.location.href = '/login';
       }
