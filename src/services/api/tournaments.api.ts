@@ -138,14 +138,57 @@ export const tournamentsApi = {
       params: queryParams,
     });
     
+    // Log the full response for debugging
+    console.log('Tournaments API Response:', {
+      fullResponse: response.data,
+      hasData: !!response.data?.data,
+      hasTournaments: !!response.data?.data?.tournaments,
+      tournamentsLength: response.data?.data?.tournaments?.length,
+      params: queryParams,
+    });
+    
+    // Handle different possible response structures
+    let tournaments: Tournament[] = [];
+    
+    // Check for response.data.data.tournaments (expected structure)
     if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
-      // Map _id to id for consistency, and format date if needed
-      return response.data.data.tournaments.map((tournament) => ({
+      tournaments = response.data.data.tournaments;
+      console.log(`Found ${tournaments.length} tournaments in response.data.data.tournaments`);
+    }
+    // Check for response.data.tournaments (alternative structure)
+    else if (response.data?.tournaments && Array.isArray(response.data.tournaments)) {
+      tournaments = response.data.tournaments;
+      console.log(`Found ${tournaments.length} tournaments in response.data.tournaments`);
+    }
+    // Check if response.data is directly an array
+    else if (Array.isArray(response.data)) {
+      tournaments = response.data;
+      console.log(`Found ${tournaments.length} tournaments in response.data (direct array)`);
+    }
+    // Check for response.data.data as array
+    else if (response.data?.data && Array.isArray(response.data.data)) {
+      tournaments = response.data.data;
+      console.log(`Found ${tournaments.length} tournaments in response.data.data (direct array)`);
+    }
+    
+    // Map _id to id for consistency and return all tournaments
+    if (tournaments.length > 0) {
+      const mappedTournaments = tournaments.map((tournament) => ({
         ...tournament,
         id: tournament._id || tournament.id,
       }));
+      console.log(`Returning ${mappedTournaments.length} mapped tournaments`);
+      return mappedTournaments;
     }
     
+    console.warn('No tournaments found in API response. Response structure:', {
+      responseData: response.data,
+      responseDataType: typeof response.data,
+      isArray: Array.isArray(response.data),
+      hasData: !!response.data?.data,
+      dataType: typeof response.data?.data,
+      dataIsArray: Array.isArray(response.data?.data),
+    });
     return [];
   },
 

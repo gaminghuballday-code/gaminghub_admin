@@ -17,10 +17,20 @@
     left: 250px;
     right: 0;
     width: calc(100% - 250px);
+    z-index: 100;
+    background: var(--background-color-dark);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    // Footer actual height: padding (md = 16px top/bottom = 32px) + content (~80-100px) = ~110-130px
+    // Using 120px as safe value
     
     @media (max-width: 768px) {
       left: 70px;
       width: calc(100% - 70px);
     }
   }
+}
+
+// CSS custom property for footer height - can be used in other components
+:root {
+  --admin-footer-height: 120px;
 }

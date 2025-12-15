@@ -52,6 +52,15 @@ export const useGenerateLobbyPageLogic = () => {
   );
   const tournamentsError = tournamentsQueryError ? (tournamentsQueryError as Error).message : null;
   
+  // Debug: Log tournaments data to console
+  useEffect(() => {
+    if (tournaments.length > 0) {
+      console.log('Tournaments received:', tournaments.length, tournaments);
+    } else if (!tournamentsLoading && tournaments.length === 0) {
+      console.log('No tournaments received. Params:', tournamentParams);
+    }
+  }, [tournaments, tournamentsLoading, tournamentParams]);
+  
   const updateTournamentMutation = useUpdateTournament();
   const deleteTournamentMutation = useDeleteTournament();
   const updateRoomMutation = useUpdateRoom();
@@ -79,11 +88,16 @@ export const useGenerateLobbyPageLogic = () => {
   const filteredTournaments = useMemo(() => {
     let filtered = [...tournaments];
     
+    console.log(`Filtering tournaments: ${tournaments.length} total, subMode filter: ${subModeFilter}`);
+    
     // Filter by subMode
     if (subModeFilter !== 'all') {
+      const beforeFilter = filtered.length;
       filtered = filtered.filter(t => t.subMode?.toLowerCase() === subModeFilter.toLowerCase());
+      console.log(`After subMode filter (${subModeFilter}): ${beforeFilter} -> ${filtered.length}`);
     }
     
+    console.log(`Final filtered tournaments: ${filtered.length}`);
     return filtered;
   }, [tournaments, subModeFilter]);
 

@@ -166,11 +166,12 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  min-height: 100vh;
+  height: 100vh;
   width: calc(100% - 250px);
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   
   @media (max-width: 768px) {
     margin-left: 70px;
@@ -195,7 +196,6 @@
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 100;
-  width: 100%;
   flex-shrink: 0;
 
   .header-left {
@@ -224,6 +224,7 @@
   flex: 1;
   min-height: 0;
   padding: $spacing-xl;
+  padding-bottom: calc(#{$spacing-xl} + 120px); // Space for fixed footer
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -231,13 +232,8 @@
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
-  
-  @media (max-width: 768px) {
-    padding-bottom: calc(#{$spacing-lg} + 200px); // More space on mobile
-  }
 }
 
 .generate-lobby-page-card {
@@ -254,7 +250,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
   transition: all $transition-normal;
   position: relative;
-  overflow: hidden;
+  overflow: visible; // Changed to allow dropdowns and content to show properly
   text-align: center;
 
   &::before {
@@ -357,7 +353,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
   transition: all $transition-normal;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   &::before {
     content: '';
@@ -585,6 +581,8 @@
 .tournaments-list {
   @include flex-column;
   gap: $spacing-md;
+  width: 100%;
+  overflow: visible;
 }
 
 .tournament-card {

@@ -166,11 +166,12 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  min-height: 100vh;
+  height: calc(80vh - 120px); // Account for fixed footer (120px)
   width: calc(100% - 250px);
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   
   @media (max-width: 768px) {
     margin-left: 70px;
@@ -195,7 +196,6 @@
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 100;
-  width: 100%;
   flex-shrink: 0;
 
   h1 {
@@ -219,19 +219,35 @@
   flex: 1;
   min-height: 0;
   padding: $spacing-xl;
+  padding-bottom: calc(#{$spacing-xl} + 120px); // Extra space to ensure full card visibility (including selected user info)
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: $spacing-xl;
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-color-rgb), 0.5) transparent;
   
-  @media (max-width: 768px) {
-    padding-bottom: calc(#{$spacing-lg} + 200px); // More space on mobile
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(var(--border-color-rgb), 0.2);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.6);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.8);
+    }
   }
 }
 
@@ -248,7 +264,8 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
   transition: all $transition-normal;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  min-height: fit-content;
 
   &::before {
     content: '';
@@ -292,11 +309,16 @@
 .top-up-section {
   @include flex-column;
   gap: $spacing-lg;
+  width: 100%;
+  flex-shrink: 0; // Prevent section from shrinking
 }
 
 .top-up-form {
   @include flex-column;
   gap: $spacing-lg;
+  width: 100%;
+  flex-shrink: 0; // Prevent form from shrinking
+  padding-bottom: $spacing-md; // Extra padding to ensure button is visible
 }
 
 .form-group {
@@ -315,6 +337,7 @@
 .user-search-container {
   position: relative;
   width: 100%;
+  z-index: 100; // Ensure dropdown container is above other content
   
   .user-search-input {
     padding-right: 120px; // Make room for loading indicator
@@ -383,7 +406,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 20px rgba(var(--primary-color-rgb), 0.1);
   max-height: 300px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000; // Increased to ensure it's above everything
   backdrop-filter: blur(10px);
 }
 
@@ -721,6 +744,10 @@
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  flex-shrink: 0;
 
   &::before {
     content: '';

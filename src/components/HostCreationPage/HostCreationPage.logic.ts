@@ -27,7 +27,9 @@ export const useHostCreationPageLogic = () => {
 
   // TanStack Query hooks
   useProfile(isAuthenticated && !user);
-  const { data: hosts, isLoading: hostsLoading, error: hostsQueryError, refetch: refetchHosts } = useAllHosts(isAuthenticated);
+  const { data: hostsData, isLoading: hostsLoading, error: hostsQueryError, refetch: refetchHosts } = useAllHosts(isAuthenticated);
+  const hosts = hostsData?.hosts || [];
+  const pagination = hostsData?.pagination;
   const hostsError = hostsQueryError ? (hostsQueryError as Error).message : null;
   
   const createHostMutation = useCreateHost();
@@ -147,9 +149,10 @@ export const useHostCreationPageLogic = () => {
     toggleShowPassword,
     handleCreateHost,
     // Hosts list
-    hosts: hosts || [],
+    hosts,
     hostsLoading,
     hostsError,
+    pagination,
     // Host modal
     selectedHost,
     hostStatistics,

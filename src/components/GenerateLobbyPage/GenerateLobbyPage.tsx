@@ -335,7 +335,7 @@ const GenerateLobbyPage: React.FC = () => {
                         <span className="detail-value">
                           {tournament.joinedCount !== undefined 
                             ? tournament.joinedCount 
-                            : tournament.participants.length}/{tournament.maxPlayers}
+                            : (Array.isArray(tournament.participants) ? tournament.participants.length : 0)}/{tournament.maxPlayers || 'N/A'}
                           {tournament.availableSlots !== undefined && (
                             <span className="available-slots"> ({tournament.availableSlots} available)</span>
                           )}

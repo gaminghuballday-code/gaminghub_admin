@@ -63,8 +63,15 @@ export const isAdminDomain = (): boolean => {
   const adminSubdomain = import.meta.env.VITE_ADMIN_DOMAIN || 'admin';
   const userDomain = import.meta.env.VITE_USER_DOMAIN || 'gaminghuballday.buzz';
   
-  // For localhost: check localStorage preference first
+  // For localhost: check port and localStorage preference
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    const port = window.location.port;
+    // Port 3002 is for admin app
+    if (port === '3002') {
+      localStorage.setItem('app_mode', 'admin');
+      return true;
+    }
+    // Check localStorage preference for other ports
     const savedMode = localStorage.getItem('app_mode');
     if (savedMode === 'admin') return true;
     if (savedMode === 'user') return false;

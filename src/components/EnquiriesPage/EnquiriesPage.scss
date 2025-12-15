@@ -166,11 +166,11 @@
   flex: 1;
   margin-left: 250px;
   transition: margin-left $transition-normal;
-  min-height: 100vh;
+  height: calc(80vh - 120px); // Account for fixed footer (120px)
   width: calc(100% - 250px);
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   
   @media (max-width: 768px) {
     margin-left: 70px;
@@ -214,19 +214,15 @@
   flex: 1;
   min-height: 0;
   padding: $spacing-xl;
+  padding-bottom: calc(#{$spacing-xl} + 120px); // Space for fixed footer
   display: flex;
   flex-direction: column;
   gap: $spacing-xl;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: calc(#{$spacing-xl} + 180px); // Space for fixed footer
-  
-  @media (max-width: 768px) {
-    padding-bottom: calc(#{$spacing-lg} + 200px); // More space on mobile
-  }
 }
 
 // Filters Section
@@ -573,6 +569,7 @@
   background: rgba(var(--background-color-rgb), 0.5);
   border-bottom-left-radius: $border-radius-lg;
   border-bottom-right-radius: $border-radius-lg;
+  margin-top: $spacing-lg;
 }
 
 .pagination-info {

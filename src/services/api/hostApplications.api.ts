@@ -165,6 +165,12 @@ export interface HostsListAllResponse {
   message: string;
   data: {
     hosts: Host[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
     total?: number;
   };
 }
@@ -294,19 +300,23 @@ export const hostApplicationsApi = {
   /**
    * Get all hosts (Admin only)
    */
-  getAllHosts: async (): Promise<Host[]> => {
+  getAllHosts: async (): Promise<{ hosts: Host[]; pagination?: HostsListAllResponse['data']['pagination'] }> => {
     const response = await apiClient.get<HostsListAllResponse>(
       '/api/admin/hosts'
     );
     
+    const hosts: Host[] = [];
     if (response.data?.data?.hosts && Array.isArray(response.data.data.hosts)) {
-      return response.data.data.hosts.map(host => ({
+      hosts.push(...response.data.data.hosts.map(host => ({
         ...host,
         hostId: host._id || host.hostId,
-      }));
+      })));
     }
     
-    return [];
+    return {
+      hosts,
+      pagination: response.data?.data?.pagination,
+    };
   },
 };
 
