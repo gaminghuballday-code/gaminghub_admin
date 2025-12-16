@@ -72,6 +72,14 @@ export interface Tournament {
   roomUpdateApplicationStatus?: 'pending' | 'approved' | 'rejected'; // Host application status
   // Optional status for the current user's host application for this tournament (Host side)
   hostApplicationStatus?: 'pending' | 'approved' | 'rejected';
+  // Fields from /api/host/tournaments/available endpoint
+  hasApplied?: boolean; // Whether the current host has applied for this tournament
+  applicationStatus?: 'pending' | 'approved' | 'rejected' | null; // Application status
+  hostApplication?: {
+    applicationId: string;
+    status: 'pending' | 'approved' | 'rejected';
+    appliedAt: string;
+  } | null; // Host application details
 }
 
 export interface TournamentsListResponse {

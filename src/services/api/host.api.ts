@@ -78,6 +78,22 @@ export const hostApi = {
 
     return [];
   },
+
+  /**
+   * Get available tournaments with host application status (Host only)
+   */
+  getAvailableTournaments: async (): Promise<Tournament[]> => {
+    const response = await apiClient.get<HostTournamentsResponse>('/api/host/tournaments/available');
+
+    if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
+      return response.data.data.tournaments.map((tournament) => ({
+        ...tournament,
+        id: tournament._id || tournament.id,
+      }));
+    }
+
+    return [];
+  },
 };
 
 

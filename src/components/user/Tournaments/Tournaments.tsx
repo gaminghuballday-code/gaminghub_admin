@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useUserTournaments, useJoinTournament, useJoinedTournaments, useApplyForHostTournament } from '@services/api/hooks';
+import { useUserTournaments, useJoinTournament, useJoinedTournaments, useApplyForHostTournament, useAvailableHostTournaments, useUpdateHostRoom } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
-import type { Tournament, TournamentRules } from '@services/api';
+import type { Tournament, TournamentRules, UpdateRoomRequest } from '@services/api';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
+import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
 import { getTimeUntilLive, formatTimeRemaining } from '@utils/tournamentTimer';
 import './Tournaments.scss';
@@ -18,6 +19,12 @@ type TournamentTab = 'upcoming' | 'live' | 'completed' | 'pendingResult';
 const UserTournaments: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TournamentTab>('upcoming');
   
+  // Get user data first (needed for WebSocket and role check)
+  const user = useAppSelector(selectUser);
+  
+  // Check if user is host - hosts don't join as players, they can apply to host
+  const isHost = user?.role === 'host';
+
   // Determine API status parameter based on active tab
   const getApiStatus = (tab: TournamentTab): string | undefined => {
     if (tab === 'upcoming') return 'upcoming';
@@ -27,14 +34,25 @@ const UserTournaments: React.FC = () => {
     return undefined;
   };
   
-  // Fetch tournaments with status parameter
-  const { data: allTournaments = [], isLoading, error, refetch: refetchTournaments } = useUserTournaments(
-    activeTab === 'pendingResult' ? { status: 'pendingResult' } : { status: getApiStatus(activeTab) }
+  // Fetch tournaments with status parameter (for regular users)
+  const { data: userTournaments = [], isLoading: userTournamentsLoading, error: userTournamentsError, refetch: refetchUserTournaments } = useUserTournaments(
+    activeTab === 'pendingResult' ? { status: 'pendingResult' } : { status: getApiStatus(activeTab) },
+    !isHost // Only fetch for non-hosts
   );
 
-  // Get user data first (needed for WebSocket)
-  const user = useAppSelector(selectUser);
-  const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments();
+  // Fetch available tournaments with application status (for hosts)
+  const { data: availableHostTournaments = [], isLoading: availableHostTournamentsLoading, error: availableHostTournamentsError, refetch: refetchAvailableHostTournaments } = useAvailableHostTournaments(
+    isHost // Only fetch for hosts
+  );
+
+  // Use appropriate data source based on user role
+  const allTournaments = isHost ? availableHostTournaments : userTournaments;
+  const isLoading = isHost ? availableHostTournamentsLoading : userTournamentsLoading;
+  const error = isHost ? availableHostTournamentsError : userTournamentsError;
+  
+  const refetchTournaments = isHost ? refetchAvailableHostTournaments : refetchUserTournaments;
+
+  const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments(!isHost);
 
   // WebSocket integration for real-time updates
   const currentUserId = user?._id || user?.userId;
@@ -109,6 +127,7 @@ const UserTournaments: React.FC = () => {
   }, [tournaments]);
   const joinTournamentMutation = useJoinTournament();
   const applyForHostMutation = useApplyForHostTournament();
+  const updateHostRoomMutation = useUpdateHostRoom();
   const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joiningTournament, setJoiningTournament] = useState<Tournament | null>(null);
@@ -118,9 +137,8 @@ const UserTournaments: React.FC = () => {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
   const [applyingHostTournamentId, setApplyingHostTournamentId] = useState<string | null>(null);
-
-  // Check if user is host - hosts don't join as players, they can apply to host
-  const isHost = user?.role === 'host';
+  const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
+  const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
 
   // Create a Set of joined tournament IDs for quick lookup
   const joinedTournamentIds = new Set(
@@ -222,10 +240,42 @@ const UserTournaments: React.FC = () => {
     setApplyingHostTournamentId(tournamentId);
     try {
       await applyForHostMutation.mutateAsync(tournamentId);
+      await refetchTournaments();
     } catch (error: any) {
       console.error('Failed to apply as host:', error);
     } finally {
       setApplyingHostTournamentId(null);
+    }
+  };
+
+  const handleUpdateRoom = (tournament: Tournament) => {
+    setUpdatingRoomTournament(tournament);
+    setShowUpdateRoomModal(true);
+  };
+
+  const handleCloseUpdateRoom = () => {
+    setShowUpdateRoomModal(false);
+    setUpdatingRoomTournament(null);
+  };
+
+  const handleSubmitRoomUpdate = async (data: UpdateRoomRequest) => {
+    try {
+      const tournamentId = data.tournamentId;
+      if (!tournamentId) return;
+
+      await updateHostRoomMutation.mutateAsync({
+        tournamentId,
+        data: {
+          roomId: data.roomId,
+          password: data.password,
+        },
+      });
+      await refetchTournaments();
+      setShowUpdateRoomModal(false);
+      setUpdatingRoomTournament(null);
+    } catch (error: any) {
+      console.error('Failed to update room:', error);
+      throw error;
     }
   };
 
@@ -387,18 +437,28 @@ const UserTournaments: React.FC = () => {
                         (() => {
                           const hostId = tournament.hostId;
                           const isUserAssignedHost = hostId && currentUserId && hostId === currentUserId;
-                          const isAnyHostAssigned = !!hostId;
+                          const isAnyHostAssigned = !!hostId && !isUserAssignedHost;
                           const tournamentId = (tournament._id || tournament.id || '') as string;
-                          const hostApplicationStatus = (tournament as Tournament).hostApplicationStatus;
+                          
+                          // Check application status from API response
+                          const hasApplied = tournament.hasApplied === true;
+                          const applicationStatus = tournament.applicationStatus;
+                          const isApplicationPending = hasApplied && applicationStatus === 'pending';
 
+                          // If user is assigned host, show Update Room button
                           if (isUserAssignedHost) {
                             return (
-                              <button className="tournament-join-button tournament-joined-button" disabled>
-                                Host already assigned (You)
+                              <button
+                                className="tournament-join-button"
+                                type="button"
+                                onClick={() => handleUpdateRoom(tournament)}
+                              >
+                                Update Room
                               </button>
                             );
                           }
 
+                          // If another host is assigned, show disabled button
                           if (isAnyHostAssigned) {
                             return (
                               <button className="tournament-join-button tournament-joined-button" disabled>
@@ -407,14 +467,16 @@ const UserTournaments: React.FC = () => {
                             );
                           }
 
-                          if (hostApplicationStatus === 'pending') {
+                          // If application is pending, show Applied button
+                          if (isApplicationPending) {
                             return (
                               <button className="tournament-join-button tournament-pending-button" disabled>
-                                Application Pending
+                                Applied
                               </button>
                             );
                           }
 
+                          // Otherwise, show Apply for Host button
                           return (
                             <button
                               className="tournament-join-button"
@@ -663,6 +725,17 @@ const UserTournaments: React.FC = () => {
             })()}
           </div>
         </Modal>
+      )}
+
+      {/* Update Room Modal */}
+      {showUpdateRoomModal && updatingRoomTournament && (
+        <UpdateRoom
+          isOpen={showUpdateRoomModal}
+          tournament={updatingRoomTournament}
+          onClose={handleCloseUpdateRoom}
+          onUpdate={handleSubmitRoomUpdate}
+          isUpdating={updateHostRoomMutation.isPending}
+        />
       )}
     </div>
   );

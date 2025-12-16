@@ -20,6 +20,7 @@ export const tournamentsKeys = {
     [...tournamentsKeys.userLists(), params] as const,
   joined: () => [...tournamentsKeys.all, 'user', 'joined'] as const,
   hostLists: () => [...tournamentsKeys.all, 'host', 'list'] as const,
+  hostAvailable: () => [...tournamentsKeys.all, 'host', 'available'] as const,
   hostApplications: () => [...tournamentsKeys.all, 'host', 'applications'] as const,
 };
 
@@ -158,6 +159,7 @@ export const useApplyForHostTournament = () => {
       // Refresh user and host tournament lists
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.userLists() });
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostLists() });
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostAvailable() });
     },
   });
 };
@@ -173,6 +175,7 @@ export const useUpdateHostRoom = () => {
       hostApi.updateHostRoom(tournamentId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostLists() });
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostAvailable() });
     },
   });
 };
@@ -184,6 +187,17 @@ export const useHostApplicationsForUser = (enabled = true) => {
   return useQuery({
     queryKey: tournamentsKeys.hostApplications(),
     queryFn: () => hostApi.getOwnApplications(),
+    enabled,
+  });
+};
+
+/**
+ * Hook for fetching available tournaments with host application status (Host only)
+ */
+export const useAvailableHostTournaments = (enabled = true) => {
+  return useQuery({
+    queryKey: tournamentsKeys.hostAvailable(),
+    queryFn: () => hostApi.getAvailableTournaments(),
     enabled,
   });
 };
