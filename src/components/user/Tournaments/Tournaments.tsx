@@ -435,9 +435,30 @@ const UserTournaments: React.FC = () => {
                     <div className="tournament-actions">
                       {isHost ? (
                         (() => {
-                          const hostId = tournament.hostId;
-                          const isUserAssignedHost = hostId && currentUserId && hostId === currentUserId;
+                          // Normalize hostId to string for comparison
+                          let hostId: string | null = null;
+                          if (tournament.hostId) {
+                            if (typeof tournament.hostId === 'string') {
+                              hostId = tournament.hostId.trim();
+                            } else if (typeof tournament.hostId === 'object' && tournament.hostId !== null) {
+                              // Handle case where hostId might be an object with _id
+                              hostId = (tournament.hostId as any)._id || (tournament.hostId as any).hostId || String(tournament.hostId);
+                              hostId = hostId.trim();
+                            } else {
+                              hostId = String(tournament.hostId).trim();
+                            }
+                          }
+                          
+                          // Normalize currentUserId to string for comparison
+                          const normalizedCurrentUserId = currentUserId ? String(currentUserId).trim() : null;
+                          
+                          // Check if current user is the assigned host (strict comparison)
+                          const isUserAssignedHost = hostId && normalizedCurrentUserId && 
+                            hostId === normalizedCurrentUserId;
+                          
+                          // Check if any other host is assigned (but not the current user)
                           const isAnyHostAssigned = !!hostId && !isUserAssignedHost;
+                          
                           const tournamentId = (tournament._id || tournament.id || '') as string;
                           
                           // Check application status from API response

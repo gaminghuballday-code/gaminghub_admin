@@ -86,6 +86,63 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
   
   const loading = viewMode === 'applications' ? applicationsLoading : hostsLoading;
   const error = hostsError ? (hostsError as Error).message : null;
+
+  // Deduplicate applications - show only one application per host (prefer pending, then most recent)
+  const uniqueApplications = useMemo(() => {
+    if (!applications || applications.length === 0) return [];
+    
+    // Group applications by hostId (normalize hostId to string)
+    const applicationsByHost = new Map<string, typeof applications>();
+    
+    applications.forEach((app) => {
+      // Get hostId - can be string or object, normalize to string
+      let hostId: string = '';
+      if (typeof app.hostId === 'string') {
+        hostId = app.hostId;
+      } else if (app.hostId && typeof app.hostId === 'object') {
+        hostId = app.hostId._id || app.hostId.hostId || '';
+      }
+      
+      // Fallback to userId if hostId is not available
+      if (!hostId) {
+        hostId = app.userId || '';
+      }
+      
+      if (!hostId) return;
+      
+      if (!applicationsByHost.has(hostId)) {
+        applicationsByHost.set(hostId, []);
+      }
+      applicationsByHost.get(hostId)!.push(app);
+    });
+    
+    // For each host, select the best application:
+    // 1. Prefer pending applications
+    // 2. If multiple pending, take the most recent
+    // 3. If no pending, take the most recent
+    const unique: typeof applications = [];
+    
+    applicationsByHost.forEach((hostApps) => {
+      // Sort by: pending first, then by createdAt (most recent first)
+      const sorted = [...hostApps].sort((a, b) => {
+        // Pending applications first
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status !== 'pending' && b.status === 'pending') return 1;
+        
+        // Then by createdAt (most recent first)
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      
+      // Take the first one (best application for this host)
+      if (sorted.length > 0) {
+        unique.push(sorted[0]);
+      }
+    });
+    
+    return unique;
+  }, [applications]);
   
   // Process hosts - use backend conflict data if available, otherwise calculate
   const allHosts = useMemo(() => {
@@ -144,6 +201,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
         refetchApplications();
         refetchAllHosts();
         onApplicationProcessed();
+        onClose(); // Close modal after successful approval
       },
       onError: (err: any) => {
         console.error('Failed to approve application:', err);
@@ -236,7 +294,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
               }}
               disabled={loading}
             >
-              Applications ({applications.length})
+              Applications ({uniqueApplications.length})
             </button>
             <button
               className={`view-toggle-button ${viewMode === 'all-hosts' ? 'active' : ''}`}
@@ -263,13 +321,13 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
                 <span>{error}</span>
               </div>
             ) : viewMode === 'applications' ? (
-              applications.length === 0 ? (
+              uniqueApplications.length === 0 ? (
                 <div className="host-applications-empty">
                   <p>No host applications found for this tournament.</p>
                 </div>
               ) : (
                 <div className="host-applications-list">
-                  {applications.map((application) => (
+                  {uniqueApplications.map((application) => (
                     <div key={application._id || application.id} className="host-application-card">
                       <div className="application-info">
                         <div className="application-user">
