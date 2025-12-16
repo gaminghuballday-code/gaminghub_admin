@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useJoinedTournaments, useUpdateRoomForUser, useApplyRoomUpdate } from '@services/api/hooks';
+import { useJoinedTournaments, useHostApplicationsForUser, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import type { Tournament, TournamentRules, UpdateRoomRequest } from '@services/api';
@@ -9,13 +9,70 @@ import Loading from '@components/common/Loading';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import Modal from '@components/common/Modal/Modal';
 import Toaster from '@components/common/Toaster';
+import { useTournamentSocket } from '@hooks/useTournamentSocket';
 import './Lobby.scss';
 import '../Tournaments/Tournaments.scss';
 
 const UserLobby: React.FC = () => {
-  const { data: joinedTournaments = [], isLoading, error, refetch: refetchJoined } = useJoinedTournaments();
   const user = useAppSelector(selectUser);
-  const updateRoomMutation = useUpdateRoomForUser();
+  const isHostUser = user?.role === 'host';
+
+  const {
+    data: joinedTournamentsData = [],
+    isLoading: joinedLoading,
+    error: joinedError,
+    refetch: refetchJoined,
+  } = useJoinedTournaments(!isHostUser);
+
+  const {
+    data: hostApplications = [],
+    isLoading: hostApplicationsLoading,
+    refetch: refetchHostApplications,
+  } = useHostApplicationsForUser(isHostUser);
+
+  // For hosts, derive assigned lobbies from approved applications' tournamentId data
+  const hostAssignedTournaments: Tournament[] = isHostUser
+    ? (hostApplications || [])
+        .filter((app) => app.status === 'approved' && (app as any).tournamentId)
+        .map((app) => {
+          const t = (app as any).tournamentId;
+          return {
+            ...(t as Tournament),
+            _id: t._id,
+            id: t._id || t.id,
+          } as Tournament;
+        })
+    : [];
+
+  const joinedTournaments = (isHostUser ? hostAssignedTournaments : joinedTournamentsData) || [];
+  const isLoading = isHostUser ? hostApplicationsLoading : joinedLoading;
+  const error = isHostUser ? undefined : joinedError;
+  
+  // WebSocket integration for real-time updates
+  const currentUserId = user?._id || user?.userId;
+  useTournamentSocket({
+    subscriptionType: isHostUser ? 'host-tournaments' : 'user-tournaments',
+    userId: currentUserId,
+    onStatusUpdate: () => {
+      if (isHostUser) {
+        refetchHostApplications();
+      } else {
+        refetchJoined();
+      }
+    },
+    onRoomUpdate: () => {
+      if (isHostUser) {
+        refetchHostApplications();
+      } else {
+        refetchJoined();
+      }
+    },
+    enabled: !!currentUserId,
+  });
+
+  const updateRoomForUserMutation = useUpdateRoomForUser();
+  const updateHostRoomMutation = useUpdateHostRoom();
+  const updateRoomMutation = isHostUser ? updateHostRoomMutation : updateRoomForUserMutation;
   const applyRoomUpdateMutation = useApplyRoomUpdate();
   const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
   const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
@@ -23,9 +80,6 @@ const UserLobby: React.FC = () => {
   const [activePrizePoolTab, setActivePrizePoolTab] = useState<Record<string, 'expected' | 'current'>>({});
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
-
-  // Check if user is host
-  const isHostUser = user?.role === 'host';
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -99,8 +153,22 @@ const UserLobby: React.FC = () => {
 
   const handleSubmitRoomUpdate = async (data: UpdateRoomRequest) => {
     try {
-      await updateRoomMutation.mutateAsync(data);
-      await refetchJoined();
+      const tournamentId = data.tournamentId;
+      if (!tournamentId) return;
+
+      if (isHostUser) {
+        await updateHostRoomMutation.mutateAsync({
+          tournamentId,
+          data: {
+            roomId: data.roomId,
+            password: data.password,
+          },
+        });
+        await refetchHostApplications();
+      } else {
+        await updateRoomForUserMutation.mutateAsync(data);
+        await refetchJoined();
+      }
       setShowUpdateRoomModal(false);
       setUpdatingRoomTournament(null);
     } catch (error: any) {
@@ -172,7 +240,7 @@ const UserLobby: React.FC = () => {
 
         <div className="user-content">
           <div className="lobby-card">
-            <h2 className="card-title">Joined Tournaments</h2>
+            <h2 className="card-title">{isHostUser ? 'Assigned Lobbies' : 'Joined Tournaments'}</h2>
             
             {isLoading ? (
               <div className="tournaments-loading">
@@ -268,7 +336,7 @@ const UserLobby: React.FC = () => {
                           <span className="detail-value">
                             {tournament.joinedCount !== undefined 
                               ? tournament.joinedCount 
-                              : tournament.participants.length}/{tournament.maxPlayers}
+                              : (tournament.participants?.length || 0)}/{tournament.maxPlayers}
                             {tournament.availableSlots !== undefined && (
                               <span className="available-slots"> ({tournament.availableSlots} available)</span>
                             )}
@@ -297,9 +365,19 @@ const UserLobby: React.FC = () => {
                       </div>
                     )}
                     <div className="tournament-actions">
+                      {isHostUser && canUpdateRoom(tournament) ? (
+                        <button
+                          className="tournament-join-button tournament-update-room-button"
+                          onClick={() => handleUpdateRoom(tournament)}
+                          disabled={updateRoomMutation.isPending}
+                        >
+                          {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
+                        </button>
+                      ) : (
                       <button className="tournament-join-button tournament-joined-button" disabled>
                         Joined
                       </button>
+                      )}
                       <button
                         className="tournament-join-button tournament-rules-button"
                         type="button"
@@ -307,7 +385,7 @@ const UserLobby: React.FC = () => {
                       >
                         View Rules
                       </button>
-                      {canUpdateRoom(tournament) && (
+                      {!isHostUser && canUpdateRoom(tournament) && (
                         <button
                           className="tournament-join-button tournament-update-room-button"
                           onClick={() => handleUpdateRoom(tournament)}
@@ -335,9 +413,68 @@ const UserLobby: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="card-content">You haven't joined any tournaments yet.</p>
+              <p className="card-content">
+                {isHostUser ? 'No lobbies have been assigned to you yet.' : "You haven't joined any tournaments yet."}
+              </p>
             )}
           </div>
+
+          {isHostUser && (
+            <div className="lobby-card" style={{ marginTop: '1.5rem' }}>
+              <h2 className="card-title">Your Host Applications</h2>
+
+              {hostApplicationsLoading ? (
+                <div className="tournaments-loading">
+                  <Loading />
+                  <p>Loading your applications...</p>
+                </div>
+              ) : hostApplications.length > 0 ? (
+                <div className="tournaments-list">
+                  {hostApplications.map((app) => (
+                    <div key={app._id || app.id} className="tournament-card">
+                      <div className="tournament-header">
+                        <div className="tournament-game-mode">
+                          <span className="tournament-game">
+                            {(app as any).tournamentId?.game || 'Tournament'}
+                          </span>
+                          <span className="tournament-mode">
+                            {(app as any).tournamentId?.mode} - {(app as any).tournamentId?.subMode}
+                          </span>
+                        </div>
+                        <span className={`tournament-status tournament-status-${app.status}`}>
+                          {app.status}
+                        </span>
+                      </div>
+                      <div className="tournament-details">
+                        {(app as any).tournamentId?.date && (
+                          <div className="tournament-detail-item">
+                            <span className="detail-label">Date:</span>
+                            <span className="detail-value">
+                              {new Date((app as any).tournamentId.date).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        {(app as any).tournamentId?.startTime && (
+                          <div className="tournament-detail-item">
+                            <span className="detail-label">Time:</span>
+                            <span className="detail-value">disconnectSocket
+                              {(app as any).tournamentId.startTime}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="card-content">You have not applied to host any tournaments yet.</p>
+              )}
+            </div>
+          )}
         </div>
       </main>
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useUserTournaments, useJoinTournament, useJoinedTournaments } from '@services/api/hooks';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useUserTournaments, useJoinTournament, useJoinedTournaments, useApplyForHostTournament } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import type { Tournament, TournamentRules } from '@services/api';
@@ -8,14 +8,107 @@ import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
+import { useTournamentSocket } from '@hooks/useTournamentSocket';
+import { getTimeUntilLive, formatTimeRemaining } from '@utils/tournamentTimer';
 import './Tournaments.scss';
 import '../Lobby/Lobby.scss';
 
+type TournamentTab = 'upcoming' | 'live' | 'completed' | 'pendingResult';
+
 const UserTournaments: React.FC = () => {
-  const { data: tournaments = [], isLoading, error } = useUserTournaments();
-  const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments();
+  const [activeTab, setActiveTab] = useState<TournamentTab>('upcoming');
+  
+  // Determine API status parameter based on active tab
+  const getApiStatus = (tab: TournamentTab): string | undefined => {
+    if (tab === 'upcoming') return 'upcoming';
+    if (tab === 'live') return 'live';
+    if (tab === 'completed') return 'completed';
+    if (tab === 'pendingResult') return 'pendingResult'; // API might support this
+    return undefined;
+  };
+  
+  // Fetch tournaments with status parameter
+  const { data: allTournaments = [], isLoading, error, refetch: refetchTournaments } = useUserTournaments(
+    activeTab === 'pendingResult' ? { status: 'pendingResult' } : { status: getApiStatus(activeTab) }
+  );
+
+  // Get user data first (needed for WebSocket)
   const user = useAppSelector(selectUser);
+  const { data: joinedTournaments = [], refetch: refetchJoined } = useJoinedTournaments();
+
+  // WebSocket integration for real-time updates
+  const currentUserId = user?._id || user?.userId;
+  useTournamentSocket({
+    subscriptionType: 'user-tournaments',
+    userId: currentUserId,
+    onStatusUpdate: () => {
+      refetchTournaments();
+      refetchJoined();
+    },
+    onRoomUpdate: () => {
+      refetchTournaments();
+      refetchJoined();
+    },
+    enabled: !!currentUserId,
+  });
+
+  // Filter tournaments based on active tab (client-side fallback if API doesn't support pendingResult status)
+  const tournaments = useMemo(() => {
+    return allTournaments.filter((tournament) => {
+      if (activeTab === 'upcoming') {
+        return tournament.status === 'upcoming';
+      } else if (activeTab === 'live') {
+        return tournament.status === 'live';
+      } else if (activeTab === 'completed') {
+        return tournament.status === 'completed';
+      } else if (activeTab === 'pendingResult') {
+        // Pending result: completed tournaments with no results or empty results
+        // If API supports pendingResult status, this filter might not be needed
+        return tournament.status === 'completed' && 
+               (!tournament.results || tournament.results.length === 0);
+      }
+      return false;
+    });
+  }, [allTournaments, activeTab]);
+
+  // Timer state for upcoming tournaments
+  const [timeRemaining, setTimeRemaining] = useState<Record<string, string>>({});
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const previousTimersRef = useRef<string>('');
+
+  // Update timers for upcoming tournaments
+  useEffect(() => {
+    const updateTimers = () => {
+      const timers: Record<string, string> = {};
+      tournaments.forEach((tournament) => {
+        if (tournament.status === 'upcoming') {
+          const timeUntilLive = getTimeUntilLive(tournament);
+          if (timeUntilLive !== null) {
+            timers[tournament._id || tournament.id || ''] = formatTimeRemaining(timeUntilLive);
+          }
+        }
+      });
+      
+      // Only update state if the timer values actually changed
+      const timersString = JSON.stringify(timers);
+      if (timersString !== previousTimersRef.current) {
+        previousTimersRef.current = timersString;
+        setTimeRemaining(timers);
+      }
+    };
+
+    updateTimers();
+    timerIntervalRef.current = setInterval(updateTimers, 1000);
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [tournaments]);
   const joinTournamentMutation = useJoinTournament();
+  const applyForHostMutation = useApplyForHostTournament();
   const [joiningTournamentId, setJoiningTournamentId] = useState<string | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joiningTournament, setJoiningTournament] = useState<Tournament | null>(null);
@@ -24,8 +117,9 @@ const UserTournaments: React.FC = () => {
   const [joinFormError, setJoinFormError] = useState<string | null>(null);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
+  const [applyingHostTournamentId, setApplyingHostTournamentId] = useState<string | null>(null);
 
-  // Check if user is host - hosts should not see join button
+  // Check if user is host - hosts don't join as players, they can apply to host
   const isHost = user?.role === 'host';
 
   // Create a Set of joined tournament IDs for quick lookup
@@ -123,6 +217,18 @@ const UserTournaments: React.FC = () => {
   const isJoining = (tournamentId: string) => joiningTournamentId === tournamentId;
   const isJoined = (tournamentId: string) => joinedTournamentIds.has(tournamentId);
 
+  const handleApplyForHost = async (tournamentId: string) => {
+    if (!tournamentId) return;
+    setApplyingHostTournamentId(tournamentId);
+    try {
+      await applyForHostMutation.mutateAsync(tournamentId);
+    } catch (error: any) {
+      console.error('Failed to apply as host:', error);
+    } finally {
+      setApplyingHostTournamentId(null);
+    }
+  };
+
   return (
     <div className="user-tournaments-container">
       <UserSidebar />
@@ -137,6 +243,38 @@ const UserTournaments: React.FC = () => {
         <div className="user-content">
           <div className="tournaments-card">
             <h2 className="card-title">Available Tournaments</h2>
+            
+            {/* Tabs */}
+            <div className="tournaments-tabs">
+              <button
+                className={`tournament-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
+                onClick={() => setActiveTab('upcoming')}
+                type="button"
+              >
+                Upcoming
+              </button>
+              <button
+                className={`tournament-tab ${activeTab === 'live' ? 'active' : ''}`}
+                onClick={() => setActiveTab('live')}
+                type="button"
+              >
+                Live
+              </button>
+              <button
+                className={`tournament-tab ${activeTab === 'completed' ? 'active' : ''}`}
+                onClick={() => setActiveTab('completed')}
+                type="button"
+              >
+                Completed
+              </button>
+              <button
+                className={`tournament-tab ${activeTab === 'pendingResult' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pendingResult')}
+                type="button"
+              >
+                Pending Result
+              </button>
+            </div>
             
             {isLoading ? (
               <div className="tournaments-loading">
@@ -175,6 +313,28 @@ const UserTournaments: React.FC = () => {
                         <span className="detail-label">Time:</span>
                         <span className="detail-value">{tournament.startTime || 'N/A'}</span>
                       </div>
+                      {tournament.status === 'upcoming' && timeRemaining[tournament._id || tournament.id || ''] && (
+                        <div className="tournament-detail-item">
+                          <span className="detail-label">Goes Live In:</span>
+                          <span className="detail-value tournament-timer">
+                            {timeRemaining[tournament._id || tournament.id || '']}
+                          </span>
+                        </div>
+                      )}
+                      {tournament.status === 'live' && tournament.room?.roomId && (
+                        <>
+                          <div className="tournament-detail-item">
+                            <span className="detail-label">Room ID:</span>
+                            <span className="detail-value tournament-room-id">{tournament.room.roomId}</span>
+                          </div>
+                          {tournament.room.password && (
+                            <div className="tournament-detail-item">
+                              <span className="detail-label">Password:</span>
+                              <span className="detail-value tournament-room-password">{tournament.room.password}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
                       <div className="tournament-detail-item">
                         <span className="detail-label">Entry Fee:</span>
                         <span className="detail-value">₹{tournament.entryFee}</span>
@@ -223,7 +383,54 @@ const UserTournaments: React.FC = () => {
                       )}
                     </div>
                     <div className="tournament-actions">
-                      {!isHost && (
+                      {isHost ? (
+                        (() => {
+                          const hostId = tournament.hostId;
+                          const isUserAssignedHost = hostId && currentUserId && hostId === currentUserId;
+                          const isAnyHostAssigned = !!hostId;
+                          const tournamentId = (tournament._id || tournament.id || '') as string;
+                          const hostApplicationStatus = (tournament as Tournament).hostApplicationStatus;
+
+                          if (isUserAssignedHost) {
+                            return (
+                              <button className="tournament-join-button tournament-joined-button" disabled>
+                                Host already assigned (You)
+                              </button>
+                            );
+                          }
+
+                          if (isAnyHostAssigned) {
+                            return (
+                              <button className="tournament-join-button tournament-joined-button" disabled>
+                                Host already assigned
+                              </button>
+                            );
+                          }
+
+                          if (hostApplicationStatus === 'pending') {
+                            return (
+                              <button className="tournament-join-button tournament-pending-button" disabled>
+                                Application Pending
+                              </button>
+                            );
+                          }
+
+                          return (
+                            <button
+                              className="tournament-join-button"
+                              type="button"
+                              onClick={() => handleApplyForHost(tournamentId)}
+                              disabled={
+                                applyingHostTournamentId === tournamentId || applyForHostMutation.isPending
+                              }
+                            >
+                              {applyingHostTournamentId === tournamentId && applyForHostMutation.isPending
+                                ? 'Applying...'
+                                : 'Apply for Host'}
+                            </button>
+                          );
+                        })()
+                      ) : (
                         isJoined(tournament._id || tournament.id || '') ? (
                           <button className="tournament-join-button tournament-joined-button" disabled>
                             Joined
@@ -252,7 +459,12 @@ const UserTournaments: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="card-content">No tournaments available at the moment.</p>
+              <p className="card-content">
+                {activeTab === 'upcoming' && 'No upcoming tournaments available at the moment.'}
+                {activeTab === 'live' && 'No live tournaments at the moment.'}
+                {activeTab === 'completed' && 'No completed tournaments found.'}
+                {activeTab === 'pendingResult' && 'No tournaments with pending results.'}
+              </p>
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   tournamentsApi,
+  hostApi,
   type GetTournamentsParams,
   type UpdateTournamentRequest,
   type UpdateRoomRequest,
@@ -18,6 +19,8 @@ export const tournamentsKeys = {
   userList: (params?: { status?: string }) =>
     [...tournamentsKeys.userLists(), params] as const,
   joined: () => [...tournamentsKeys.all, 'user', 'joined'] as const,
+  hostLists: () => [...tournamentsKeys.all, 'host', 'list'] as const,
+  hostApplications: () => [...tournamentsKeys.all, 'host', 'applications'] as const,
 };
 
 /**
@@ -128,6 +131,59 @@ export const useJoinedTournaments = (enabled = true) => {
   return useQuery({
     queryKey: tournamentsKeys.joined(),
     queryFn: () => tournamentsApi.getJoinedTournaments(),
+    enabled,
+  });
+};
+
+/**
+ * Hook for fetching tournaments assigned to the current host (Host only)
+ */
+export const useHostTournaments = (enabled = true) => {
+  return useQuery({
+    queryKey: tournamentsKeys.hostLists(),
+    queryFn: () => hostApi.getHostTournaments(),
+    enabled,
+  });
+};
+
+/**
+ * Hook for applying to host a tournament (Host only)
+ */
+export const useApplyForHostTournament = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (tournamentId: string) => hostApi.applyForHostTournament(tournamentId),
+    onSuccess: () => {
+      // Refresh user and host tournament lists
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.userLists() });
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostLists() });
+    },
+  });
+};
+
+/**
+ * Hook for updating room as host (Host only)
+ */
+export const useUpdateHostRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tournamentId, data }: { tournamentId: string; data: Omit<UpdateRoomRequest, 'tournamentId'> }) =>
+      hostApi.updateHostRoom(tournamentId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostLists() });
+    },
+  });
+};
+
+/**
+ * Hook for fetching current host's own applications (Host only)
+ */
+export const useHostApplicationsForUser = (enabled = true) => {
+  return useQuery({
+    queryKey: tournamentsKeys.hostApplications(),
+    queryFn: () => hostApi.getOwnApplications(),
     enabled,
   });
 };

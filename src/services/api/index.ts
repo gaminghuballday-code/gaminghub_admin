@@ -5,6 +5,7 @@ export * from './users.api';
 export * from './lobby.api';
 export * from './tournaments.api';
 export * from './hostApplications.api';
+export * from './host.api';
 export * from './wallet.api';
 export * from './payment.api';
 export * from './inquiry.api';

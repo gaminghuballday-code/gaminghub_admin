@@ -5,10 +5,18 @@ export interface HostApplication {
   id?: string; // For backward compatibility
   tournamentId: string;
   userId: string;
+  // Backend may send either a separate `user` field or an embedded host object in `hostId`
   user?: {
     name?: string;
     email?: string;
   };
+  // For backward compatibility: may be a string ID or an object with host details
+  hostId?: string | {
+    _id?: string;
+    hostId?: string;
+    email?: string;
+    name?: string;
+  } | null;
   status: 'pending' | 'approved' | 'rejected';
   createdAt?: string;
   updatedAt?: string;
@@ -189,10 +197,34 @@ export const hostApplicationsApi = {
     );
     
     if (response.data?.data?.applications && Array.isArray(response.data.data.applications)) {
-      return response.data.data.applications.map((app) => ({
-        ...app,
-        id: app._id || app.id,
-      }));
+      return response.data.data.applications.map((app) => {
+        const rawHost = (app as any).hostId;
+
+        // Normalise hostId to a simple string
+        let normalisedHostId: string | undefined = undefined;
+        if (typeof rawHost === 'string') {
+          normalisedHostId = rawHost;
+        } else if (rawHost && typeof rawHost === 'object') {
+          normalisedHostId = rawHost._id || rawHost.hostId || undefined;
+        }
+
+        // Prefer explicit user field; otherwise derive from embedded host object
+        const derivedUser =
+          app.user ||
+          (rawHost && typeof rawHost === 'object'
+            ? {
+                name: rawHost.name,
+                email: rawHost.email,
+              }
+            : undefined);
+
+        return {
+          ...app,
+          hostId: normalisedHostId,
+          user: derivedUser,
+          id: app._id || app.id,
+        } as HostApplication;
+      });
     }
     
     return [];

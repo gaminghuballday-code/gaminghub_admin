@@ -23,6 +23,7 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     handleSubModeToggle,
     handleSubmit,
     closeModal,
+    handleDateChange,
   } = useGenerateLobbyLogic();
 
   const handleClose = () => {
@@ -86,7 +87,7 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
                 type="date"
                 className={`form-input form-date-input ${getFieldError('dateType').length > 0 ? 'form-input-error' : ''}`}
                 value={formData.dateType}
-                onChange={(e) => setFormData({ ...formData, dateType: e.target.value })}
+                onChange={(e) => handleDateChange(e.target.value)}
                 disabled={isSubmitting}
                 min={new Date().toISOString().split('T')[0]}
               />

@@ -2,9 +2,9 @@ import axios, { AxiosError } from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, CancelTokenSource } from 'axios';
 import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
-import { selectAccessToken, logout } from '../../store/slices/authSlice';
+import { selectAccessToken, selectRefreshToken, logout, updateTokens } from '../../store/slices/authSlice';
 import { addToast } from '../../store/slices/toastSlice';
-import { STORAGE_KEYS } from '../../utils/constants';
+import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
 // This avoids CORS issues by making requests from the same origin
@@ -14,6 +14,13 @@ const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000;
 
 // Request deduplication - prevent duplicate requests
 const pendingRequests = new Map<string, CancelTokenSource>();
+
+// Track refresh token request to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+}> = [];
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -166,25 +173,118 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 401 Unauthorized - show toast, clear token and redirect to login (if not already there)
+    // Handle 401 Unauthorized - attempt token refresh if refresh token exists
     if (error.response?.status === 401) {
+      const state = store.getState();
+      const refreshToken = selectRefreshToken(state as any);
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+      // Skip refresh if this is already a retry after refresh, or if we're on login page
       const isOnLoginPage = window.location.pathname.includes('/login');
-
-      // Always show an error toast if we have a meaningful message
-      if (apiError.message && apiError.message.trim().length > 0) {
-        store.dispatch(addToast({
-          message: apiError.message.trim(),
-          type: 'error',
-          duration: 6000,
-        }));
+      if (originalRequest?._retry || isOnLoginPage) {
+        if (!isOnLoginPage) {
+          store.dispatch(logout());
+          window.location.href = '/login';
+        }
+        return Promise.reject(apiError);
       }
 
-      // If not already on login page, logout and redirect
-      if (!isOnLoginPage) {
-        store.dispatch(logout());
-        window.location.href = '/login';
+      // Attempt token refresh if refresh token exists
+      if (refreshToken && !isRefreshing) {
+        isRefreshing = true;
+        originalRequest._retry = true;
+
+        // Determine refresh endpoint based on domain (admin vs user)
+        const isAdmin = isAdminDomain();
+        const refreshEndpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
+        
+        // Use axios directly to avoid circular dependency (apiClient uses interceptors)
+        // Request body: { refreshToken: string }
+        // Note: Using axios directly means response format is { data: { data: {...} } } (wrapped by backend)
+        return axios
+          .post<{ data: { accessToken: string; refreshToken?: string } }>(
+            `${API_BASE_URL}${refreshEndpoint}`,
+            { refreshToken } as { refreshToken: string },
+            { 
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            }
+          )
+          .then((response) => {
+            // Handle both response formats: { data: { accessToken, refreshToken } } or { accessToken, refreshToken }
+            const responseData = (response.data as any)?.data || response.data;
+            const { accessToken, refreshToken: newRefreshToken } = responseData;
+            
+            if (!accessToken) {
+              throw new Error('Access token not received from refresh token response');
+            }
+            
+            // Update tokens in store and localStorage
+            store.dispatch(updateTokens({
+              accessToken,
+              refreshToken: newRefreshToken,
+            }));
+
+            // Update authorization header for retry
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            }
+
+            // Process queued requests
+            isRefreshing = false;
+            failedQueue.forEach((prom) => prom.resolve());
+            failedQueue = [];
+
+            // Retry original request
+            return apiClient(originalRequest);
+          })
+          .catch((refreshError) => {
+            // Refresh failed - reject queued requests and logout
+            isRefreshing = false;
+            failedQueue.forEach((prom) => prom.reject(refreshError));
+            failedQueue = [];
+
+            if (!isOnLoginPage) {
+              store.dispatch(logout());
+              window.location.href = '/login';
+            }
+            return Promise.reject(refreshError);
+          });
+      } else if (isRefreshing) {
+        // Another request failed while refresh is in progress - queue it
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            // Retry original request after refresh completes
+            if (originalRequest.headers) {
+              const state = store.getState();
+              const token = selectAccessToken(state);
+              if (token) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+              }
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      } else {
+        // No refresh token available - logout
+        if (apiError.message && apiError.message.trim().length > 0) {
+          store.dispatch(addToast({
+            message: apiError.message.trim(),
+            type: 'error',
+            duration: 6000,
+          }));
+        }
+
+        if (!isOnLoginPage) {
+          store.dispatch(logout());
+          window.location.href = '/login';
+        }
+        return Promise.reject(apiError);
       }
-      return Promise.reject(apiError);
     }
 
     // Show error toast for all other errors

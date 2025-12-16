@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, VerifyOtpRequest, AuthResponse, CsrfTokenResponse, } from '../types/api.types';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, VerifyOtpRequest, AuthResponse, CsrfTokenResponse, RefreshTokenRequest, RefreshTokenResponse } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
 import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
@@ -163,6 +163,26 @@ export const authApi = {
     }
     
     return authData;
+  },
+
+  /**
+   * Refresh access token using refresh token
+   * Get a new access token using a valid refresh token
+   * Uses /api/admin/refresh-token for admin side, /api/auth/refresh-token for user side
+   */
+  refreshToken: async (data: RefreshTokenRequest): Promise<RefreshTokenResponse> => {
+    // Use admin endpoint for admin side, auth endpoint for user side
+    const isAdmin = isAdminDomain();
+    const endpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
+    const response = await apiClient.post<{ data: RefreshTokenResponse }>(endpoint, data);
+    
+    const tokenData = response.data.data;
+    
+    if (!tokenData.accessToken) {
+      throw new Error('Access token not received from server');
+    }
+    
+    return tokenData;
   },
 };
 

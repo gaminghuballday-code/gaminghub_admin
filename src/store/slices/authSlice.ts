@@ -38,6 +38,7 @@ const authSlice = createSlice({
     ) => {
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken || null;
+      // Login / Google login response is the source of truth for role
       state.user = action.payload.user;
       state.isAuthenticated = true;
       
@@ -49,8 +50,18 @@ const authSlice = createSlice({
       localStorage.setItem('user', JSON.stringify(action.payload.user));
     },
     setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
-      localStorage.setItem('user', JSON.stringify(action.payload));
+      // Profile API might not include role anymore.
+      // Preserve existing role from login if the incoming user has no role.
+      const existingRole = state.user?.role;
+      const incoming = action.payload;
+      const mergedUser: User = {
+        ...(state.user || {}),
+        ...incoming,
+        role: incoming.role ?? existingRole,
+      };
+
+      state.user = mergedUser;
+      localStorage.setItem('user', JSON.stringify(mergedUser));
     },
     logout: (state) => {
       state.accessToken = null;
@@ -67,10 +78,18 @@ const authSlice = createSlice({
       state.accessToken = action.payload;
       localStorage.setItem('auth_token', action.payload);
     },
+    updateTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken?: string }>) => {
+      state.accessToken = action.payload.accessToken;
+      localStorage.setItem('auth_token', action.payload.accessToken);
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem('refresh_token', action.payload.refreshToken);
+      }
+    },
   },
 });
 
-export const { setCredentials, setUser, logout, updateToken } = authSlice.actions;
+export const { setCredentials, setUser, logout, updateToken, updateTokens } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectors

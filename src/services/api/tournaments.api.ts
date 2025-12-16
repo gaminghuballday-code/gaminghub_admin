@@ -56,7 +56,7 @@ export interface Tournament {
     totalFees: number;
     winnerPrizePool: number;
   };
-  status: 'upcoming' | 'live' | 'completed';
+  status: 'upcoming' | 'live' | 'pendingResult' | 'completed';
   results: Array<{
     userId: string;
   }>;
@@ -69,6 +69,8 @@ export interface Tournament {
   playersPerTeam?: number;
   roomUpdatePermission?: boolean; // Whether host has permission to update room
   roomUpdateApplicationStatus?: 'pending' | 'approved' | 'rejected'; // Host application status
+  // Optional status for the current user's host application for this tournament (Host side)
+  hostApplicationStatus?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface TournamentsListResponse {

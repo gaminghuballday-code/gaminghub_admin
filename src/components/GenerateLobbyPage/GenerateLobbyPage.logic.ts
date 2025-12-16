@@ -11,6 +11,7 @@ import {
   useDeleteTournament,
   useUpdateRoom,
 } from '@services/api/hooks';
+import { useTournamentSocket } from '@hooks/useTournamentSocket';
 
 export const useGenerateLobbyPageLogic = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const useGenerateLobbyPageLogic = () => {
 
   const [tournamentStatus, setTournamentStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
   const [subModeFilter, setSubModeFilter] = useState<'all' | 'solo' | 'duo' | 'squad'>('all');
-  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -51,6 +52,18 @@ export const useGenerateLobbyPageLogic = () => {
     isAuthenticated
   );
   const tournamentsError = tournamentsQueryError ? (tournamentsQueryError as Error).message : null;
+
+  // WebSocket integration for real-time updates (Admin)
+  useTournamentSocket({
+    subscriptionType: 'admin-tournaments',
+    onStatusUpdate: () => {
+      refetchTournaments();
+    },
+    onRoomUpdate: () => {
+      refetchTournaments();
+    },
+    enabled: isAuthenticated,
+  });
   
   // Debug: Log tournaments data to console
   useEffect(() => {
@@ -73,12 +86,7 @@ export const useGenerateLobbyPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  // Set default date when tournamentStatus is 'upcoming' and selectedDate is empty
-  useEffect(() => {
-    if (tournamentStatus === 'upcoming' && !selectedDate) {
-      setSelectedDate(getCurrentDate());
-    }
-  }, [tournamentStatus, selectedDate]);
+  // No default date - user must select manually
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

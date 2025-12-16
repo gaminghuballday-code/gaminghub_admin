@@ -24,16 +24,62 @@ export const useGenerateLobbyLogic = () => {
   
   const generateLobbiesMutation = useGenerateLobbies();
 
-  // Get tomorrow's date as default
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  // Get empty date (no default selection)
+  const getEmptyDate = () => {
+    return ''; // No default date
+  };
+
+  // Check if time has passed for the selected date
+  const isTimePassed = (date: string, timeSlot: string): boolean => {
+    // If no date selected, return false (allow it, will be validated separately)
+    if (!date || date.trim() === '') {
+      return false;
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Parse the selected date (YYYY-MM-DD format)
+    const [year, month, day] = date.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day);
+    
+    // If date is in the past (before today), time has passed
+    if (selectedDate < today) {
+      return true;
+    }
+    
+    // If date is in the future, time hasn't passed
+    if (selectedDate > today) {
+      return false;
+    }
+    
+    // Date is today - check if the specific time has passed
+    // Parse time slot (format: "3:00 PM" or "12:00 AM")
+    const timeMatch = timeSlot.match(/(\d+):00\s+(AM|PM)/i);
+    if (!timeMatch) {
+      return false; // Invalid format, allow it (will be validated by backend)
+    }
+    
+    let hour = parseInt(timeMatch[1], 10);
+    const period = timeMatch[2].toUpperCase();
+    
+    // Convert to 24-hour format
+    if (period === 'PM' && hour !== 12) {
+      hour += 12;
+    } else if (period === 'AM' && hour === 12) {
+      hour = 0;
+    }
+    
+    // Create datetime for the selected time on today's date
+    const selectedDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+    
+    // Check if time has passed (compare with current time)
+    return selectedDateTime < now;
   };
 
   // Form state (internal - uses dateType)
   const [formData, setFormData] = useState<GenerateLobbyFormData>({
-    dateType: getTomorrowDate(),
+    dateType: getEmptyDate(),
     timeSlots: [],
     mode: 'BR',
     subModes: [],
@@ -47,7 +93,7 @@ export const useGenerateLobbyLogic = () => {
     setSuccess(null);
     // Reset form
     setFormData({
-      dateType: getTomorrowDate(),
+      dateType: getEmptyDate(),
       timeSlots: [],
       mode: 'BR',
       subModes: [],
@@ -57,12 +103,45 @@ export const useGenerateLobbyLogic = () => {
   };
 
   const handleTimeSlotAdd = (timeSlot: string) => {
-    if (timeSlot.trim() && !formData.timeSlots.includes(timeSlot.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        timeSlots: [...prev.timeSlots, timeSlot.trim()],
-      }));
+    const trimmedTimeSlot = timeSlot.trim();
+    
+    if (!trimmedTimeSlot) {
+      return;
     }
+    
+    // Check if date is selected
+    if (!formData.dateType) {
+      setError('Please select a date first before adding time slots.');
+      setFieldErrors({});
+      return;
+    }
+    
+    // Check if time slot already exists
+    if (formData.timeSlots.includes(trimmedTimeSlot)) {
+      setError('This time slot has already been added.');
+      setFieldErrors({});
+      return;
+    }
+    
+    // Check if time has passed for the selected date (dynamic check based on selected time)
+    if (isTimePassed(formData.dateType, trimmedTimeSlot)) {
+      const dateObj = new Date(formData.dateType);
+      const isToday = dateObj.toDateString() === new Date().toDateString();
+      const dateStr = isToday ? 'today' : `the selected date (${formData.dateType})`;
+      setError(`Cannot add ${trimmedTimeSlot} - this time has already passed for ${dateStr}. Please select a future time.`);
+      setFieldErrors({});
+      return;
+    }
+    
+    // Clear any previous errors
+    setError(null);
+    setFieldErrors({});
+    
+    // Add the time slot
+    setFormData((prev) => ({
+      ...prev,
+      timeSlots: [...prev.timeSlots, trimmedTimeSlot],
+    }));
   };
 
   const handleTimeSlotRemove = (timeSlot: string) => {
@@ -209,6 +288,39 @@ export const useGenerateLobbyLogic = () => {
     return fieldErrors[key] || [];
   };
 
+  // Handle date change - remove time slots that have passed
+  const handleDateChange = (newDate: string) => {
+    setError(null);
+    setFieldErrors({});
+    
+    // If date is cleared, clear all time slots
+    if (!newDate) {
+      setFormData((prev) => ({
+        ...prev,
+        dateType: newDate,
+        timeSlots: [],
+      }));
+      return;
+    }
+    
+    // Filter out time slots that have passed for the new date
+    const validTimeSlots = formData.timeSlots.filter((timeSlot) => {
+      return !isTimePassed(newDate, timeSlot);
+    });
+    
+    // If some time slots were removed, show a message
+    if (validTimeSlots.length < formData.timeSlots.length) {
+      const removedCount = formData.timeSlots.length - validTimeSlots.length;
+      setError(`${removedCount} time slot(s) were removed because they have already passed for the selected date.`);
+    }
+    
+    setFormData((prev) => ({
+      ...prev,
+      dateType: newDate,
+      timeSlots: validTimeSlots,
+    }));
+  };
+
   return {
     isSubmitting: generateLobbiesMutation.isPending,
     error,
@@ -222,6 +334,8 @@ export const useGenerateLobbyLogic = () => {
     handleSubModeToggle,
     handleSubmit,
     closeModal,
+    handleDateChange,
+    isTimePassed,
   };
 };
 
