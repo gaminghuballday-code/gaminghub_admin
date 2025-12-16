@@ -124,7 +124,9 @@ const UserHistoryPage: React.FC = () => {
       {/* Main Content */}
       <main className="user-history-main">
         <header className="user-history-header">
-          <h1>User Transaction History</h1>
+          <div className="header-left">
+            <h1>User Transaction History</h1>
+          </div>
           <AppHeaderActions />
         </header>
 

@@ -669,6 +669,33 @@
   }
 }
 
+.tournament-lobby-name {
+  @include flex-between;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  margin-top: $spacing-sm;
+  background: rgba(var(--primary-color-rgb), 0.08);
+  border-radius: $border-radius-sm;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+}
+
+.lobby-name-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.lobby-name-value {
+  font-size: 0.95rem;
+  color: var(--text-color);
+  font-weight: 600;
+  flex: 1;
+  text-align: right;
+}
+
 .tournament-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

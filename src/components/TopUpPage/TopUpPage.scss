@@ -186,7 +186,7 @@
 
 .top-up-header {
   @include flex-between;
-  padding: $spacing-md $spacing-lg;
+  padding: $spacing-xl $spacing-lg;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%
@@ -198,15 +198,20 @@
   z-index: 100;
   flex-shrink: 0;
 
-  h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--text-color) 0%, var(--text-color-dark) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-    letter-spacing: -0.5px;
+  .header-left {
+    @include flex-center;
+    gap: $spacing-md;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--text-color) 0%, var(--text-color-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
   }
 
   .header-actions {

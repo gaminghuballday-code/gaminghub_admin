@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { useAppSelector } from '@store/hooks';
-import { selectToasts } from '@store/slices/toastSlice';
+import { useAppSelector, useAppDispatch } from '@store/hooks';
+import { selectToasts, removeToast } from '@store/slices/toastSlice';
 import type { Toast as ToastType } from '@store/slices/toastSlice';
 import Toast from './Toast';
 import './Toaster.scss';
@@ -8,6 +8,7 @@ import './Toaster.scss';
 const DEBOUNCE_DURATION = 3000; // 3 seconds
 
 const Toaster: React.FC = () => {
+  const dispatch = useAppDispatch();
   const toasts = useAppSelector(selectToasts);
   const [displayedToast, setDisplayedToast] = useState<ToastType | null>(null);
   const [canShowNext, setCanShowNext] = useState(true);
@@ -32,6 +33,20 @@ const Toaster: React.FC = () => {
         }, DEBOUNCE_DURATION);
         return;
       }
+
+      // If a new error toast arrives while one is already displayed, close current and start debounce
+      const firstToast = toasts[0];
+      if (firstToast && firstToast.id !== displayedToast.id && firstToast.type === 'error') {
+        // Close current toast immediately (regardless of its type)
+        dispatch(removeToast(displayedToast.id));
+        setDisplayedToast(null);
+        setCanShowNext(false);
+        // Start 3 second debounce before showing new error toast
+        debounceTimerRef.current = window.setTimeout(() => {
+          setCanShowNext(true);
+        }, DEBOUNCE_DURATION);
+        return;
+      }
     }
 
     // If we can show next toast and there are toasts available
@@ -48,7 +63,7 @@ const Toaster: React.FC = () => {
       // If displayed toast is different from first in queue, a new one was added
       // but we need to wait for current one to be removed first (handled above)
     }
-  }, [toasts, displayedToast, canShowNext]);
+  }, [toasts, displayedToast, canShowNext, dispatch]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -138,7 +138,9 @@ const HostCreationPage: React.FC = () => {
       {/* Main Content */}
       <main className="host-creation-main">
         <header className="host-creation-header">
-          <h1>Host Creation</h1>
+          <div className="header-left">
+            <h1>Host Creation</h1>
+          </div>
           <AppHeaderActions />
         </header>
 

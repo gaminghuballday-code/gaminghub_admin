@@ -150,7 +150,9 @@ const EnquiriesPage: React.FC = () => {
       {/* Main Content */}
       <main className="enquiries-main">
         <header className="enquiries-header">
-          <h1>Enquiries</h1>
+          <div className="header-left">
+            <h1>Enquiries</h1>
+          </div>
           <AppHeaderActions />
         </header>
 

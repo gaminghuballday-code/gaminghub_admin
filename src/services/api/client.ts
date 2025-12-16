@@ -182,6 +182,15 @@ apiClient.interceptors.response.use(
       // Skip refresh if this is already a retry after refresh, or if we're on login page
       const isOnLoginPage = window.location.pathname.includes('/login');
       if (originalRequest?._retry || isOnLoginPage) {
+        // Show error toast for login page errors (e.g., invalid credentials)
+        if (isOnLoginPage && apiError.message && apiError.message.trim().length > 0) {
+          store.dispatch(addToast({
+            message: apiError.message.trim(),
+            type: 'error',
+            duration: 6000,
+          }));
+        }
+        
         if (!isOnLoginPage) {
           store.dispatch(logout());
           window.location.href = '/login';

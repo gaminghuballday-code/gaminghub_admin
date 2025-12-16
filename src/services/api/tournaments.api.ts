@@ -17,6 +17,7 @@ export interface Tournament {
   game: string;
   mode: string;
   subMode: string;
+  lobbyName?: string; // Lobby name for the tournament
   // Optional per-lobby / per-tournament rules coming from API
   // Backend currently sends an object with description, generalRules, mapRotation, etc.
   rules?: TournamentRules | string | null;

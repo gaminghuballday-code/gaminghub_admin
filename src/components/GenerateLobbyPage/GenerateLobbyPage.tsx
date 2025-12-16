@@ -295,6 +295,12 @@ const GenerateLobbyPage: React.FC = () => {
                       {tournament.status}
                     </span>
                   </div>
+                  {tournament.lobbyName && (
+                    <div className="tournament-lobby-name">
+                      <span className="lobby-name-label">Lobby Name:</span>
+                      <span className="lobby-name-value">{tournament.lobbyName}</span>
+                    </div>
+                  )}
                   <div className="tournament-details">
                     <div className="tournament-detail-item">
                       <span className="detail-label">Date:</span>

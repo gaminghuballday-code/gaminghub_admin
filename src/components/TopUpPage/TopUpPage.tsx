@@ -178,7 +178,9 @@ const TopUpPage: React.FC = () => {
       {/* Main Content */}
       <main className="top-up-main">
         <header className="top-up-header">
-          <h1>Top Up Balance</h1>
+          <div className="header-left">
+            <h1>Top Up Balance</h1>
+          </div>
           <AppHeaderActions />
         </header>
 
