@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useJoinedTournaments, useHostApplicationsForUser, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate } from '@services/api/hooks';
+import { useJoinedTournaments, useHostApplicationsForUser, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate, useEndRoom, useDeclareResults } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import type { Tournament, TournamentRules, UpdateRoomRequest } from '@services/api';
@@ -9,6 +9,9 @@ import Loading from '@components/common/Loading';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import Modal from '@components/common/Modal/Modal';
 import Toaster from '@components/common/Toaster';
+import ResultDeclaration from '@components/user/ResultDeclaration/ResultDeclaration';
+import type { ResultDeclarationData } from '@components/user/ResultDeclaration/ResultDeclaration';
+import TournamentResults from '@components/user/TournamentResults/TournamentResults';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
 import './Lobby.scss';
 import '../Tournaments/Tournaments.scss';
@@ -87,12 +90,18 @@ const UserLobby: React.FC = () => {
   const updateHostRoomMutation = useUpdateHostRoom();
   const updateRoomMutation = isHostUser ? updateHostRoomMutation : updateRoomForUserMutation;
   const applyRoomUpdateMutation = useApplyRoomUpdate();
+  const endRoomMutation = useEndRoom();
+  const declareResultsMutation = useDeclareResults();
   const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
   const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
   const [applyingTournamentId, setApplyingTournamentId] = useState<string | null>(null);
   const [activePrizePoolTab, setActivePrizePoolTab] = useState<Record<string, 'expected' | 'current'>>({});
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rulesTournament, setRulesTournament] = useState<Tournament | null>(null);
+  const [showResultDeclarationModal, setShowResultDeclarationModal] = useState(false);
+  const [resultDeclarationTournament, setResultDeclarationTournament] = useState<Tournament | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
+  const [resultsTournament, setResultsTournament] = useState<Tournament | null>(null);
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -162,6 +171,81 @@ const UserLobby: React.FC = () => {
   const handleCloseRulesModal = () => {
     setShowRulesModal(false);
     setRulesTournament(null);
+  };
+
+  const handleEndRoom = async (tournament: Tournament) => {
+    const tournamentId = tournament._id || tournament.id;
+    if (!tournamentId) return;
+
+    if (window.confirm('Are you sure you want to end this room? This will change the tournament status to pending result.')) {
+      try {
+        await endRoomMutation.mutateAsync(tournamentId);
+        if (isHostUser) {
+          await refetchHostApplications();
+        } else {
+          await refetchJoined();
+        }
+      } catch (error: any) {
+        console.error('Failed to end room:', error);
+      }
+    }
+  };
+
+  const handleDeclareResult = (tournament: Tournament) => {
+    setResultDeclarationTournament(tournament);
+    setShowResultDeclarationModal(true);
+  };
+
+  const handleCloseResultDeclaration = () => {
+    setShowResultDeclarationModal(false);
+    setResultDeclarationTournament(null);
+  };
+
+  const handleViewResults = (tournament: Tournament) => {
+    setResultsTournament(tournament);
+    setShowResultsModal(true);
+  };
+
+  const handleCloseResults = () => {
+    setShowResultsModal(false);
+    setResultsTournament(null);
+  };
+
+  const handleSubmitResults = async (data: ResultDeclarationData) => {
+    const formData = new FormData();
+    
+    // Add screenshots
+    data.screenshots.forEach((screenshot) => {
+      formData.append(`screenshots`, screenshot);
+    });
+
+    // Add match results as JSON
+    formData.append('matches', JSON.stringify(data.matches.map(match => ({
+      matchNumber: match.matchNumber,
+      participantResults: match.participantResults,
+    }))));
+
+    // Add final rankings
+    formData.append('finalRankings', JSON.stringify(data.finalRankings));
+
+    try {
+      await declareResultsMutation.mutateAsync({
+        tournamentId: data.tournamentId,
+        formData,
+      });
+      
+      if (isHostUser) {
+        await refetchHostApplications();
+      } else {
+        await refetchJoined();
+      }
+      
+      setShowResultDeclarationModal(false);
+      setResultDeclarationTournament(null);
+    } catch (error: any) {
+      console.error('Failed to declare results:', error);
+      throw error;
+    }
   };
 
   const handleSubmitRoomUpdate = async (data: UpdateRoomRequest) => {
@@ -403,10 +487,38 @@ const UserLobby: React.FC = () => {
                       </div>
                     )}
                     <div className="tournament-actions">
-                      {/* Hide action buttons for cancelled, completed, and pendingResult tournaments */}
-                      {tournament.status !== 'cancelled' && tournament.status !== 'completed' && tournament.status !== 'pendingResult' && (
+                      {/* Host actions for assigned lobbies */}
+                      {isHostUser && tournament.status === 'live' && canUpdateRoom(tournament) && (
                         <>
-                          {isHostUser && canUpdateRoom(tournament) ? (
+                          <button
+                            className="tournament-join-button tournament-update-room-button"
+                            onClick={() => handleUpdateRoom(tournament)}
+                            disabled={updateRoomMutation.isPending}
+                          >
+                            {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
+                          </button>
+                          <button
+                            className="tournament-join-button tournament-end-room-button"
+                            onClick={() => handleEndRoom(tournament)}
+                            disabled={endRoomMutation.isPending}
+                          >
+                            {endRoomMutation.isPending ? 'Ending...' : 'End Room'}
+                          </button>
+                        </>
+                      )}
+                      {/* Host actions for pendingResult status */}
+                      {isHostUser && tournament.status === 'pendingResult' && canUpdateRoom(tournament) && (
+                        <button
+                          className="tournament-join-button tournament-declare-result-button"
+                          onClick={() => handleDeclareResult(tournament)}
+                        >
+                          Declare Result
+                        </button>
+                      )}
+                      {/* Regular user actions */}
+                      {!isHostUser && tournament.status !== 'cancelled' && tournament.status !== 'completed' && tournament.status !== 'pendingResult' && (
+                        <>
+                          {canUpdateRoom(tournament) ? (
                             <button
                               className="tournament-join-button tournament-update-room-button"
                               onClick={() => handleUpdateRoom(tournament)}
@@ -417,15 +529,6 @@ const UserLobby: React.FC = () => {
                           ) : (
                             <button className="tournament-join-button tournament-joined-button" disabled>
                               Joined
-                            </button>
-                          )}
-                          {!isHostUser && canUpdateRoom(tournament) && (
-                            <button
-                              className="tournament-join-button tournament-update-room-button"
-                              onClick={() => handleUpdateRoom(tournament)}
-                              disabled={updateRoomMutation.isPending}
-                            >
-                              {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
                             </button>
                           )}
                           {canApplyForRoomUpdate(tournament) && (
@@ -443,6 +546,16 @@ const UserLobby: React.FC = () => {
                             </button>
                           )}
                         </>
+                      )}
+                      {/* View Results button for completed tournaments */}
+                      {tournament.status === 'completed' && (
+                        <button
+                          className="tournament-join-button tournament-results-button"
+                          type="button"
+                          onClick={() => handleViewResults(tournament)}
+                        >
+                          🏆 View Results
+                        </button>
                       )}
                       {/* View Rules button should always be available */}
                       <button
@@ -642,6 +755,26 @@ const UserLobby: React.FC = () => {
             })()}
           </div>
         </Modal>
+      )}
+
+      {/* Result Declaration Modal */}
+      {showResultDeclarationModal && resultDeclarationTournament && (
+        <ResultDeclaration
+          isOpen={showResultDeclarationModal}
+          tournament={resultDeclarationTournament}
+          onClose={handleCloseResultDeclaration}
+          onSubmit={handleSubmitResults}
+          isSubmitting={declareResultsMutation.isPending}
+        />
+      )}
+
+      {/* Tournament Results Modal */}
+      {showResultsModal && resultsTournament && (
+        <TournamentResults
+          isOpen={showResultsModal}
+          tournament={resultsTournament}
+          onClose={handleCloseResults}
+        />
       )}
     </div>
   );

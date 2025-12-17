@@ -151,6 +151,11 @@
   max-width: 900px;
 }
 
+.modal-overlay.modal-extra-large .modal-content-wrapper {
+  max-width: 1200px;
+  width: 95%;
+}
+
 .modal-overlay.modal-fullscreen .modal-content-wrapper {
   max-width: 95vw;
   max-height: 95vh;

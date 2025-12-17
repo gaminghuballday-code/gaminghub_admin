@@ -221,3 +221,34 @@ export const useApplyRoomUpdate = () => {
   });
 };
 
+/**
+ * Hook for ending room (Host only) - Changes tournament status to pendingResult
+ */
+export const useEndRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (tournamentId: string) => hostApi.endRoom(tournamentId),
+    onSuccess: () => {
+      // Invalidate all tournament queries to refresh status
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.all });
+    },
+  });
+};
+
+/**
+ * Hook for declaring results (Host only)
+ */
+export const useDeclareResults = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tournamentId, formData }: { tournamentId: string; formData: FormData }) =>
+      hostApi.declareResults(tournamentId, formData),
+    onSuccess: () => {
+      // Invalidate all tournament queries to refresh status
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.all });
+    },
+  });
+};
+

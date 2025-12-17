@@ -1,0 +1,247 @@
+.tournament-results-body {
+  padding: 1.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.results-header {
+  margin-bottom: 2rem;
+}
+
+.tournament-info {
+  background: var(--card-bg, #2a2a2a);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #3a3a3a);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary, #ffffff);
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary, #cccccc);
+    font-size: 0.95rem;
+  }
+}
+
+.winners-section {
+  margin-bottom: 2rem;
+}
+
+.winners-title {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-primary, #ffffff);
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.winners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.winner-card {
+  background: var(--card-bg, #2a2a2a);
+  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid var(--border-color, #3a3a3a);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  &.rank-1 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+    border-color: #ffd700;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+  }
+
+  &.rank-2 {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.1));
+    border-color: #c0c0c0;
+    box-shadow: 0 4px 20px rgba(192, 192, 192, 0.3);
+  }
+
+  &.rank-3 {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.1));
+    border-color: #cd7f32;
+    box-shadow: 0 4px 20px rgba(205, 127, 50, 0.3);
+  }
+}
+
+.winner-medal {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.winner-rank {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-color, #00ff88);
+  margin-bottom: 0.5rem;
+}
+
+.winner-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  margin-bottom: 0.75rem;
+}
+
+.winner-points {
+  font-size: 1rem;
+  color: var(--text-secondary, #cccccc);
+}
+
+.rankings-section {
+  margin-bottom: 2rem;
+}
+
+.rankings-title {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #ffffff);
+  font-size: 1.25rem;
+}
+
+.rankings-container {
+  overflow-x: auto;
+}
+
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: var(--card-bg, #2a2a2a);
+  border-radius: 8px;
+  overflow: hidden;
+
+  thead {
+    background: var(--bg-secondary, #1a1a1a);
+    
+    th {
+      padding: 0.75rem;
+      text-align: center;
+      color: var(--text-primary, #ffffff);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border-color, #3a3a3a);
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color, #3a3a3a);
+      transition: background 0.2s;
+
+      &:hover {
+        background: var(--bg-secondary, #1a1a1a);
+      }
+
+      &.rank-1 {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+        border-left: 4px solid #ffd700;
+      }
+
+      &.rank-2 {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.05));
+        border-left: 4px solid #c0c0c0;
+      }
+
+      &.rank-3 {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(205, 127, 50, 0.05));
+        border-left: 4px solid #cd7f32;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 0.75rem;
+      color: var(--text-primary, #ffffff);
+      text-align: center;
+    }
+  }
+
+  .rank-cell {
+    font-weight: 700;
+    font-size: 1.125rem;
+    width: 80px;
+  }
+
+  .name-cell {
+    font-weight: 600;
+    text-align: left;
+    min-width: 200px;
+  }
+
+  .match-points-cell {
+    width: 60px;
+    color: var(--text-secondary, #cccccc);
+  }
+
+  .total-points-cell {
+    font-weight: 700;
+    color: var(--accent-color, #00ff88);
+    font-size: 1rem;
+    width: 120px;
+  }
+}
+
+.screenshots-section {
+  margin-top: 2rem;
+}
+
+.screenshots-title {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #ffffff);
+  font-size: 1.25rem;
+}
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.screenshot-item {
+  position: relative;
+  background: var(--card-bg, #2a2a2a);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #3a3a3a);
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .screenshot-label {
+    display: block;
+    padding: 0.5rem;
+    text-align: center;
+    color: var(--text-secondary, #cccccc);
+    font-size: 0.875rem;
+    background: var(--bg-secondary, #1a1a1a);
+  }
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #cccccc);
+
+  p {
+    font-size: 1.125rem;
+  }
+}
+

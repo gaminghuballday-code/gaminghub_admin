@@ -102,6 +102,35 @@ export const hostApi = {
 
     return [];
   },
+
+  /**
+   * End room for a tournament (Host only) - Changes status to pendingResult
+   * @param tournamentId - Tournament ID to end room for
+   */
+  endRoom: async (tournamentId: string): Promise<UpdateRoomResponse> => {
+    const response = await apiClient.post<UpdateRoomResponse>(
+      `/api/host/tournaments/${tournamentId}/end-room`
+    );
+    return response.data;
+  },
+
+  /**
+   * Declare results for a tournament (Host only)
+   * @param tournamentId - Tournament ID to declare results for
+   * @param formData - FormData containing screenshots and match results
+   */
+  declareResults: async (tournamentId: string, formData: FormData): Promise<UpdateRoomResponse> => {
+    const response = await apiClient.post<UpdateRoomResponse>(
+      `/api/host/tournaments/${tournamentId}/declare-results`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 
