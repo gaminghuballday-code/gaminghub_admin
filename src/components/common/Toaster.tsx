@@ -72,6 +72,7 @@ const Toaster: React.FC = () => {
         clearTimeout(debounceTimerRef.current);
       }
     };
+
   }, []);
 
   if (!displayedToast) {
