@@ -14,7 +14,7 @@ import { getTimeUntilLive, formatTimeRemaining } from '@utils/tournamentTimer';
 import './Tournaments.scss';
 import '../Lobby/Lobby.scss';
 
-type TournamentTab = 'upcoming' | 'live' | 'completed' | 'pendingResult';
+type TournamentTab = 'upcoming' | 'live' | 'completed' | 'cancelled' | 'pendingResult';
 
 const UserTournaments: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TournamentTab>('upcoming');
@@ -30,6 +30,7 @@ const UserTournaments: React.FC = () => {
     if (tab === 'upcoming') return 'upcoming';
     if (tab === 'live') return 'live';
     if (tab === 'completed') return 'completed';
+    if (tab === 'cancelled') return 'cancelled';
     if (tab === 'pendingResult') return 'pendingResult'; // API might support this
     return undefined;
   };
@@ -41,7 +42,9 @@ const UserTournaments: React.FC = () => {
   );
 
   // Fetch available tournaments with application status (for hosts)
+  const apiStatus = activeTab === 'pendingResult' ? undefined : getApiStatus(activeTab);
   const { data: availableHostTournaments = [], isLoading: availableHostTournamentsLoading, error: availableHostTournamentsError, refetch: refetchAvailableHostTournaments } = useAvailableHostTournaments(
+    apiStatus, // Pass status parameter for hosts
     isHost // Only fetch for hosts
   );
 
@@ -79,6 +82,8 @@ const UserTournaments: React.FC = () => {
         return tournament.status === 'live';
       } else if (activeTab === 'completed') {
         return tournament.status === 'completed';
+      } else if (activeTab === 'cancelled') {
+        return tournament.status === 'cancelled';
       } else if (activeTab === 'pendingResult') {
         // Pending result: completed tournaments with no results or empty results
         // If API supports pendingResult status, this filter might not be needed
@@ -240,6 +245,8 @@ const UserTournaments: React.FC = () => {
     setApplyingHostTournamentId(tournamentId);
     try {
       await applyForHostMutation.mutateAsync(tournamentId);
+      // Refetch available tournaments to get updated application status
+      // The mutation hook will invalidate the cache, but we also refetch to ensure immediate update
       await refetchTournaments();
     } catch (error: any) {
       console.error('Failed to apply as host:', error);
@@ -318,6 +325,13 @@ const UserTournaments: React.FC = () => {
                 Completed
               </button>
               <button
+                className={`tournament-tab ${activeTab === 'cancelled' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cancelled')}
+                type="button"
+              >
+                Cancelled
+              </button>
+              <button
                 className={`tournament-tab ${activeTab === 'pendingResult' ? 'active' : ''}`}
                 onClick={() => setActiveTab('pendingResult')}
                 type="button"
@@ -363,14 +377,6 @@ const UserTournaments: React.FC = () => {
                         <span className="detail-label">Time:</span>
                         <span className="detail-value">{tournament.startTime || 'N/A'}</span>
                       </div>
-                      {tournament.status === 'upcoming' && timeRemaining[tournament._id || tournament.id || ''] && (
-                        <div className="tournament-detail-item">
-                          <span className="detail-label">Goes Live In:</span>
-                          <span className="detail-value tournament-timer">
-                            {timeRemaining[tournament._id || tournament.id || '']}
-                          </span>
-                        </div>
-                      )}
                       {tournament.status === 'live' && tournament.room?.roomId && (
                         <>
                           <div className="tournament-detail-item">
@@ -433,103 +439,108 @@ const UserTournaments: React.FC = () => {
                       )}
                     </div>
                     <div className="tournament-actions">
-                      {isHost ? (
-                        (() => {
-                          // Normalize hostId to string for comparison
-                          let hostId: string | null = null;
-                          if (tournament.hostId) {
-                            if (typeof tournament.hostId === 'string') {
-                              hostId = tournament.hostId.trim();
-                            } else if (typeof tournament.hostId === 'object' && tournament.hostId !== null) {
-                              // Handle case where hostId might be an object with _id
-                              hostId = (tournament.hostId as any)._id || (tournament.hostId as any).hostId || String(tournament.hostId);
-                              hostId = hostId.trim();
-                            } else {
-                              hostId = String(tournament.hostId).trim();
-                            }
-                          }
-                          
-                          // Normalize currentUserId to string for comparison
-                          const normalizedCurrentUserId = currentUserId ? String(currentUserId).trim() : null;
-                          
-                          // Check if current user is the assigned host (strict comparison)
-                          const isUserAssignedHost = hostId && normalizedCurrentUserId && 
-                            hostId === normalizedCurrentUserId;
-                          
-                          // Check if any other host is assigned (but not the current user)
-                          const isAnyHostAssigned = !!hostId && !isUserAssignedHost;
-                          
-                          const tournamentId = (tournament._id || tournament.id || '') as string;
-                          
-                          // Check application status from API response
-                          const hasApplied = tournament.hasApplied === true;
-                          const applicationStatus = tournament.applicationStatus;
-                          const isApplicationPending = hasApplied && applicationStatus === 'pending';
+                      {/* Hide all action buttons for cancelled, completed, and pendingResult tournaments - only show View Rules */}
+                      {tournament.status !== 'cancelled' && tournament.status !== 'completed' && tournament.status !== 'pendingResult' && (
+                        <>
+                          {isHost ? (
+                            (() => {
+                              // Normalize hostId to string for comparison
+                              let hostId: string | null = null;
+                              if (tournament.hostId) {
+                                if (typeof tournament.hostId === 'string') {
+                                  hostId = tournament.hostId.trim();
+                                } else if (typeof tournament.hostId === 'object' && tournament.hostId !== null) {
+                                  // Handle case where hostId might be an object with _id
+                                  hostId = String((tournament.hostId as any)._id || (tournament.hostId as any).hostId || tournament.hostId).trim();
+                                } else {
+                                  hostId = String(tournament.hostId).trim();
+                                }
+                              }
+                              
+                              // Normalize currentUserId to string for comparison
+                              const normalizedCurrentUserId = currentUserId ? String(currentUserId).trim() : null;
+                              
+                              // Check if current user is the assigned host (strict comparison)
+                              const isUserAssignedHost = hostId && normalizedCurrentUserId && 
+                                hostId === normalizedCurrentUserId;
+                              
+                              // Check if any other host is assigned (but not the current user)
+                              const isAnyHostAssigned = !!hostId && !isUserAssignedHost;
+                              
+                              const tournamentId = (tournament._id || tournament.id || '') as string;
+                              
+                              // Check application status from API response
+                              const hasApplied = tournament.hasApplied === true;
+                              const applicationStatus = tournament.applicationStatus;
+                              const isApplicationPending = hasApplied && applicationStatus === 'pending';
 
-                          // If user is assigned host, show Update Room button
-                          if (isUserAssignedHost) {
-                            return (
+                              // If user is assigned host, show Update Room button
+                              if (isUserAssignedHost) {
+                                return (
+                                  <button
+                                    className="tournament-join-button"
+                                    type="button"
+                                    onClick={() => handleUpdateRoom(tournament)}
+                                  >
+                                    Update Room
+                                  </button>
+                                );
+                              }
+
+                              // If another host is assigned, show disabled button
+                              if (isAnyHostAssigned) {
+                                return (
+                                  <button className="tournament-join-button tournament-joined-button" disabled>
+                                    Host already assigned
+                                  </button>
+                                );
+                              }
+
+                              // If application is pending, show Applied button
+                              if (isApplicationPending) {
+                                return (
+                                  <button className="tournament-join-button tournament-pending-button" disabled>
+                                    Applied
+                                  </button>
+                                );
+                              }
+
+                              // Otherwise, show Apply for Host button
+                              return (
+                                <button
+                                  className="tournament-join-button"
+                                  type="button"
+                                  onClick={() => handleApplyForHost(tournamentId)}
+                                  disabled={
+                                    applyingHostTournamentId === tournamentId || applyForHostMutation.isPending
+                                  }
+                                >
+                                  {applyingHostTournamentId === tournamentId && applyForHostMutation.isPending
+                                    ? 'Applying...'
+                                    : 'Apply for Host'}
+                                </button>
+                              );
+                            })()
+                          ) : (
+                            isJoined(tournament._id || tournament.id || '') ? (
+                              <button className="tournament-join-button tournament-joined-button" disabled>
+                                Joined
+                              </button>
+                            ) : (
                               <button
                                 className="tournament-join-button"
-                                type="button"
-                                onClick={() => handleUpdateRoom(tournament)}
+                                onClick={() => openJoinModal(tournament as Tournament)}
+                                disabled={isJoining(tournament._id || tournament.id || '') || joinTournamentMutation.isPending}
                               >
-                                Update Room
+                                {isJoining(tournament._id || tournament.id || '') && joinTournamentMutation.isPending
+                                  ? 'Joining...'
+                                  : 'Join'}
                               </button>
-                            );
-                          }
-
-                          // If another host is assigned, show disabled button
-                          if (isAnyHostAssigned) {
-                            return (
-                              <button className="tournament-join-button tournament-joined-button" disabled>
-                                Host already assigned
-                              </button>
-                            );
-                          }
-
-                          // If application is pending, show Applied button
-                          if (isApplicationPending) {
-                            return (
-                              <button className="tournament-join-button tournament-pending-button" disabled>
-                                Applied
-                              </button>
-                            );
-                          }
-
-                          // Otherwise, show Apply for Host button
-                          return (
-                            <button
-                              className="tournament-join-button"
-                              type="button"
-                              onClick={() => handleApplyForHost(tournamentId)}
-                              disabled={
-                                applyingHostTournamentId === tournamentId || applyForHostMutation.isPending
-                              }
-                            >
-                              {applyingHostTournamentId === tournamentId && applyForHostMutation.isPending
-                                ? 'Applying...'
-                                : 'Apply for Host'}
-                            </button>
-                          );
-                        })()
-                      ) : (
-                        isJoined(tournament._id || tournament.id || '') ? (
-                          <button className="tournament-join-button tournament-joined-button" disabled>
-                            Joined
-                          </button>
-                        ) : (
-                          <button
-                            className="tournament-join-button"
-                            onClick={() => openJoinModal(tournament as Tournament)}
-                            disabled={isJoining(tournament._id || tournament.id || '') || joinTournamentMutation.isPending}
-                          >
-                            {isJoining(tournament._id || tournament.id || '') && joinTournamentMutation.isPending
-                              ? 'Joining...'
-                              : 'Join'}
-                          </button>
-                        )
+                            )
+                          )}
+                        </>
                       )}
+                      {/* View Rules button should always be available */}
                       <button
                         className="tournament-join-button tournament-rules-button"
                         type="button"

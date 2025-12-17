@@ -87,14 +87,29 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
   const loading = viewMode === 'applications' ? applicationsLoading : hostsLoading;
   const error = hostsError ? (hostsError as Error).message : null;
 
-  // Deduplicate applications - show only one application per host (prefer pending, then most recent)
+  // Filter and deduplicate applications - show only applications for this tournament
   const uniqueApplications = useMemo(() => {
     if (!applications || applications.length === 0) return [];
+    
+    // First, filter by tournamentId to ensure we only show applications for this specific tournament
+    const tournamentApplications = applications.filter((app) => {
+      // Normalize tournamentId for comparison
+      const appTournamentId = typeof app.tournamentId === 'string' 
+        ? app.tournamentId.trim() 
+        : (app.tournamentId as any)?._id || (app.tournamentId as any)?.id || '';
+      const normalizedTournamentId = tournamentId.trim();
+      return appTournamentId === normalizedTournamentId;
+    });
+    
+    // Only show pending applications (approved/rejected should not be shown in applications tab)
+    const pendingApplications = tournamentApplications.filter((app) => app.status === 'pending');
+    
+    if (pendingApplications.length === 0) return [];
     
     // Group applications by hostId (normalize hostId to string)
     const applicationsByHost = new Map<string, typeof applications>();
     
-    applications.forEach((app) => {
+    pendingApplications.forEach((app) => {
       // Get hostId - can be string or object, normalize to string
       let hostId: string = '';
       if (typeof app.hostId === 'string') {
@@ -142,7 +157,7 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
     });
     
     return unique;
-  }, [applications]);
+  }, [applications, tournamentId]);
   
   // Process hosts - use backend conflict data if available, otherwise calculate
   const allHosts = useMemo(() => {

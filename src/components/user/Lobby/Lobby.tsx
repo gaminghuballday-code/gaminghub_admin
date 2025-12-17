@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useJoinedTournaments, useHostApplicationsForUser, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
@@ -16,6 +16,7 @@ import '../Tournaments/Tournaments.scss';
 const UserLobby: React.FC = () => {
   const user = useAppSelector(selectUser);
   const isHostUser = user?.role === 'host';
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const {
     data: joinedTournamentsData = [],
@@ -44,9 +45,21 @@ const UserLobby: React.FC = () => {
         })
     : [];
 
-  const joinedTournaments = (isHostUser ? hostAssignedTournaments : joinedTournamentsData) || [];
+  const allJoinedTournaments = (isHostUser ? hostAssignedTournaments : joinedTournamentsData) || [];
   const isLoading = isHostUser ? hostApplicationsLoading : joinedLoading;
   const error = isHostUser ? undefined : joinedError;
+
+  // Filter tournaments by selected date
+  const joinedTournaments = useMemo(() => {
+    if (!selectedDate) {
+      return allJoinedTournaments;
+    }
+    return allJoinedTournaments.filter((tournament) => {
+      if (!tournament.date) return false;
+      const tournamentDate = new Date(tournament.date).toISOString().split('T')[0];
+      return tournamentDate === selectedDate;
+    });
+  }, [allJoinedTournaments, selectedDate]);
   
   // WebSocket integration for real-time updates
   const currentUserId = user?._id || user?.userId;
@@ -240,7 +253,32 @@ const UserLobby: React.FC = () => {
 
         <div className="user-content">
           <div className="lobby-card">
-            <h2 className="card-title">{isHostUser ? 'Assigned Lobbies' : 'Joined Tournaments'}</h2>
+            <div className="lobby-header-with-filter">
+              <h2 className="card-title">{isHostUser ? 'Assigned Lobbies' : 'Joined Tournaments'}</h2>
+              <div className="date-filter-wrapper">
+                <label className="filter-label">Date:</label>
+                <div className="date-input-wrapper">
+                  <input
+                    type="date"
+                    className="date-filter-input"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {selectedDate && (
+                    <button
+                      className="clear-date-button"
+                      onClick={() => setSelectedDate('')}
+                      disabled={isLoading}
+                      title="Clear date filter"
+                      aria-label="Clear date filter"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             
             {isLoading ? (
               <div className="tournaments-loading">
@@ -365,19 +403,48 @@ const UserLobby: React.FC = () => {
                       </div>
                     )}
                     <div className="tournament-actions">
-                      {isHostUser && canUpdateRoom(tournament) ? (
-                        <button
-                          className="tournament-join-button tournament-update-room-button"
-                          onClick={() => handleUpdateRoom(tournament)}
-                          disabled={updateRoomMutation.isPending}
-                        >
-                          {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
-                        </button>
-                      ) : (
-                      <button className="tournament-join-button tournament-joined-button" disabled>
-                        Joined
-                      </button>
+                      {/* Hide action buttons for cancelled, completed, and pendingResult tournaments */}
+                      {tournament.status !== 'cancelled' && tournament.status !== 'completed' && tournament.status !== 'pendingResult' && (
+                        <>
+                          {isHostUser && canUpdateRoom(tournament) ? (
+                            <button
+                              className="tournament-join-button tournament-update-room-button"
+                              onClick={() => handleUpdateRoom(tournament)}
+                              disabled={updateRoomMutation.isPending}
+                            >
+                              {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
+                            </button>
+                          ) : (
+                            <button className="tournament-join-button tournament-joined-button" disabled>
+                              Joined
+                            </button>
+                          )}
+                          {!isHostUser && canUpdateRoom(tournament) && (
+                            <button
+                              className="tournament-join-button tournament-update-room-button"
+                              onClick={() => handleUpdateRoom(tournament)}
+                              disabled={updateRoomMutation.isPending}
+                            >
+                              {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
+                            </button>
+                          )}
+                          {canApplyForRoomUpdate(tournament) && (
+                            <button
+                              className="tournament-join-button tournament-apply-button"
+                              onClick={() => handleApplyRoomUpdate(tournament._id || tournament.id || '')}
+                              disabled={applyingTournamentId === (tournament._id || tournament.id)}
+                            >
+                              {applyingTournamentId === (tournament._id || tournament.id) ? 'Applying...' : 'Apply for Room Update'}
+                            </button>
+                          )}
+                          {tournament.roomUpdateApplicationStatus === 'pending' && (
+                            <button className="tournament-join-button tournament-pending-button" disabled>
+                              Application Pending
+                            </button>
+                          )}
+                        </>
                       )}
+                      {/* View Rules button should always be available */}
                       <button
                         className="tournament-join-button tournament-rules-button"
                         type="button"
@@ -385,29 +452,6 @@ const UserLobby: React.FC = () => {
                       >
                         View Rules
                       </button>
-                      {!isHostUser && canUpdateRoom(tournament) && (
-                        <button
-                          className="tournament-join-button tournament-update-room-button"
-                          onClick={() => handleUpdateRoom(tournament)}
-                          disabled={updateRoomMutation.isPending}
-                        >
-                          {updateRoomMutation.isPending ? 'Updating...' : 'Update Room'}
-                        </button>
-                      )}
-                      {canApplyForRoomUpdate(tournament) && (
-                        <button
-                          className="tournament-join-button tournament-apply-button"
-                          onClick={() => handleApplyRoomUpdate(tournament._id || tournament.id || '')}
-                          disabled={applyingTournamentId === (tournament._id || tournament.id)}
-                        >
-                          {applyingTournamentId === (tournament._id || tournament.id) ? 'Applying...' : 'Apply for Room Update'}
-                        </button>
-                      )}
-                      {tournament.roomUpdateApplicationStatus === 'pending' && (
-                        <button className="tournament-join-button tournament-pending-button" disabled>
-                          Application Pending
-                        </button>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -418,7 +462,7 @@ const UserLobby: React.FC = () => {
               </p>
             )}
           </div>
-
+{/* 
           {isHostUser && (
             <div className="lobby-card" style={{ marginTop: '1.5rem' }}>
               <h2 className="card-title">Your Host Applications</h2>
@@ -474,7 +518,7 @@ const UserLobby: React.FC = () => {
                 <p className="card-content">You have not applied to host any tournaments yet.</p>
               )}
             </div>
-          )}
+          )} */}
         </div>
       </main>
 

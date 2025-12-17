@@ -57,7 +57,7 @@ export interface Tournament {
     totalFees: number;
     winnerPrizePool: number;
   };
-  status: 'upcoming' | 'live' | 'pendingResult' | 'completed';
+  status: 'upcoming' | 'live' | 'pendingResult' | 'completed' | 'cancelled';
   results: Array<{
     userId: string;
   }>;
@@ -94,7 +94,7 @@ export interface TournamentsListResponse {
 }
 
 export interface GetTournamentsParams {
-  status?: 'upcoming' | 'live' | 'completed';
+  status?: 'upcoming' | 'live' | 'completed' | 'cancelled';
   fromDate?: string; // YYYY-MM-DD format, for upcoming only
 }
 

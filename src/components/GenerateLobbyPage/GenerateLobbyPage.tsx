@@ -186,7 +186,8 @@ const GenerateLobbyPage: React.FC = () => {
             <h2 className="card-title">
               {tournamentStatus === 'upcoming' ? "Today's Tournaments" : 
                tournamentStatus === 'live' ? "Live Tournaments" : 
-               "Completed Tournaments"}
+               tournamentStatus === 'completed' ? "Completed Tournaments" :
+               "Cancelled Tournaments"}
             </h2>
             <div className="tournament-status-tabs">
               <button
@@ -209,6 +210,13 @@ const GenerateLobbyPage: React.FC = () => {
                 disabled={tournamentsLoading}
               >
                 Completed
+              </button>
+              <button
+                className={`status-tab ${tournamentStatus === 'cancelled' ? 'active' : ''}`}
+                onClick={() => setTournamentStatus('cancelled')}
+                disabled={tournamentsLoading}
+              >
+                Cancelled
               </button>
             </div>
           </div>
@@ -253,12 +261,12 @@ const GenerateLobbyPage: React.FC = () => {
               <label className="filter-label">Date:</label>
               <div className="date-input-wrapper">
                 <input
+                  key={`date-input-${tournamentStatus}`}
                   type="date"
                   className="date-filter-input"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   disabled={tournamentsLoading}
-                  min={new Date().toISOString().split('T')[0]}
                 />
                 {selectedDate && (
                   <button
@@ -375,56 +383,61 @@ const GenerateLobbyPage: React.FC = () => {
                     </div>
                   )}
                   <div className="tournament-actions">
-                    {!tournament.hostId ? (
-                      <button
-                        className="tournament-action-button tournament-applications-button"
-                        onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
-                        disabled={tournamentsLoading || isUpdating || isDeleting}
-                        title="View Host Applications"
-                      >
-                        <span className="action-icon">👥</span>
-                        <span>View Applications</span>
-                      </button>
-                    ) : (
-                      <button
-                        className="tournament-action-button tournament-edit-host-button"
-                        onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
-                        disabled={tournamentsLoading || isUpdating || isDeleting}
-                        title="Edit/Change Host"
-                      >
-                        <span className="action-icon">✏️</span>
-                        <span>Edit Host</span>
-                      </button>
+                    {/* Hide edit, delete, and view application buttons for cancelled, completed, and pendingResult tournaments */}
+                    {tournament.status !== 'completed' && tournament.status !== 'cancelled' && tournament.status !== 'pendingResult' && (
+                      <>
+                        {!tournament.hostId ? (
+                          <button
+                            className="tournament-action-button tournament-applications-button"
+                            onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
+                            disabled={tournamentsLoading || isUpdating || isDeleting}
+                            title="View Host Applications"
+                          >
+                            <span className="action-icon">👥</span>
+                            <span>View Applications</span>
+                          </button>
+                        ) : (
+                          <button
+                            className="tournament-action-button tournament-edit-host-button"
+                            onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
+                            disabled={tournamentsLoading || isUpdating || isDeleting}
+                            title="Edit/Change Host"
+                          >
+                            <span className="action-icon">✏️</span>
+                            <span>Edit Host</span>
+                          </button>
+                        )}
+                        {tournament.room && tournament.room.roomId && (
+                          <button
+                            className="tournament-action-button tournament-update-room-button"
+                            onClick={() => handleUpdateRoom(tournament)}
+                            disabled={tournamentsLoading || isUpdating || isDeleting}
+                            title="Update Room ID/Password"
+                          >
+                            <span className="action-icon">🔑</span>
+                            <span>Update Room</span>
+                          </button>
+                        )}
+                        <button
+                          className="tournament-action-button tournament-edit-button"
+                          onClick={() => handleEditTournament(tournament)}
+                          disabled={tournamentsLoading || isUpdating || isDeleting}
+                          title="Edit Tournament"
+                        >
+                          <span className="action-icon">✏️</span>
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          className="tournament-action-button tournament-delete-button"
+                          onClick={() => openDeleteModal(tournament._id || tournament.id || '')}
+                          disabled={tournamentsLoading || isUpdating || isDeleting}
+                          title="Delete Tournament"
+                        >
+                          <span className="action-icon">🗑️</span>
+                          <span>Delete</span>
+                        </button>
+                      </>
                     )}
-                    {tournament.room && tournament.room.roomId && (
-                      <button
-                        className="tournament-action-button tournament-update-room-button"
-                        onClick={() => handleUpdateRoom(tournament)}
-                        disabled={tournamentsLoading || isUpdating || isDeleting}
-                        title="Update Room ID/Password"
-                      >
-                        <span className="action-icon">🔑</span>
-                        <span>Update Room</span>
-                      </button>
-                    )}
-                    <button
-                      className="tournament-action-button tournament-edit-button"
-                      onClick={() => handleEditTournament(tournament)}
-                      disabled={tournamentsLoading || isUpdating || isDeleting}
-                      title="Edit Tournament"
-                    >
-                      <span className="action-icon">✏️</span>
-                      <span>Edit</span>
-                    </button>
-                    <button
-                      className="tournament-action-button tournament-delete-button"
-                      onClick={() => openDeleteModal(tournament._id || tournament.id || '')}
-                      disabled={tournamentsLoading || isUpdating || isDeleting}
-                      title="Delete Tournament"
-                    >
-                      <span className="action-icon">🗑️</span>
-                      <span>Delete</span>
-                    </button>
                   </div>
                 </div>
               ))}
@@ -434,7 +447,8 @@ const GenerateLobbyPage: React.FC = () => {
               <p>
                 {tournamentStatus === 'upcoming' ? "No upcoming tournaments found for today." :
                  tournamentStatus === 'live' ? "No live tournaments found." :
-                 "No completed tournaments found."}
+                 tournamentStatus === 'completed' ? "No completed tournaments found." :
+                 "No cancelled tournaments found."}
               </p>
             </div>
           )}

@@ -159,7 +159,10 @@ export const useApplyForHostTournament = () => {
       // Refresh user and host tournament lists
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.userLists() });
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostLists() });
+      // Invalidate and refetch available tournaments to show updated application status
       queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostAvailable() });
+      // Also invalidate host applications to refresh the list
+      queryClient.invalidateQueries({ queryKey: tournamentsKeys.hostApplications() });
     },
   });
 };
@@ -193,11 +196,12 @@ export const useHostApplicationsForUser = (enabled = true) => {
 
 /**
  * Hook for fetching available tournaments with host application status (Host only)
+ * @param status - Optional status filter (upcoming, live, completed, cancelled)
  */
-export const useAvailableHostTournaments = (enabled = true) => {
+export const useAvailableHostTournaments = (status?: string, enabled = true) => {
   return useQuery({
-    queryKey: tournamentsKeys.hostAvailable(),
-    queryFn: () => hostApi.getAvailableTournaments(),
+    queryKey: [...tournamentsKeys.hostAvailable(), status],
+    queryFn: () => hostApi.getAvailableTournaments(status),
     enabled,
   });
 };

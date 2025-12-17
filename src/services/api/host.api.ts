@@ -81,9 +81,17 @@ export const hostApi = {
 
   /**
    * Get available tournaments with host application status (Host only)
+   * @param status - Optional status filter (upcoming, live, completed, cancelled)
    */
-  getAvailableTournaments: async (): Promise<Tournament[]> => {
-    const response = await apiClient.get<HostTournamentsResponse>('/api/host/tournaments/available');
+  getAvailableTournaments: async (status?: string): Promise<Tournament[]> => {
+    const params: Record<string, string> = {};
+    if (status) {
+      params.status = status;
+    }
+    
+    const response = await apiClient.get<HostTournamentsResponse>('/api/host/tournaments/available', {
+      params,
+    });
 
     if (response.data?.data?.tournaments && Array.isArray(response.data.data.tournaments)) {
       return response.data.data.tournaments.map((tournament) => ({

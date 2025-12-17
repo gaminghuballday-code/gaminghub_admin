@@ -21,7 +21,7 @@ export const useGenerateLobbyPageLogic = () => {
   const [showGenerateLobbyModal, setShowGenerateLobbyModal] = useState(false);
   // Get current date in YYYY-MM-DD format
 
-  const [tournamentStatus, setTournamentStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
+  const [tournamentStatus, setTournamentStatus] = useState<'upcoming' | 'live' | 'completed' | 'cancelled'>('upcoming');
   const [subModeFilter, setSubModeFilter] = useState<'all' | 'solo' | 'duo' | 'squad'>('all');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
