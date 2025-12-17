@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useUserTournaments, useJoinTournament, useJoinedTournaments, useApplyForHostTournament, useAvailableHostTournaments, useUpdateHostRoom } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
@@ -10,7 +10,6 @@ import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
-import { getTimeUntilLive, formatTimeRemaining } from '@utils/tournamentTimer';
 import './Tournaments.scss';
 import '../Lobby/Lobby.scss';
 
@@ -94,42 +93,6 @@ const UserTournaments: React.FC = () => {
     });
   }, [allTournaments, activeTab]);
 
-  // Timer state for upcoming tournaments
-  const [timeRemaining, setTimeRemaining] = useState<Record<string, string>>({});
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const previousTimersRef = useRef<string>('');
-
-  // Update timers for upcoming tournaments
-  useEffect(() => {
-    const updateTimers = () => {
-      const timers: Record<string, string> = {};
-      tournaments.forEach((tournament) => {
-        if (tournament.status === 'upcoming') {
-          const timeUntilLive = getTimeUntilLive(tournament);
-          if (timeUntilLive !== null) {
-            timers[tournament._id || tournament.id || ''] = formatTimeRemaining(timeUntilLive);
-          }
-        }
-      });
-      
-      // Only update state if the timer values actually changed
-      const timersString = JSON.stringify(timers);
-      if (timersString !== previousTimersRef.current) {
-        previousTimersRef.current = timersString;
-        setTimeRemaining(timers);
-      }
-    };
-
-    updateTimers();
-    timerIntervalRef.current = setInterval(updateTimers, 1000);
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-    };
-  }, [tournaments]);
   const joinTournamentMutation = useJoinTournament();
   const applyForHostMutation = useApplyForHostTournament();
   const updateHostRoomMutation = useUpdateHostRoom();
