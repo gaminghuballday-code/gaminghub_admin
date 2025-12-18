@@ -429,7 +429,7 @@ const ResultDeclaration: React.FC<ResultDeclarationProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {finalRankings.map((entry, index) => {
+                    {finalRankings.map((entry) => {
                       const isTopThree = entry.rank <= 3;
                       return (
                         <tr key={entry.participantId} className={isTopThree ? `rank-${entry.rank}` : ''}>
