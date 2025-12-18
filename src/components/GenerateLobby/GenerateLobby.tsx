@@ -59,6 +59,10 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     handleTimeSlotAdd(timeSlot);
   };
 
+  const handleStandardTimeClick = (timeSlot: string) => {
+    handleTimeSlotAdd(timeSlot);
+  };
+
   const gameModes = [
     { value: 'BR', label: 'BR (Battle Royale)' },
     { value: 'LW', label: 'LW (Lone Wolf)' },
@@ -66,7 +70,14 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
   ];
   const subModes = ['solo', 'duo', 'squad'];
   const regions = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
-  const timeHours = ['12', '3', '6', '9'];
+  const timeHours = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  const standardTimes = [
+    { label: '12pm', value: '12:00 PM' },
+    { label: '3pm', value: '3:00 PM' },
+    { label: '6pm', value: '6:00 PM' },
+    { label: '9pm', value: '9:00 PM' },
+    { label: '12am', value: '12:00 AM' },
+  ];
   const priceOptions = [25, 50, 75, 100, 150, 200, 300];
 
   return (
@@ -103,45 +114,63 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
             {/* Time Slots */}
             <div className="form-group">
               <label className="form-label">Time Slots</label>
-              <div className="time-slots-input-group">
-                <select
-                  className="form-select time-hour-select"
-                  value={selectedHour}
-                  onChange={(e) => setSelectedHour(e.target.value)}
-                  disabled={isSubmitting}
-                >
-                  {timeHours.map((hour) => (
-                    <option key={hour} value={hour}>
-                      {hour}
-                    </option>
-                  ))}
-                </select>
-                <div className="am-pm-toggle">
-                  <button
-                    type="button"
-                    className={`am-pm-button ${isAM ? 'active' : ''}`}
-                    onClick={() => setIsAM(true)}
+              <div className="time-slots-container">
+                <div className="time-slots-input-group">
+                  <select
+                    className="form-select time-hour-select"
+                    value={selectedHour}
+                    onChange={(e) => setSelectedHour(e.target.value)}
                     disabled={isSubmitting}
                   >
-                    AM
-                  </button>
+                    {timeHours.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="am-pm-toggle">
+                    <button
+                      type="button"
+                      className={`am-pm-button ${isAM ? 'active' : ''}`}
+                      onClick={() => setIsAM(true)}
+                      disabled={isSubmitting}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      className={`am-pm-button ${!isAM ? 'active' : ''}`}
+                      onClick={() => setIsAM(false)}
+                      disabled={isSubmitting}
+                    >
+                      PM
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    className={`am-pm-button ${!isAM ? 'active' : ''}`}
-                    onClick={() => setIsAM(false)}
+                    className="add-time-slot-button"
+                    onClick={handleAddTimeSlot}
                     disabled={isSubmitting}
                   >
-                    PM
+                    Add
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="add-time-slot-button"
-                  onClick={handleAddTimeSlot}
-                  disabled={isSubmitting}
-                >
-                  Add
-                </button>
+                <div className="standard-times-group">
+                  <span className="standard-times-label">Quick Add:</span>
+                  <div className="standard-times-buttons">
+                    {standardTimes.map((stdTime) => (
+                      <button
+                        key={stdTime.value}
+                        type="button"
+                        className="standard-time-button"
+                        onClick={() => handleStandardTimeClick(stdTime.value)}
+                        disabled={isSubmitting}
+                      >
+                        {stdTime.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               {formData.timeSlots.length > 0 && (
                 <div className="time-slots-list">
