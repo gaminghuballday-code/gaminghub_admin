@@ -136,6 +136,7 @@ export interface GetHostStatisticsParams {
   fromDate?: string; // YYYY-MM-DD
   toDate?: string; // YYYY-MM-DD
   hostId?: string;
+  hostEmail?: string;
 }
 
 export interface CreateHostRequest {
@@ -305,6 +306,9 @@ export const hostApplicationsApi = {
     }
     if (params?.hostId) {
       queryParams.hostId = params.hostId;
+    }
+    if (params?.hostEmail) {
+      queryParams.hostEmail = params.hostEmail;
     }
 
     const response = await apiClient.get<HostStatisticsResponse>(

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { AdminUser } from '@services/api';
+import type { AdminUser, GetHostStatisticsParams } from '@services/api';
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
@@ -38,13 +38,56 @@ export const useDashboardLogic = () => {
   };
 
   const [hostStatsFilters, setHostStatsFilters] = useState<{
-    date?: string;
     fromDate?: string;
     toDate?: string;
-    hostId?: string;
-  }>(() => ({
-    date: getCurrentDate(), // Set default to current date
-  }));
+    hostEmail?: string;
+  }>({});
+
+  // Track if search has been clicked to enable API calls
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  // Build API params from filters using useMemo
+  const hostStatsParams = useMemo((): GetHostStatisticsParams | undefined => {
+    if (!hasSearched) {
+      return undefined;
+    }
+    
+    const params: GetHostStatisticsParams = {};
+    
+    const hasHostEmail = hostStatsFilters.hostEmail?.trim();
+    const hasFromDate = hostStatsFilters.fromDate;
+    const hasToDate = hostStatsFilters.toDate;
+    const hasAnyDate = hasFromDate || hasToDate;
+    
+    // Special case: If ONLY host email (no dates), don't send date
+    if (hasHostEmail && !hasAnyDate) {
+      params.hostEmail = hostStatsFilters.hostEmail?.trim();
+      return params;
+    }
+    
+    // Handle dates
+    if (hasFromDate && hasToDate) {
+      // Both dates provided - date range
+      params.fromDate = hostStatsFilters.fromDate;
+      params.toDate = hostStatsFilters.toDate;
+    } else if (hasFromDate && !hasToDate) {
+      // Only fromDate - treat as single date
+      params.date = hostStatsFilters.fromDate;
+    } else if (!hasFromDate && hasToDate) {
+      // Only toDate - treat as single date
+      params.date = hostStatsFilters.toDate;
+    } else {
+      // No dates selected - use current date as default
+      params.date = getCurrentDate();
+    }
+    
+    // Add host email if provided (with dates)
+    if (hasHostEmail) {
+      params.hostEmail = hostStatsFilters.hostEmail?.trim();
+    }
+    
+    return params;
+  }, [hostStatsFilters, hasSearched]);
 
   // TanStack Query hooks
   // const { data: profileData } = useProfile(isAuthenticated && !user);
@@ -74,14 +117,14 @@ export const useDashboardLogic = () => {
   const blockUsersMutation = useBlockUsers();
   const unblockUsersMutation = useUnblockUsers();
 
-  // Host Statistics query
-  const shouldFetchHostStats = activeTab === 'hostStats' && isAuthenticated;
+  // Host Statistics query - only fetch when search is clicked
+  const shouldFetchHostStats = activeTab === 'hostStats' && isAuthenticated && hasSearched;
   const { 
     data: hostStatsData, 
     isLoading: hostStatsLoading, 
     error: hostStatsQueryError,
     refetch: refetchHostStats 
-  } = useHostStatistics(hostStatsFilters, shouldFetchHostStats);
+  } = useHostStatistics(hostStatsParams, shouldFetchHostStats);
   
   const hostStatistics = hostStatsData?.hosts || [];
   const totalHosts = hostStatsData?.totalHosts || 0;
@@ -277,7 +320,7 @@ export const useDashboardLogic = () => {
   };
 
   // Host Statistics functions
-  const handleHostStatsFilterChange = (filterType: 'date' | 'fromDate' | 'toDate' | 'hostId', value: string) => {
+  const handleHostStatsFilterChange = (filterType: 'fromDate' | 'toDate' | 'hostEmail', value: string) => {
     setHostStatsFilters((prev) => ({
       ...prev,
       [filterType]: value || undefined,
@@ -285,13 +328,13 @@ export const useDashboardLogic = () => {
   };
 
   const handleClearHostStatsFilters = () => {
-    setHostStatsFilters({
-      date: getCurrentDate(), // Reset to current date
-    });
+    setHostStatsFilters({});
+    setHasSearched(false);
   };
 
   const handleSearchHostStats = () => {
-    refetchHostStats();
+    setHasSearched(true);
+    // Query will automatically refetch when hasSearched becomes true and params are computed
   };
 
   return {

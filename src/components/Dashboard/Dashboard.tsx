@@ -446,16 +446,6 @@ const Dashboard: React.FC = () => {
             {/* Filters */}
             <div className="host-stats-filters">
               <div className="filter-group">
-                <label className="filter-label">DATE (YYYY-MM-DD)</label>
-                <input
-                  type="date"
-                  className="filter-input"
-                  value={hostStatsFilters.date || ''}
-                  onChange={(e) => handleHostStatsFilterChange('date', e.target.value)}
-                  disabled={hostStatsLoading}
-                />
-              </div>
-              <div className="filter-group">
                 <label className="filter-label">FROM DATE (YYYY-MM-DD)</label>
                 <input
                   type="date"
@@ -476,13 +466,13 @@ const Dashboard: React.FC = () => {
                 />
               </div>
               <div className="filter-group">
-                <label className="filter-label">HOST ID</label>
+                <label className="filter-label">HOST EMAIL</label>
                 <input
                   type="text"
                   className="filter-input"
-                  placeholder="Enter host ID"
-                  value={hostStatsFilters.hostId || ''}
-                  onChange={(e) => handleHostStatsFilterChange('hostId', e.target.value)}
+                  placeholder="Enter host email"
+                  value={hostStatsFilters.hostEmail || ''}
+                  onChange={(e) => handleHostStatsFilterChange('hostEmail', e.target.value)}
                   disabled={hostStatsLoading}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {

@@ -421,6 +421,16 @@
     margin-bottom: 0;
     flex: 1;
     min-width: 200px;
+
+    @media (max-width: 768px) {
+      min-width: auto;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -1551,36 +1561,38 @@
     }
   }
 
-  // Responsive table styles
+  // Responsive table styles - already handled in main styles with media queries
   .host-stats-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .host-stats-table {
-    font-size: 0.85rem;
-    min-width: 800px;
+    min-width: 1000px; // Reduced from 1200px for medium screens
 
-    thead th {
-      padding: $spacing-sm $spacing-md;
-      font-size: 0.85rem;
-    }
-
-    tbody td {
-      padding: $spacing-sm $spacing-md;
+    @media (max-width: 768px) {
+      min-width: 900px; // Further reduced for small screens
     }
   }
 
-  .timeslot-table,
-  .daily-records-table,
-  .tournament-table {
-    font-size: 0.75rem;
-    min-width: 150px;
+  .host-stat-name-cell,
+  .host-stat-email-cell,
+  .host-stat-id-cell {
+    @media (max-width: 768px) {
+      font-size: 0.8rem;
+    }
   }
 
-  .host-stat-timeslots-cell,
-  .host-stat-daily-cell {
-    min-width: 150px;
+  .host-stat-total-cell {
+    .total-value {
+      @media (max-width: 1024px) {
+        font-size: 1.2rem;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 1rem;
+      }
+    }
   }
 }
 
@@ -1628,17 +1640,29 @@
   background: rgba(var(--primary-color-rgb), 0.1);
   border-radius: $border-radius-md;
   margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
 }
 
 .stat-item {
   font-size: 1rem;
   font-weight: 600;
   color: var(--primary-color);
+  white-space: nowrap;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 }
 
 .host-stats-filters {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: $spacing-lg;
   margin-bottom: $spacing-lg;
   padding: $spacing-xl;
@@ -1736,12 +1760,12 @@
 
 .search-filters-button {
   width: 100%;
-  padding: $spacing-md $spacing-xl;
+  padding: $spacing-sm $spacing-md;
   border: 2px solid var(--primary-color);
   border-radius: $border-radius-md;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
   color: var(--background-color);
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all $transition-fast;
@@ -1788,14 +1812,15 @@
 
 .clear-filters-button {
   @include button-secondary;
-  padding: $spacing-md $spacing-xl;
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
   width: 100%;
 
   @media (min-width: 769px) {
     width: auto;
-    min-width: 150px;
+    min-width: 120px;
   }
 }
 
@@ -1819,10 +1844,32 @@
   width: 100%;
   overflow-x: auto;
   margin-top: $spacing-lg;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--background-color-dark);
+    border-radius: $border-radius-sm;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.5);
+    border-radius: $border-radius-sm;
+
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.7);
+    }
+  }
 }
 
 .host-stats-table {
   width: 100%;
+  min-width: 1200px; // Minimum width for all columns
   border-collapse: collapse;
   background: var(--background-color-dark);
   border-radius: $border-radius-md;
@@ -1850,6 +1897,17 @@
       &:last-child {
         border-right: none;
       }
+
+      // Responsive font sizes
+      @media (max-width: 1024px) {
+        font-size: 0.85rem;
+        padding: $spacing-sm $spacing-md;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.8rem;
+        padding: $spacing-xs $spacing-sm;
+      }
     }
   }
 
@@ -1875,6 +1933,15 @@
 
       &:last-child {
         border-right: none;
+      }
+
+      // Responsive padding
+      @media (max-width: 1024px) {
+        padding: $spacing-sm $spacing-md;
+      }
+
+      @media (max-width: 768px) {
+        padding: $spacing-xs $spacing-sm;
       }
     }
   }
@@ -1925,6 +1992,14 @@
 .host-stat-daily-cell {
   padding: $spacing-sm !important;
   min-width: 200px;
+
+  @media (max-width: 1024px) {
+    min-width: 180px;
+  }
+
+  @media (max-width: 768px) {
+    min-width: 150px;
+  }
 }
 
 // Nested Time Slot Table
@@ -1948,6 +2023,12 @@
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      white-space: nowrap;
+
+      @media (max-width: 768px) {
+        font-size: 0.7rem;
+        padding: $spacing-xs;
+      }
     }
   }
 
@@ -1967,18 +2048,32 @@
     td {
       padding: $spacing-xs $spacing-sm;
       color: var(--text-color);
+
+      @media (max-width: 768px) {
+        padding: $spacing-xs;
+      }
     }
   }
 
   .timeslot-time {
     color: var(--text-secondary);
     font-size: 0.85rem;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      font-size: 0.75rem;
+    }
   }
 
   .timeslot-count {
     font-weight: 600;
     color: var(--primary-color);
     text-align: right;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      font-size: 0.75rem;
+    }
   }
 }
 
@@ -2004,9 +2099,15 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
       border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+      white-space: nowrap;
 
       &:last-child {
         border-right: none;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.7rem;
+        padding: $spacing-xs;
       }
     }
   }
@@ -2033,6 +2134,10 @@
       &:last-child {
         border-right: none;
       }
+
+      @media (max-width: 768px) {
+        padding: $spacing-xs;
+      }
     }
   }
 
@@ -2040,12 +2145,21 @@
     font-weight: 600;
     color: var(--text-color);
     white-space: nowrap;
+
+    @media (max-width: 768px) {
+      font-size: 0.75rem;
+    }
   }
 
   .daily-lobbies {
     color: var(--primary-color);
     font-weight: 600;
     text-align: center;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      font-size: 0.75rem;
+    }
   }
 
   .daily-tournaments-cell {
@@ -2076,9 +2190,15 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
       border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+      white-space: nowrap;
 
       &:last-child {
         border-right: none;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.65rem;
+        padding: 2px 4px;
       }
     }
   }
@@ -2101,9 +2221,15 @@
       color: var(--text-secondary);
       font-size: 0.75rem;
       border-right: 1px solid rgba(var(--border-color-rgb), 0.1);
+      white-space: nowrap;
 
       &:last-child {
         border-right: none;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.65rem;
+        padding: 2px 4px;
       }
     }
   }
