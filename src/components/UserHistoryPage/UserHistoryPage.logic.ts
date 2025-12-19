@@ -18,6 +18,11 @@ export const useUserHistoryPageLogic = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
+  // Transaction History Modal states
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionPage, setTransactionPage] = useState(1);
+  const transactionLimit = 10; // Transactions per page
+
   // TanStack Query hooks
   useProfile(isAuthenticated && !user);
   
@@ -31,7 +36,7 @@ export const useUserHistoryPageLogic = () => {
   );
   const searchResults = searchData?.users || [];
   
-  // Transactions query - only fetch when user is selected
+  // Transactions query - only fetch when user is selected (for main page)
   const selectedUserId = selectedUser?.userId || selectedUser?._id;
   const { data: transactionsData, isLoading: transactionsLoading, error: transactionsQueryError } = useTopUpTransactions(
     selectedUserId ? { userId: selectedUserId, limit: 100 } : undefined,
@@ -40,6 +45,27 @@ export const useUserHistoryPageLogic = () => {
   const transactions = transactionsData?.transactions || [];
   const totalTransactions = transactionsData?.total || transactions.length;
   const transactionsError = transactionsQueryError ? (transactionsQueryError as Error).message : null;
+
+  // Transactions query for modal - with pagination
+  const transactionSkip = (transactionPage - 1) * transactionLimit;
+  const { 
+    data: modalTransactionsData, 
+    isLoading: modalTransactionsLoading, 
+    error: modalTransactionsQueryError 
+  } = useTopUpTransactions(
+    showTransactionModal && selectedUserId 
+      ? { 
+          userId: selectedUserId, 
+          limit: transactionLimit,
+          skip: transactionSkip
+        } 
+      : undefined,
+    showTransactionModal && !!selectedUserId
+  );
+  const modalTransactions = modalTransactionsData?.transactions || [];
+  const modalTotalTransactions = modalTransactionsData?.total || 0;
+  const modalTotalPages = Math.ceil(modalTotalTransactions / transactionLimit);
+  const modalTransactionsError = modalTransactionsQueryError ? (modalTransactionsQueryError as Error).message : null;
 
   useEffect(() => {
     // Check authentication from Redux
@@ -88,6 +114,22 @@ export const useUserHistoryPageLogic = () => {
     setSearchQuery(emailQuery.trim());
   };
 
+  const handleOpenTransactionModal = () => {
+    setShowTransactionModal(true);
+    setTransactionPage(1); // Reset to first page when opening modal
+  };
+
+  const handleCloseTransactionModal = () => {
+    setShowTransactionModal(false);
+    setTransactionPage(1); // Reset page when closing
+  };
+
+  const handleTransactionPageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= modalTotalPages) {
+      setTransactionPage(newPage);
+    }
+  };
+
   return {
     user,
     sidebarOpen,
@@ -101,6 +143,17 @@ export const useUserHistoryPageLogic = () => {
     totalTransactions,
     handleEmailSearch,
     handleSearchByEmail,
+    // Transaction Modal
+    showTransactionModal,
+    modalTransactions,
+    modalTransactionsLoading,
+    modalTransactionsError,
+    modalTotalTransactions,
+    modalTotalPages,
+    transactionPage,
+    handleOpenTransactionModal,
+    handleCloseTransactionModal,
+    handleTransactionPageChange,
   };
 };
 

@@ -166,8 +166,9 @@
   flex: 1;
   margin-left: var(--sidebar-width, 250px);
   transition: margin-left $transition-normal;
-  height: calc(80vh - 120px); // Account for fixed footer (120px)
+  height: 100vh;
   width: calc(100% - var(--sidebar-width, 250px));
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -183,11 +184,33 @@
 }
 
 .user-history-content {
-  @include page-content;
+  flex: 1;
+  min-height: 0;
+  padding: $spacing-xl;
+  padding-bottom: calc(#{$spacing-xl} + 150px); // Extra space for fixed footer
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  
+  // Ensure content can scroll fully
+  &::after {
+    content: '';
+    display: block;
+    height: 1px;
+    flex-shrink: 0;
+  }
 }
 
 .user-history-card {
   @include page-card;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
 
   .card-title {
     @include card-title;
@@ -376,55 +399,113 @@
   font-size: 0.95rem;
 }
 
-// Transactions List
-.transactions-list {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.transactions-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 2fr;
-  gap: $spacing-md;
-  padding: $spacing-md $spacing-lg;
-  background: linear-gradient(135deg, 
-    rgba(var(--primary-color-rgb), 0.1) 0%,
-    rgba(var(--primary-color-rgb), 0.05) 100%
-  );
-  border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.3);
+.transaction-history-button {
+  margin-top: $spacing-lg;
+  padding: $spacing-md $spacing-xl;
+  border: 2px solid var(--primary-color);
+  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+  color: var(--background-color);
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text-color);
-  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all $transition-fast;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
+  width: 100%;
 
-.transaction-item {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 2fr;
-  gap: $spacing-md;
-  padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.3);
-  transition: all $transition-fast;
-
-  &:hover {
-    background: rgba(var(--primary-color-rgb), 0.05);
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-color-light) 0%, var(--primary-color) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
   }
 
-  &:last-child {
-    border-bottom: none;
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 }
 
-.transaction-col {
-  display: flex;
-  align-items: center;
-  color: var(--text-color);
-  font-size: 0.9rem;
+// Transactions Table
+.transactions-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--border-color-rgb), 0.3);
 }
 
-.amount-col {
-  justify-content: flex-end;
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--background-color);
+  
+  thead {
+    background: linear-gradient(135deg, 
+      rgba(var(--primary-color-rgb), 0.1) 0%,
+      rgba(var(--primary-color-rgb), 0.05) 100%
+    );
+    
+    th {
+      padding: $spacing-md $spacing-lg;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.3);
+      white-space: nowrap;
+      
+      &:first-child {
+        padding-left: $spacing-xl;
+      }
+      
+      &:last-child {
+        padding-right: $spacing-xl;
+      }
+    }
+  }
+  
+  tbody {
+    tr {
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.3);
+      transition: all $transition-fast;
+      
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.05);
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    td {
+      padding: $spacing-md $spacing-lg;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      vertical-align: middle;
+      
+      &:first-child {
+        padding-left: $spacing-xl;
+        white-space: nowrap;
+      }
+      
+      &:last-child {
+        padding-right: $spacing-xl;
+      }
+    }
+  }
+}
+
+.amount-cell {
+  text-align: right;
+  font-weight: 600;
 }
 
 .amount {
@@ -447,6 +528,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: inline-block;
 
   &.success {
     background: rgba(22, 163, 74, 0.15);
@@ -461,9 +543,11 @@
   }
 }
 
-.description-col {
+.description-cell {
   color: var(--text-secondary);
   font-size: 0.85rem;
+  max-width: 300px;
+  word-wrap: break-word;
 }
 
 .error-message,
@@ -492,6 +576,68 @@
   background: rgba(var(--text-secondary-rgb), 0.05);
   border: 1px solid rgba(var(--border-color-rgb), 0.3);
   color: var(--text-secondary);
+}
+
+// Transaction Modal
+.transaction-modal-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: $spacing-md;
+}
+
+.transaction-modal-pagination {
+  margin-top: $spacing-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, 
+    rgba(var(--primary-color-rgb), 0.1) 0%,
+    rgba(var(--primary-color-rgb), 0.05) 100%
+  );
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.pagination-info {
+  @include flex-column;
+  align-items: center;
+  gap: $spacing-xs;
+  text-align: center;
+}
+
+.pagination-text {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pagination-total {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.pagination-button {
+  @include button-secondary;
+  padding: $spacing-sm $spacing-lg;
+  min-width: 100px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 // Responsive

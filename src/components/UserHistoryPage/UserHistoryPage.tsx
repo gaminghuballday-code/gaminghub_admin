@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useUserHistoryPageLogic } from './UserHistoryPage.logic';
 import AppHeaderActions from '@components/common/AppHeaderActions';
+import { Modal } from '@components/common/Modal';
 import { ROUTES } from '@utils/constants';
 import './UserHistoryPage.scss';
 
@@ -13,12 +14,18 @@ const UserHistoryPage: React.FC = () => {
     emailQuery,
     selectedUser,
     searchLoading,
-    transactions,
-    transactionsLoading,
-    transactionsError,
-    totalTransactions,
     handleEmailSearch,
     handleSearchByEmail,
+    showTransactionModal,
+    modalTransactions,
+    modalTransactionsLoading,
+    modalTransactionsError,
+    modalTotalTransactions,
+    modalTotalPages,
+    transactionPage,
+    handleOpenTransactionModal,
+    handleCloseTransactionModal,
+    handleTransactionPageChange,
   } = useUserHistoryPageLogic();
 
   return (
@@ -181,78 +188,129 @@ const UserHistoryPage: React.FC = () => {
                     <span className="detail-value">{selectedUser.role || 'N/A'}</span>
                   </div>
                 </div>
+                <button
+                  className="transaction-history-button"
+                  onClick={handleOpenTransactionModal}
+                  type="button"
+                >
+                  Transaction History
+                </button>
               </div>
             )}
           </div>
 
           {/* Transactions Section */}
-          <div className="user-history-card">
-            <h2 className="card-title">
-              Transaction History
-              {totalTransactions > 0 && (
-                <span className="transaction-count">({totalTransactions} transactions)</span>
-              )}
-            </h2>
+          
+        </div>
+      </main>
 
-            {transactionsError && (
+      {/* Transaction History Modal */}
+      {selectedUser && (
+        <Modal
+          isOpen={showTransactionModal}
+          onClose={handleCloseTransactionModal}
+          className="modal-large"
+          title={`Transaction History - ${selectedUser.name || selectedUser.email}`}
+          showCloseButton={true}
+        >
+          <div className="transaction-modal-content">
+            {modalTransactionsError && (
               <div className="error-message">
-                <p>{transactionsError}</p>
+                <p>{modalTransactionsError}</p>
               </div>
             )}
 
-            {transactionsLoading ? (
+            {modalTransactionsLoading ? (
               <div className="loading-message">
                 <p>Loading transactions...</p>
               </div>
-            ) : selectedUser && transactions.length > 0 ? (
-              <div className="transactions-list">
-                <div className="transactions-header">
-                  <div className="transaction-col">Date & Time</div>
-                  <div className="transaction-col">Amount (GC)</div>
-                  <div className="transaction-col">Status</div>
-                  <div className="transaction-col">Description</div>
+            ) : modalTransactions.length > 0 ? (
+              <>
+                <div className="transactions-table-wrapper">
+                  <table className="transactions-table">
+                    <thead>
+                      <tr>
+                        <th>Date & Time</th>
+                        <th>Amount (GC)</th>
+                        <th>Status</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {modalTransactions.map((transaction) => (
+                        <tr key={transaction._id || `${transaction.userId}-${transaction.createdAt}`}>
+                          <td>
+                            {transaction.createdAt
+                              ? new Date(transaction.createdAt).toLocaleString('en-IN', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : 'N/A'}
+                          </td>
+                          <td className="amount-cell">
+                            <span className={`amount ${transaction.status === 'success' ? 'success' : 'fail'}`}>
+                              {transaction.status === 'success' ? '+' : ''}{transaction.amountGC} GC
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${transaction.status === 'success' ? 'success' : 'fail'}`}>
+                              {transaction.status === 'success' ? '✓ Success' : '✗ Failed'}
+                            </span>
+                          </td>
+                          <td className="description-cell">
+                            {transaction.description || 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                {transactions.map((transaction) => (
-                  <div key={transaction._id || `${transaction.userId}-${transaction.createdAt}`} className="transaction-item">
-                    <div className="transaction-col">
-                      {transaction.createdAt
-                        ? new Date(transaction.createdAt).toLocaleString('en-IN', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'N/A'}
-                    </div>
-                    <div className="transaction-col amount-col">
-                      <span className={`amount ${transaction.status === 'success' ? 'success' : 'fail'}`}>
-                        {transaction.status === 'success' ? '+' : ''}{transaction.amountGC} GC
+
+                {/* Pagination */}
+                {modalTotalPages > 1 && (
+                  <div className="transaction-modal-pagination">
+                    <div className="pagination-info">
+                      <span className="pagination-text">
+                        Page {transactionPage} of {modalTotalPages}
                       </span>
+                      {modalTotalTransactions > 0 && (
+                        <span className="pagination-total">
+                          (Showing {((transactionPage - 1) * 10) + 1}-{Math.min(transactionPage * 10, modalTotalTransactions)} of {modalTotalTransactions} transactions)
+                        </span>
+                      )}
                     </div>
-                    <div className="transaction-col">
-                      <span className={`status-badge ${transaction.status === 'success' ? 'success' : 'fail'}`}>
-                        {transaction.status === 'success' ? '✓ Success' : '✗ Failed'}
-                      </span>
-                    </div>
-                    <div className="transaction-col description-col">
-                      {transaction.description || 'N/A'}
+                    <div className="pagination-controls">
+                      <button
+                        className="pagination-button"
+                        onClick={() => handleTransactionPageChange(transactionPage - 1)}
+                        disabled={transactionPage <= 1 || modalTransactionsLoading}
+                        type="button"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        className="pagination-button"
+                        onClick={() => handleTransactionPageChange(transactionPage + 1)}
+                        disabled={transactionPage >= modalTotalPages || modalTransactionsLoading}
+                        type="button"
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : selectedUser && transactions.length === 0 && !transactionsLoading ? (
+                )}
+              </>
+            ) : (
               <div className="empty-message">
                 <p>No transactions found for this user.</p>
               </div>
-            ) : !selectedUser ? (
-              <div className="empty-message">
-                <p>Please search for a user by email to view their transaction history.</p>
-              </div>
-            ) : null}
+            )}
           </div>
-        </div>
-      </main>
+        </Modal>
+      )}
     </div>
   );
 };
