@@ -1538,6 +1538,7 @@
 
   .host-stats-filters {
     grid-template-columns: 1fr;
+    padding: $spacing-lg;
   }
 
   .filter-actions {
@@ -1548,6 +1549,38 @@
     .clear-filters-button {
       width: 100%;
     }
+  }
+
+  // Responsive table styles
+  .host-stats-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .host-stats-table {
+    font-size: 0.85rem;
+    min-width: 800px;
+
+    thead th {
+      padding: $spacing-sm $spacing-md;
+      font-size: 0.85rem;
+    }
+
+    tbody td {
+      padding: $spacing-sm $spacing-md;
+    }
+  }
+
+  .timeslot-table,
+  .daily-records-table,
+  .tournament-table {
+    font-size: 0.75rem;
+    min-width: 150px;
+  }
+
+  .host-stat-timeslots-cell,
+  .host-stat-daily-cell {
+    min-width: 150px;
   }
 }
 
@@ -1605,40 +1638,57 @@
 
 .host-stats-filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: $spacing-md;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-lg;
   margin-bottom: $spacing-lg;
-  padding: $spacing-lg;
+  padding: $spacing-xl;
   background: linear-gradient(135deg, 
     var(--background-color-dark) 0%,
     var(--background-color) 100%
   );
   border: 1px solid rgba(var(--border-color-rgb), 0.5);
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .filter-group {
   @include flex-column;
-  gap: $spacing-xs;
+  gap: $spacing-sm;
 }
 
 .filter-actions {
-  @include flex-center;
-  gap: $spacing-sm;
-  align-self: flex-end;
+  @include flex-column;
+  gap: $spacing-md;
   grid-column: 1 / -1;
-  margin-top: $spacing-xs;
+  margin-top: $spacing-md;
+  width: 100%;
+
+  @media (min-width: 769px) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: $spacing-md;
+  }
 }
 
 .filter-label {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-bottom: $spacing-xs;
 }
 
 .filter-input {
+  width: 100%;
   padding: $spacing-md $spacing-lg;
   border: 2px solid var(--border-color);
   border-radius: $border-radius-md;
@@ -1647,38 +1697,60 @@
   font-size: 0.95rem;
   transition: all $transition-fast;
   font-family: inherit;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1), 0 2px 8px rgba(var(--primary-color-rgb), 0.2);
+    transform: translateY(-1px);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background: var(--background-color-dark);
   }
 
   &::placeholder {
     color: var(--text-secondary);
+    opacity: 0.7;
+  }
+
+  &[type="date"] {
+    position: relative;
+    cursor: pointer;
+
+    &::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.7;
+      filter: invert(0.5);
+      transition: opacity $transition-fast;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
   }
 }
 
 .search-filters-button {
+  width: 100%;
   padding: $spacing-md $spacing-xl;
   border: 2px solid var(--primary-color);
   border-radius: $border-radius-md;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
   color: var(--background-color);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all $transition-fast;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
 
   &::before {
     content: '';
@@ -1694,7 +1766,7 @@
   &:hover:not(:disabled) {
     background: linear-gradient(135deg, var(--primary-color-light) 0%, var(--primary-color) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+    box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.5);
 
     &::before {
       left: 100%;
@@ -1703,12 +1775,14 @@
 
   &:active:not(:disabled) {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.4);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
   }
 }
 
@@ -1717,6 +1791,12 @@
   padding: $spacing-md $spacing-xl;
   font-weight: 600;
   white-space: nowrap;
+  width: 100%;
+
+  @media (min-width: 769px) {
+    width: auto;
+    min-width: 150px;
+  }
 }
 
 .host-stats-loading,
@@ -1734,165 +1814,304 @@
   border-radius: $border-radius-md;
 }
 
-.host-stats-list {
-  @include flex-column;
-  gap: $spacing-lg;
+// Host Statistics Table Styles
+.host-stats-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: $spacing-lg;
 }
 
-.host-stat-card {
-  padding: $spacing-lg;
+.host-stats-table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--background-color-dark);
-  border: 1px solid var(--border-color);
   border-radius: $border-radius-md;
-  transition: all $transition-fast;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-  &:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.1);
+  thead {
+    background: linear-gradient(135deg, 
+      rgba(var(--primary-color-rgb), 0.2) 0%,
+      rgba(var(--primary-color-rgb), 0.1) 100%
+    );
+    border-bottom: 2px solid var(--primary-color);
+
+    th {
+      padding: $spacing-md $spacing-lg;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.3);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.3);
+      transition: all $transition-fast;
+
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.05);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: $spacing-md $spacing-lg;
+      vertical-align: top;
+      color: var(--text-color);
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
   }
 }
 
-.host-stat-header {
-  @include flex-between;
-  margin-bottom: $spacing-md;
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid var(--border-color);
+.host-stat-name-cell {
+  font-size: 1rem;
+  font-weight: 600;
+
+  strong {
+    color: var(--text-color);
+  }
 }
 
-.host-stat-info {
-  @include flex-column;
-  gap: $spacing-xs;
-}
-
-.host-stat-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.host-stat-email {
+.host-stat-email-cell {
   font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0;
 }
 
-.host-stat-id {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+.host-stat-id-cell {
+  font-size: 0.85rem;
   font-family: monospace;
-  margin: 0;
-}
-
-.host-stat-total {
-  @include flex-column;
-  align-items: flex-end;
-  gap: $spacing-xs;
-}
-
-.total-label {
-  font-size: 0.875rem;
   color: var(--text-secondary);
+
+  code {
+    background: rgba(var(--primary-color-rgb), 0.1);
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-sm;
+    color: var(--primary-color);
+  }
 }
 
-.total-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
+.host-stat-total-cell {
+  text-align: center;
+
+  .total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: inline-block;
+    padding: $spacing-xs $spacing-md;
+    background: rgba(var(--primary-color-rgb), 0.1);
+    border-radius: $border-radius-sm;
+  }
 }
 
-.host-stat-timeslots {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid var(--border-color);
+.host-stat-timeslots-cell,
+.host-stat-daily-cell {
+  padding: $spacing-sm !important;
+  min-width: 200px;
 }
 
-.timeslot-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 $spacing-sm 0;
-}
-
-.timeslot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
-}
-
-.timeslot-item {
-  @include flex-between;
-  padding: $spacing-sm;
-  background: var(--background-color);
-  border-radius: $border-radius-sm;
-  border: 1px solid var(--border-color);
-}
-
-.timeslot-time {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.timeslot-count {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.host-stat-daily {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid var(--border-color);
-}
-
-.daily-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 $spacing-sm 0;
-}
-
-.daily-records-list {
-  @include flex-column;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
-}
-
-.daily-record-item {
-  @include flex-between;
-  padding: $spacing-sm $spacing-md;
-  background: var(--background-color);
-  border-radius: $border-radius-sm;
-  border: 1px solid var(--border-color);
-  align-items: flex-start;
-}
-
-.daily-date {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.daily-lobbies {
-  font-size: 0.875rem;
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.daily-tournaments {
-  @include flex-column;
-  gap: $spacing-xs;
-  margin-top: $spacing-xs;
+// Nested Time Slot Table
+.timeslot-table {
   width: 100%;
+  border-collapse: collapse;
+  background: var(--background-color);
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  font-size: 0.85rem;
+
+  thead {
+    background: rgba(var(--primary-color-rgb), 0.15);
+    border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.3);
+
+    th {
+      padding: $spacing-xs $spacing-sm;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.05);
+      }
+    }
+
+    td {
+      padding: $spacing-xs $spacing-sm;
+      color: var(--text-color);
+    }
+  }
+
+  .timeslot-time {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .timeslot-count {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: right;
+  }
 }
 
-.tournament-item {
-  @include flex-between;
-  padding: $spacing-xs;
+// Nested Daily Records Table
+.daily-records-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--background-color);
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  font-size: 0.85rem;
+
+  thead {
+    background: rgba(var(--primary-color-rgb), 0.15);
+    border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.3);
+
+    th {
+      padding: $spacing-xs $spacing-sm;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.05);
+      }
+    }
+
+    td {
+      padding: $spacing-xs $spacing-sm;
+      color: var(--text-color);
+      vertical-align: top;
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  .daily-date {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+  }
+
+  .daily-lobbies {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .daily-tournaments-cell {
+    padding: $spacing-xs !important;
+  }
+}
+
+// Nested Tournament Table
+.tournament-table {
+  width: 100%;
+  border-collapse: collapse;
   background: rgba(var(--primary-color-rgb), 0.05);
   border-radius: $border-radius-sm;
-  font-size: 0.8rem;
+  overflow: hidden;
+  font-size: 0.75rem;
+  margin-top: $spacing-xs;
+
+  thead {
+    background: rgba(var(--primary-color-rgb), 0.2);
+    border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.3);
+
+    th {
+      padding: $spacing-xs;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.2);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.1);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.1);
+      }
+    }
+
+    td {
+      padding: $spacing-xs;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      border-right: 1px solid rgba(var(--border-color-rgb), 0.1);
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+}
+
+.no-data {
   color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.85rem;
 }
 

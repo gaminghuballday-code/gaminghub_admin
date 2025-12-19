@@ -446,7 +446,7 @@ const Dashboard: React.FC = () => {
             {/* Filters */}
             <div className="host-stats-filters">
               <div className="filter-group">
-                <label className="filter-label">Date (YYYY-MM-DD)</label>
+                <label className="filter-label">DATE (YYYY-MM-DD)</label>
                 <input
                   type="date"
                   className="filter-input"
@@ -456,7 +456,7 @@ const Dashboard: React.FC = () => {
                 />
               </div>
               <div className="filter-group">
-                <label className="filter-label">From Date (YYYY-MM-DD)</label>
+                <label className="filter-label">FROM DATE (YYYY-MM-DD)</label>
                 <input
                   type="date"
                   className="filter-input"
@@ -466,7 +466,7 @@ const Dashboard: React.FC = () => {
                 />
               </div>
               <div className="filter-group">
-                <label className="filter-label">To Date (YYYY-MM-DD)</label>
+                <label className="filter-label">TO DATE (YYYY-MM-DD)</label>
                 <input
                   type="date"
                   className="filter-input"
@@ -476,7 +476,7 @@ const Dashboard: React.FC = () => {
                 />
               </div>
               <div className="filter-group">
-                <label className="filter-label">Host ID</label>
+                <label className="filter-label">HOST ID</label>
                 <input
                   type="text"
                   className="filter-input"
@@ -497,7 +497,7 @@ const Dashboard: React.FC = () => {
                   onClick={handleSearchHostStats}
                   disabled={hostStatsLoading}
                 >
-                  {hostStatsLoading ? 'Searching...' : '🔍 Search'}
+                  {hostStatsLoading ? 'Searching...' : '🔍 SEARCH'}
                 </button>
                 <button
                   className="clear-filters-button"
@@ -518,60 +518,102 @@ const Dashboard: React.FC = () => {
                 <p>{hostStatsError}</p>
               </div>
             ) : hostStatistics.length > 0 ? (
-              <div className="host-stats-list">
-                {hostStatistics.map((host) => (
-                  <div key={host.hostId} className="host-stat-card">
-                    <div className="host-stat-header">
-                      <div className="host-stat-info">
-                        <h3 className="host-stat-name">{host.name}</h3>
-                        <p className="host-stat-email">{host.email}</p>
-                        <p className="host-stat-id">ID: {host.hostId}</p>
-                      </div>
-                      <div className="host-stat-total">
-                        <span className="total-label">Total Lobbies</span>
-                        <span className="total-value">{host.totalLobbies}</span>
-                      </div>
-                    </div>
-                    
-                    {Object.keys(host.timeSlotSummary || {}).length > 0 && (
-                      <div className="host-stat-timeslots">
-                        <h4 className="timeslot-title">Time Slot Summary</h4>
-                        <div className="timeslot-grid">
-                          {Object.entries(host.timeSlotSummary).map(([timeSlot, count]) => (
-                            <div key={timeSlot} className="timeslot-item">
-                              <span className="timeslot-time">{timeSlot}</span>
-                              <span className="timeslot-count">{count}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {host.dailyRecords && host.dailyRecords.length > 0 && (
-                      <div className="host-stat-daily">
-                        <h4 className="daily-title">Daily Records</h4>
-                        <div className="daily-records-list">
-                          {host.dailyRecords.map((record, idx) => (
-                            <div key={idx} className="daily-record-item">
-                              <span className="daily-date">{record.date}</span>
-                              <span className="daily-lobbies">{record.lobbies} lobbies</span>
-                              {record.tournaments && record.tournaments.length > 0 && (
-                                <div className="daily-tournaments">
-                                  {record.tournaments.map((tournament, tIdx) => (
-                                    <div key={tIdx} className="tournament-item">
-                                      <span>{tournament.game || 'N/A'}</span>
-                                      <span>{tournament.startTime}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div className="host-stats-table-container">
+                <table className="host-stats-table">
+                  <thead>
+                    <tr>
+                      <th>Host Name</th>
+                      <th>Email</th>
+                      <th>Host ID</th>
+                      <th>Total Lobbies</th>
+                      <th>Time Slot Summary</th>
+                      <th>Daily Records</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hostStatistics.map((host) => (
+                      <tr key={host.hostId} className="host-stat-row">
+                        <td className="host-stat-name-cell">
+                          <strong>{host.name}</strong>
+                        </td>
+                        <td className="host-stat-email-cell">{host.email}</td>
+                        <td className="host-stat-id-cell">
+                          <code>{host.hostId}</code>
+                        </td>
+                        <td className="host-stat-total-cell">
+                          <span className="total-value">{host.totalLobbies}</span>
+                        </td>
+                        <td className="host-stat-timeslots-cell">
+                          {Object.keys(host.timeSlotSummary || {}).length > 0 ? (
+                            <table className="timeslot-table">
+                              <thead>
+                                <tr>
+                                  <th>Time</th>
+                                  <th>Count</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Object.entries(host.timeSlotSummary).map(([timeSlot, count]) => (
+                                  <tr key={timeSlot}>
+                                    <td className="timeslot-time">{timeSlot}</td>
+                                    <td className="timeslot-count">{count}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <span className="no-data">No time slots</span>
+                          )}
+                        </td>
+                        <td className="host-stat-daily-cell">
+                          {host.dailyRecords && host.dailyRecords.length > 0 ? (
+                            <table className="daily-records-table">
+                              <thead>
+                                <tr>
+                                  <th>Date</th>
+                                  <th>Lobbies</th>
+                                  <th>Tournaments</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {host.dailyRecords.map((record, idx) => (
+                                  <tr key={idx} className="daily-record-row">
+                                    <td className="daily-date">{record.date}</td>
+                                    <td className="daily-lobbies">{record.lobbies}</td>
+                                    <td className="daily-tournaments-cell">
+                                      {record.tournaments && record.tournaments.length > 0 ? (
+                                        <table className="tournament-table">
+                                          <thead>
+                                            <tr>
+                                              <th>Game</th>
+                                              <th>Time</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {record.tournaments.map((tournament, tIdx) => (
+                                              <tr key={tIdx}>
+                                                <td>{tournament.game || 'N/A'}</td>
+                                                <td>{tournament.startTime}</td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      ) : (
+                                        <span className="no-data">-</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <span className="no-data">No daily records</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="host-stats-empty">

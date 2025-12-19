@@ -27,12 +27,24 @@ export const useDashboardLogic = () => {
   
   // Host Statistics states
   const [activeTab, setActiveTab] = useState<'users' | 'hostStats'>('users');
+  
+  // Get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [hostStatsFilters, setHostStatsFilters] = useState<{
     date?: string;
     fromDate?: string;
     toDate?: string;
     hostId?: string;
-  }>({});
+  }>(() => ({
+    date: getCurrentDate(), // Set default to current date
+  }));
 
   // TanStack Query hooks
   // const { data: profileData } = useProfile(isAuthenticated && !user);
@@ -273,7 +285,9 @@ export const useDashboardLogic = () => {
   };
 
   const handleClearHostStatsFilters = () => {
-    setHostStatsFilters({});
+    setHostStatsFilters({
+      date: getCurrentDate(), // Reset to current date
+    });
   };
 
   const handleSearchHostStats = () => {
