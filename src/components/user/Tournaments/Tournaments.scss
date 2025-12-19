@@ -172,6 +172,59 @@
   gap: $spacing-xs;
 }
 
+.prize-pool-container {
+  grid-column: 1 / -1; // Span full width
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.prize-pool-tabs {
+  display: flex;
+  gap: $spacing-xs;
+  border-bottom: 2px solid rgba(var(--border-color-rgb), 0.3);
+  margin-bottom: $spacing-xs;
+}
+
+.prize-pool-tab {
+  padding: $spacing-xs $spacing-sm;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-fast;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: -2px;
+
+  &:hover {
+    color: var(--text-color);
+  }
+
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    font-weight: 600;
+  }
+}
+
+.prize-pool-content-wrapper {
+  position: relative;
+  min-height: 60px;
+}
+
+.prize-pool-content {
+  @include flex-column;
+  gap: $spacing-xs;
+  display: none;
+
+  &.active {
+    display: flex;
+  }
+}
+
 .detail-label {
   font-size: 0.85rem;
   color: var(--text-secondary);

@@ -107,6 +107,7 @@ const UserTournaments: React.FC = () => {
   const [applyingHostTournamentId, setApplyingHostTournamentId] = useState<string | null>(null);
   const [showUpdateRoomModal, setShowUpdateRoomModal] = useState(false);
   const [updatingRoomTournament, setUpdatingRoomTournament] = useState<Tournament | null>(null);
+  const [activePrizePoolTab, setActivePrizePoolTab] = useState<Record<string, 'expected' | 'current'>>({});
 
   // Create a Set of joined tournament IDs for quick lookup
   const joinedTournamentIds = new Set(
@@ -358,14 +359,43 @@ const UserTournaments: React.FC = () => {
                         <span className="detail-label">Entry Fee:</span>
                         <span className="detail-value">₹{tournament.entryFee}</span>
                       </div>
-                      <div className="tournament-detail-item">
-                        <span className="detail-label">Prize Pool:</span>
-                        <span className="detail-value prize-pool">
-                          ₹
-                          {tournament.winnerPrizePool ??
-                            tournament.potentialPrizePool?.winnerPrizePool ??
-                            tournament.prizePool}
-                        </span>
+                      <div className="tournament-detail-item prize-pool-container">
+                        <div className="prize-pool-tabs">
+                          <button 
+                            className={`prize-pool-tab ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'expected' ? 'active' : ''}`}
+                            onClick={() => {
+                              const tournamentId = tournament._id || tournament.id || '';
+                              setActivePrizePoolTab(prev => ({ ...prev, [tournamentId]: 'expected' }));
+                            }}
+                            type="button"
+                          >
+                            Expected Prize Pool
+                          </button>
+                          <button 
+                            className={`prize-pool-tab ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'current' ? 'active' : ''}`}
+                            onClick={() => {
+                              const tournamentId = tournament._id || tournament.id || '';
+                              setActivePrizePoolTab(prev => ({ ...prev, [tournamentId]: 'current' }));
+                            }}
+                            type="button"
+                          >
+                            Current Prize Pool
+                          </button>
+                        </div>
+                        <div className="prize-pool-content-wrapper">
+                          <div className={`prize-pool-content ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'expected' ? 'active' : ''}`}>
+                            <span className="detail-label">Expected Prize Pool:</span>
+                            <span className="detail-value prize-pool">
+                              ₹{tournament.winnerPrizePool ?? tournament.potentialPrizePool?.winnerPrizePool ?? tournament.prizePool ?? 0}
+                            </span>
+                          </div>
+                          <div className={`prize-pool-content ${(activePrizePoolTab[tournament._id || tournament.id || ''] || 'expected') === 'current' ? 'active' : ''}`}>
+                            <span className="detail-label">Current Prize Pool:</span>
+                            <span className="detail-value prize-pool">
+                              ₹{tournament.prizePool ?? 0}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       {/* Show Teams for Squad/Duo, Players for Solo */}
                       {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (
