@@ -1,11 +1,20 @@
+import { useState } from 'react';
 import { useWalletHistory } from '@services/api/hooks';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './History.scss';
 
 const UserHistory: React.FC = () => {
   const { data: history = [], isLoading, error } = useWalletHistory({ limit: 50, skip: 0 });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -37,7 +46,7 @@ const UserHistory: React.FC = () => {
 
   return (
     <div className="user-history-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <main className="user-main">
         <header className="user-header">

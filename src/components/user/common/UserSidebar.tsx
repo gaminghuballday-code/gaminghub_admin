@@ -4,14 +4,26 @@ import { selectUser } from '@store/slices/authSlice';
 import { USER_ROUTES } from '@utils/constants';
 import './UserSidebar.scss';
 
-const UserSidebar: React.FC = () => {
+interface UserSidebarProps {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+const UserSidebar: React.FC<UserSidebarProps> = ({ sidebarOpen, toggleSidebar }) => {
   const location = useLocation();
   const user = useAppSelector(selectUser);
 
   return (
-    <aside className="user-sidebar">
+    <aside className={`user-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <h2 className="sidebar-logo">Booyahx</h2>
+        <button
+          className="sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+        >
+          {sidebarOpen ? '←' : '→'}
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -20,47 +32,47 @@ const UserSidebar: React.FC = () => {
           className={`nav-item ${location.pathname === USER_ROUTES.HOME ? 'active' : ''}`}
         >
           <span className="nav-icon">🏠</span>
-          <span className="nav-text">Home</span>
+          {sidebarOpen && <span className="nav-text">Home</span>}
         </Link>
         <Link 
           to={USER_ROUTES.TOURNAMENTS} 
           className={`nav-item ${location.pathname === USER_ROUTES.TOURNAMENTS ? 'active' : ''}`}
         >
           <span className="nav-icon">🎮</span>
-          <span className="nav-text">Tournaments</span>
+          {sidebarOpen && <span className="nav-text">Tournaments</span>}
         </Link>
         <Link 
           to={USER_ROUTES.LOBBY} 
           className={`nav-item ${location.pathname === USER_ROUTES.LOBBY ? 'active' : ''}`}
         >
           <span className="nav-icon">🎯</span>
-          <span className="nav-text">Lobby</span>
+          {sidebarOpen && <span className="nav-text">Lobby</span>}
         </Link>
         <Link 
           to={USER_ROUTES.HISTORY} 
           className={`nav-item ${location.pathname === USER_ROUTES.HISTORY ? 'active' : ''}`}
         >
           <span className="nav-icon">📜</span>
-          <span className="nav-text">History</span>
+          {sidebarOpen && <span className="nav-text">History</span>}
         </Link>
         <Link 
           to={USER_ROUTES.WALLET} 
           className={`nav-item ${location.pathname === USER_ROUTES.WALLET ? 'active' : ''}`}
         >
           <span className="nav-icon">💰</span>
-          <span className="nav-text">Wallet</span>
+          {sidebarOpen && <span className="nav-text">Wallet</span>}
         </Link>
         <Link 
           to={USER_ROUTES.PROFILE} 
           className={`nav-item ${location.pathname === USER_ROUTES.PROFILE ? 'active' : ''}`}
         >
           <span className="nav-icon">👤</span>
-          <span className="nav-text">Profile</span>
+          {sidebarOpen && <span className="nav-text">Profile</span>}
         </Link>
       </nav>
 
       <div className="sidebar-footer">
-        {user && (
+        {sidebarOpen && user && (
           <div className="user-info">
             <div className="user-email">{user.email}</div>
             {user.name && <div className="user-name">{user.name}</div>}

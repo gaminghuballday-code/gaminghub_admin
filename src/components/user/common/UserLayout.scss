@@ -4,10 +4,12 @@
 // Shared layout styles for all user pages
 .user-main {
   flex: 1;
-  margin-left: 250px;
+  margin-left: var(--sidebar-width, 250px);
+  transition: margin-left $transition-normal;
   @include flex-column;
   height: 100vh;
-  width: calc(100% - 250px);
+  width: calc(100% - var(--sidebar-width, 250px));
+  max-width: 100%;
   overflow: hidden;
 
   @media (max-width: 768px) {

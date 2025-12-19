@@ -6,7 +6,6 @@
   left: 0;
   top: 0;
   height: 100vh;
-  width: 250px;
   background: linear-gradient(180deg, 
     var(--background-color-dark) 0%,
     var(--background-color-dark) 100%
@@ -17,6 +16,15 @@
   overflow: hidden;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
+  transition: width $transition-normal;
+
+  &.open {
+    width: 250px;
+  }
+
+  &.closed {
+    width: 70px;
+  }
 }
 
 .sidebar-header {
@@ -34,6 +42,22 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity $transition-fast;
+
+  .closed & {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+  }
+}
+
+.sidebar-toggle {
+  @include button-secondary;
+  padding: $spacing-xs $spacing-sm;
+  min-width: 32px;
+  font-size: 1.2rem;
 }
 
 .sidebar-nav {
@@ -76,6 +100,11 @@
 .nav-text {
   margin-left: $spacing-md;
   font-size: 0.95rem;
+  white-space: nowrap;
+
+  .closed & {
+    display: none;
+  }
 }
 
 .sidebar-footer {
@@ -86,6 +115,11 @@
 .user-info {
   @include flex-column;
   gap: $spacing-xs;
+  width: 100%;
+
+  .closed & {
+    display: none;
+  }
 }
 
 .user-email {
@@ -102,7 +136,7 @@
 
 @media (max-width: 768px) {
   .user-sidebar {
-    width: 70px;
+    width: 70px !important;
 
     .nav-text {
       display: none;

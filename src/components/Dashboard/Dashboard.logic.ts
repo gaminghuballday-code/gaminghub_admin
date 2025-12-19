@@ -10,6 +10,7 @@ import {
   useUnblockUsers,
   useHostStatistics,
 } from '@services/api/hooks';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useDashboardLogic = () => {
   const navigate = useNavigate();
@@ -83,6 +84,9 @@ export const useDashboardLogic = () => {
     }
     // Profile loading is handled by useProfile hook
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

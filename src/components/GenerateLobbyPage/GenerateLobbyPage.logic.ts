@@ -4,6 +4,7 @@ import type { Tournament, UpdateTournamentRequest, UpdateRoomRequest } from '@se
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import {
   useProfile,
   useTournaments,
@@ -85,6 +86,9 @@ export const useGenerateLobbyPageLogic = () => {
       return;
     }
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
 
   // No default date - user must select manually
 

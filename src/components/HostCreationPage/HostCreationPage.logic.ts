@@ -5,6 +5,7 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useAllHosts, useCreateHost, useHostStatistics } from '@services/api/hooks';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useHostCreationPageLogic = () => {
   const navigate = useNavigate();
@@ -48,6 +49,9 @@ export const useHostCreationPageLogic = () => {
       return;
     }
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

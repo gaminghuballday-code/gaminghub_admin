@@ -35,17 +35,18 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     await handleSubmit(e);
   };
 
-  // Close modal after successful submission and refresh tournaments
+  // Close modal after successful submission and toast is shown
   useEffect(() => {
     if (success) {
       // Refresh tournaments list when lobby is generated successfully
       if (onSuccess) {
         onSuccess();
       }
+      // Wait for toast to be displayed (toast duration is 5000ms, but we wait a bit longer to ensure it's visible)
       const timer = setTimeout(() => {
         closeModal();
         onClose();
-      }, 2000);
+      }, 5500); // 5000ms toast duration + 500ms buffer
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

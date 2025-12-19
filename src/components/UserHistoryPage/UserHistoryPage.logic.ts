@@ -5,6 +5,7 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useUsers, useTopUpTransactions } from '@services/api/hooks';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useUserHistoryPageLogic = () => {
   const navigate = useNavigate();
@@ -47,6 +48,9 @@ export const useUserHistoryPageLogic = () => {
       return;
     }
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

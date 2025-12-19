@@ -4,12 +4,20 @@ import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Modal from '@components/common/Modal/Modal';
 import Loading from '@components/common/Loading';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Profile.scss';
 
 const UserProfile: React.FC = () => {
   const { data: profile, isLoading, error } = useUserProfile(true);
   const updateProfileMutation = useUpdateProfile();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -110,7 +118,7 @@ const UserProfile: React.FC = () => {
 
   return (
     <div className="user-profile-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <main className="user-main">
         <header className="user-header">

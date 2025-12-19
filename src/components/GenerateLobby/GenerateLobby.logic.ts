@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { GenerateLobbyRequest } from '@services/api';
 import { useGenerateLobbies } from '@services/api/hooks';
+import { useAppDispatch } from '@store/hooks';
+import { addToast } from '@store/slices/toastSlice';
 
 interface FieldError {
   field: string;
@@ -22,6 +24,7 @@ export const useGenerateLobbyLogic = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [success, setSuccess] = useState<string | null>(null);
   
+  const dispatch = useAppDispatch();
   const generateLobbiesMutation = useGenerateLobbies();
 
   // Get empty date (no default selection)
@@ -239,20 +242,37 @@ export const useGenerateLobbyLogic = () => {
     generateLobbiesMutation.mutate(apiPayload, {
       onSuccess: (response) => {
         if (response.success) {
-          setSuccess(response.message || 'Lobbies generated successfully!');
+          const successMessage = response.message || 'Lobbies generated successfully!';
+          setSuccess(successMessage);
           setFieldErrors({});
+          // Dispatch success toast
+          dispatch(addToast({
+            message: successMessage,
+            type: 'success',
+            duration: 5000,
+          }));
         } else {
-          setError(response.message || 'Failed to generate lobbies');
+          const errorMessage = response.message || 'Failed to generate lobbies';
+          setError(errorMessage);
+          // Dispatch error toast
+          dispatch(addToast({
+            message: errorMessage,
+            type: 'error',
+            duration: 5000,
+          }));
         }
       },
       onError: (err: any) => {
         console.error('Failed to generate lobbies:', err);
         
+        let errorMessage = 'Failed to generate lobbies. Please try again.';
+        
         // Check if error has errors array (validation errors) - API format: {errors: [{field, message}, ...]}
         if (err?.errors && Array.isArray(err.errors)) {
           const parsedErrors = parseApiErrors(err.errors);
           setFieldErrors(parsedErrors);
-          setError(err?.message || 'Validation failed');
+          errorMessage = err?.message || 'Validation failed';
+          setError(errorMessage);
         } 
         // Handle errors from response.data.errors array
         else if (err?.response?.data?.errors) {
@@ -265,19 +285,29 @@ export const useGenerateLobbyLogic = () => {
             const parsedErrors = parseApiErrors(err.response.data.errors);
             setFieldErrors(parsedErrors);
           }
-          setError(err?.response?.data?.message || err?.message || 'Validation failed');
+          errorMessage = err?.response?.data?.message || err?.message || 'Validation failed';
+          setError(errorMessage);
         } 
         // Check if error object itself has errors property (direct from API)
         else if (err?.errors && typeof err.errors === 'object' && !Array.isArray(err.errors)) {
           const parsedErrors = parseApiErrors(err.errors);
           setFieldErrors(parsedErrors);
-          setError(err?.message || 'Validation failed');
+          errorMessage = err?.message || 'Validation failed';
+          setError(errorMessage);
         }
         else {
           // Generic error
-          setError(err?.message || 'Failed to generate lobbies. Please try again.');
+          errorMessage = err?.message || 'Failed to generate lobbies. Please try again.';
+          setError(errorMessage);
           setFieldErrors({});
         }
+        
+        // Dispatch error toast
+        dispatch(addToast({
+          message: errorMessage,
+          type: 'error',
+          duration: 5000,
+        }));
       },
     });
   };

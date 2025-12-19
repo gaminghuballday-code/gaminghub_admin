@@ -15,6 +15,7 @@ import { useAppSelector, useAppDispatch } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import { addToast } from '@store/slices/toastSlice';
 import type { TopUpHistoryItem } from '@services/api/wallet.api';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Wallet.scss';
 
 const UserWallet: React.FC = () => {
@@ -27,7 +28,14 @@ const UserWallet: React.FC = () => {
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState('');
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
   const [showTopUpForm, setShowTopUpForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [amountError, setAmountError] = useState('');
@@ -389,7 +397,7 @@ const UserWallet: React.FC = () => {
 
   return (
     <div className="user-wallet-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <main className="user-main">
         <header className="user-header">

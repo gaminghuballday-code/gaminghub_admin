@@ -1,17 +1,26 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import { USER_ROUTES } from '@utils/constants';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Home.scss';
 
 const UserHome: React.FC = () => {
   const user = useAppSelector(selectUser);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
 
   return (
     <div className="user-home-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <main className="user-main">
         <header className="user-header">

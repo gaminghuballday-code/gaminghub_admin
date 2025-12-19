@@ -5,6 +5,7 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useUsers, useTopUpBalance, useBulkTopUpBalance } from '@services/api/hooks';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useTopUpPageLogic = () => {
   const navigate = useNavigate();
@@ -50,6 +51,9 @@ export const useTopUpPageLogic = () => {
       return;
     }
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

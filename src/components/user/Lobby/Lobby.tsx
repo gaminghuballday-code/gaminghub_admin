@@ -13,6 +13,7 @@ import ResultDeclaration from '@components/user/ResultDeclaration/ResultDeclarat
 import type { ResultDeclarationData } from '@components/user/ResultDeclaration/ResultDeclaration';
 import TournamentResults from '@components/user/TournamentResults/TournamentResults';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Lobby.scss';
 import '../Tournaments/Tournaments.scss';
 
@@ -20,6 +21,13 @@ const UserLobby: React.FC = () => {
   const user = useAppSelector(selectUser);
   const isHostUser = user?.role === 'host';
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
 
   const {
     data: joinedTournamentsData = [],
@@ -326,7 +334,7 @@ const UserLobby: React.FC = () => {
 
   return (
     <div className="user-lobby-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <Toaster />
 
       <main className="user-main">

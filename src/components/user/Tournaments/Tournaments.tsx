@@ -10,6 +10,7 @@ import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Tournaments.scss';
 import '../Lobby/Lobby.scss';
 
@@ -17,6 +18,13 @@ type TournamentTab = 'upcoming' | 'live' | 'completed' | 'cancelled' | 'pendingR
 
 const UserTournaments: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TournamentTab>('upcoming');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useSidebarSync(sidebarOpen);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
   
   // Get user data first (needed for WebSocket and role check)
   const user = useAppSelector(selectUser);
@@ -252,7 +260,7 @@ const UserTournaments: React.FC = () => {
 
   return (
     <div className="user-tournaments-container">
-      <UserSidebar />
+      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <Toaster />
 
       <main className="user-main">

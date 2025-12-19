@@ -6,6 +6,7 @@ import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile } from '@services/api/hooks';
 import { useEnquiries, useReplyToEnquiry } from '@services/api/hooks/useEnquiriesQueries';
 import type { Enquiry } from '@services/api';
+import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useEnquiriesPageLogic = () => {
   const navigate = useNavigate();
@@ -58,6 +59,9 @@ export const useEnquiriesPageLogic = () => {
       return;
     }
   }, [navigate, isAuthenticated]);
+
+  // Sync sidebar state with CSS variable for dynamic layout
+  useSidebarSync(sidebarOpen);
   
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
