@@ -166,7 +166,7 @@
   flex: 1;
   margin-left: var(--sidebar-width, 250px);
   transition: margin-left $transition-normal;
-  height: calc(80vh - 120px); // Account for fixed footer (120px)
+  height: 100vh;
   width: calc(100% - var(--sidebar-width, 250px));
   max-width: 100%;
   display: flex;
@@ -180,57 +180,26 @@
 }
 
 .top-up-header {
-  @include flex-between;
-  padding: $spacing-xl $spacing-lg;
-  background: linear-gradient(135deg, 
-    var(--background-color-dark) 0%,
-    var(--background-color) 100%
-  );
-  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  position: relative;
-  z-index: 100;
-  flex-shrink: 0;
-
-  .header-left {
-    @include flex-center;
-    gap: $spacing-md;
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--text-color) 0%, var(--text-color-dark) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin: 0;
-      letter-spacing: -0.5px;
-    }
-  }
-
-  .header-actions {
-    @include flex-center;
-    gap: $spacing-md;
-  }
+  @include page-header;
 }
 
 .top-up-content {
   flex: 1;
   min-height: 0;
   padding: $spacing-xl;
-  padding-bottom: calc(#{$spacing-xl} + 120px); // Extra space to ensure full card visibility (including selected user info)
+  padding-bottom: calc(var(--admin-footer-height, 120px) + 150px); // Footer + extra padding for button visibility
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: $spacing-xl;
-  max-width: 800px;
+  align-items: center;
+  gap: $spacing-lg; // Reduced gap
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--primary-color-rgb), 0.5) transparent;
+  box-sizing: border-box;
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -254,8 +223,9 @@
 .top-up-card {
   @include card;
   @include flex-column;
-  gap: $spacing-md;
+  gap: $spacing-sm; // Reduced from $spacing-md
   width: 100%;
+  max-width: 800px; // Limit max width for better compactness
   background: linear-gradient(135deg, 
     var(--background-color-light) 0%,
     var(--background-color) 100%
@@ -265,7 +235,8 @@
   transition: all $transition-normal;
   position: relative;
   overflow: visible;
-  min-height: fit-content;
+  padding: $spacing-md; // Reduced from default $spacing-lg
+  margin-bottom: calc(#{$spacing-lg} + #{$spacing-md}); // Extra margin to ensure button is scrollable
 
   &::before {
     content: '';
@@ -285,45 +256,31 @@
   }
 
   .card-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: $spacing-md;
-    position: relative;
-    padding-bottom: $spacing-sm;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 50px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary-color), transparent);
-      border-radius: 2px;
-    }
+    @include card-title;
+    font-size: 1.3rem; // Reduced from default
+    margin-bottom: $spacing-sm; // Reduced margin
   }
 }
 
 // Top Up Section Styles
 .top-up-section {
   @include flex-column;
-  gap: $spacing-lg;
+  gap: $spacing-md; // Reduced from $spacing-lg
   width: 100%;
   flex-shrink: 0; // Prevent section from shrinking
 }
 
 .top-up-form {
   @include flex-column;
-  gap: $spacing-lg;
+  gap: $spacing-md; // Reduced from $spacing-lg
   width: 100%;
   flex-shrink: 0; // Prevent form from shrinking
-  padding-bottom: $spacing-md; // Extra padding to ensure button is visible
+  padding-bottom: calc(#{$spacing-xl} + #{$spacing-lg}); // Extra padding to ensure button is visible and scrollable
 }
 
 .form-group {
   @include flex-column;
-  gap: $spacing-sm;
+  gap: $spacing-xs; // Reduced from $spacing-sm
 }
 
 .form-label {
@@ -452,7 +409,7 @@
 }
 
 .selected-user-info {
-  padding: $spacing-md;
+  padding: $spacing-sm $spacing-md; // Reduced vertical padding
   background: linear-gradient(135deg, 
     rgba(var(--primary-color-rgb), 0.15) 0%,
     rgba(var(--primary-color-rgb), 0.1) 100%
@@ -460,9 +417,9 @@
   border: 1px solid rgba(var(--primary-color-rgb), 0.3);
   border-radius: $border-radius-md;
   @include flex-center;
-  gap: $spacing-sm;
+  gap: $spacing-xs; // Reduced gap
   flex-wrap: wrap;
-  margin-top: $spacing-sm;
+  margin-top: $spacing-xs; // Reduced margin
 }
 
 .selected-user-label {
@@ -590,8 +547,8 @@
 
 // Selected Users List
 .selected-users-list {
-  margin-top: $spacing-sm;
-  padding: $spacing-md;
+  margin-top: $spacing-xs; // Reduced from $spacing-sm
+  padding: $spacing-sm $spacing-md; // Reduced vertical padding
   background: linear-gradient(135deg, 
     rgba(var(--primary-color-rgb), 0.1) 0%,
     rgba(var(--primary-color-rgb), 0.05) 100%
@@ -745,8 +702,8 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  margin-top: $spacing-lg;
-  margin-bottom: $spacing-xl;
+  margin-top: $spacing-md; // Reduced from $spacing-lg
+  margin-bottom: calc(#{$spacing-xl} + #{$spacing-lg}); // Increased to ensure it's scrollable and visible
   flex-shrink: 0;
 
   &::before {
