@@ -7,11 +7,14 @@ import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useAllHosts, useCreateHost, useHostStatistics } from '@services/api/hooks';
 import { useSidebarSync } from '@hooks/useSidebarSync';
 
+type HostTab = 'create' | 'all';
+
 export const useHostCreationPageLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<HostTab>('create');
   
   // Host creation form states
   const [hostEmail, setHostEmail] = useState<string>('');
@@ -139,6 +142,9 @@ export const useHostCreationPageLogic = () => {
     user,
     sidebarOpen,
     toggleSidebar,
+    // Tabs
+    activeTab,
+    setActiveTab,
     // Host creation form
     hostEmail,
     hostName,
