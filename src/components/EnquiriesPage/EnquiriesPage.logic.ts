@@ -6,13 +6,10 @@ import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile } from '@services/api/hooks';
 import { useEnquiries, useReplyToEnquiry } from '@services/api/hooks/useEnquiriesQueries';
 import type { Enquiry } from '@services/api';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useEnquiriesPageLogic = () => {
   const navigate = useNavigate();
-  const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   
   // Filter states
   const [repliedFilter, setRepliedFilter] = useState<'all' | 'replied' | 'unreplied'>('all');
@@ -24,6 +21,8 @@ export const useEnquiriesPageLogic = () => {
   const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [replyMessage, setReplyMessage] = useState<string>('');
+  
+  const user = useAppSelector(selectUser);
   
   // TanStack Query hooks
   useProfile(isAuthenticated && !user);
@@ -60,12 +59,6 @@ export const useEnquiriesPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-  
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
   
   const handleRepliedFilterChange = (filter: 'all' | 'replied' | 'unreplied') => {
     setRepliedFilter(filter);
@@ -120,9 +113,6 @@ export const useEnquiriesPageLogic = () => {
   };
   
   return {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     enquiries,
     enquiriesLoading,
     enquiriesError: enquiriesError ? (enquiriesError as Error).message : null,

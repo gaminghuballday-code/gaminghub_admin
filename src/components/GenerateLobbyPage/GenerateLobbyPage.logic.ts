@@ -4,7 +4,6 @@ import type { Tournament, UpdateTournamentRequest, UpdateRoomRequest } from '@se
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 import {
   useProfile,
   useTournaments,
@@ -18,7 +17,6 @@ export const useGenerateLobbyPageLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showGenerateLobbyModal, setShowGenerateLobbyModal] = useState(false);
   // Get current date in YYYY-MM-DD format
 
@@ -87,14 +85,7 @@ export const useGenerateLobbyPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
   // No default date - user must select manually
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   // Filter tournaments by subMode (client-side filtering) - use useMemo for derived state
   const filteredTournaments = useMemo(() => {
@@ -226,8 +217,6 @@ export const useGenerateLobbyPageLogic = () => {
 
   return {
     user,
-    sidebarOpen,
-    toggleSidebar,
     showGenerateLobbyModal,
     setShowGenerateLobbyModal,
     tournamentStatus,

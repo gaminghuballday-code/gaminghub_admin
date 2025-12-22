@@ -1,0 +1,253 @@
+@use 'sass:color';
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+
+// Admin Layout Container
+.admin-layout {
+  @include flex-between;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+  position: relative;
+  overflow-x: hidden;
+}
+
+// Sidebar
+.admin-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background: linear-gradient(180deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color-dark) 100%
+  );
+  border-right: 1px solid rgba(var(--border-color-rgb), 0.5);
+  @include flex-column;
+  transition: width $transition-normal;
+  z-index: 1000;
+  overflow: hidden;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+
+  &.open {
+    width: 250px;
+  }
+
+  &.closed {
+    width: 70px;
+  }
+}
+
+.sidebar-header {
+  @include flex-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 70px;
+}
+
+.sidebar-logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity $transition-fast;
+  letter-spacing: -0.5px;
+
+  .closed & {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+  }
+}
+
+.sidebar-toggle {
+  @include button-secondary;
+  padding: $spacing-xs $spacing-sm;
+  min-width: 32px;
+  font-size: 1.2rem;
+}
+
+.sidebar-nav {
+  @include flex-column;
+  flex: 1;
+  padding: $spacing-md 0;
+  gap: $spacing-xs;
+}
+
+.nav-item {
+  @include flex-between;
+  padding: $spacing-md $spacing-lg;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all $transition-fast;
+  border-left: 3px solid transparent;
+  border-radius: 0 $border-radius-md $border-radius-md 0;
+  margin: 0 $spacing-sm;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.1), transparent);
+    transition: width $transition-fast;
+  }
+
+  &:hover {
+    background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.15), rgba(var(--primary-color-rgb), 0.05));
+    color: var(--primary-color);
+    transform: translateX(4px);
+
+    &::before {
+      width: 100%;
+    }
+  }
+
+  &.active {
+    background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.2), rgba(var(--primary-color-rgb), 0.1));
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+    box-shadow: -2px 0 10px rgba(var(--primary-color-rgb), 0.3);
+    font-weight: 600;
+
+    &::before {
+      width: 100%;
+    }
+  }
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  min-width: 24px;
+}
+
+.nav-text {
+  margin-left: $spacing-md;
+  font-weight: 500;
+  white-space: nowrap;
+
+  .closed & {
+    display: none;
+  }
+}
+
+.sidebar-footer {
+  padding: $spacing-lg;
+  border-top: 1px solid var(--border-color);
+}
+
+.user-info {
+  @include flex-column;
+  gap: $spacing-xs;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+// Main Content Area
+.admin-main {
+  flex: 1;
+  margin-left: var(--sidebar-width, 250px);
+  transition: margin-left $transition-normal;
+  height: 100vh;
+  width: calc(100% - var(--sidebar-width, 250px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  
+  @media (max-width: 768px) {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+}
+
+// Header
+.admin-header {
+  @include flex-between;
+  padding: $spacing-xl $spacing-lg;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 100;
+  flex-shrink: 0;
+
+  .header-left {
+    @include flex-center;
+    gap: $spacing-md;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--text-color) 0%, var(--text-color-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+  }
+}
+
+// Content Area with Scroll
+.admin-content {
+  flex: 1;
+  min-height: 0;
+  padding: $spacing-xl;
+  padding-bottom: calc(#{$spacing-xl} + var(--admin-footer-height, 120px));
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
+  
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--background-color-dark);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.3);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.5);
+    }
+  }
+}
+

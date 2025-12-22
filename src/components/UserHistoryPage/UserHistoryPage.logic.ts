@@ -5,13 +5,11 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useUsers, useTopUpTransactions } from '@services/api/hooks';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useUserHistoryPageLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   
   // User search states
   const [emailQuery, setEmailQuery] = useState<string>('');
@@ -75,12 +73,6 @@ export const useUserHistoryPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   // Handle email input change - just update the query, no debounce
   const handleEmailSearch = (query: string) => {
@@ -131,9 +123,6 @@ export const useUserHistoryPageLogic = () => {
   };
 
   return {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     emailQuery,
     selectedUser,
     searchLoading,

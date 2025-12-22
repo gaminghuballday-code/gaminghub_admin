@@ -1,20 +1,14 @@
-import { useLocation, Link } from 'react-router-dom';
 import { useGenerateLobbyPageLogic } from './GenerateLobbyPage.logic';
-import AppHeaderActions from '@components/common/AppHeaderActions';
+import AdminLayout from '@components/common/AdminLayout';
 import GenerateLobby from '@components/GenerateLobby/GenerateLobby';
 import EditTournament from '@components/EditTournament/EditTournament';
 import ConfirmationModal from '@components/common/ConfirmationModal';
 import HostApplications from '@components/HostApplications/HostApplications';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
-import { ROUTES } from '@utils/constants';
 import './GenerateLobbyPage.scss';
 
 const GenerateLobbyPage: React.FC = () => {
-  const location = useLocation();
   const {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     showGenerateLobbyModal,
     setShowGenerateLobbyModal,
     tournamentStatus,
@@ -56,126 +50,7 @@ const GenerateLobbyPage: React.FC = () => {
   } = useGenerateLobbyPageLogic();
 
   return (
-    <div className={`generate-lobby-page-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      {/* Sidebar */}
-      <aside className={`generate-lobby-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <h2 className="sidebar-logo">BX</h2>
-          <button
-            className="sidebar-toggle"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-          >
-            {sidebarOpen ? '←' : '→'}
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          <Link 
-            to={ROUTES.DASHBOARD} 
-            className={`nav-item ${location.pathname === ROUTES.DASHBOARD ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.DASHBOARD) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📊</span>
-            {sidebarOpen && <span className="nav-text">Dashboard</span>}
-          </Link>
-          <Link 
-            to={ROUTES.GENERATE_LOBBY} 
-            className={`nav-item ${location.pathname === ROUTES.GENERATE_LOBBY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.GENERATE_LOBBY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎮</span>
-            {sidebarOpen && <span className="nav-text">Generate Lobby</span>}
-          </Link>
-          <Link 
-            to={ROUTES.TOP_UP} 
-            className={`nav-item ${location.pathname === ROUTES.TOP_UP ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.TOP_UP) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">💰</span>
-            {sidebarOpen && <span className="nav-text">Top Up</span>}
-          </Link>
-          <Link 
-            to={ROUTES.HOST_CREATION} 
-            className={`nav-item ${location.pathname === ROUTES.HOST_CREATION ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.HOST_CREATION) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">👤</span>
-            {sidebarOpen && <span className="nav-text">Host Creation</span>}
-          </Link>
-          <Link 
-            to={ROUTES.USER_HISTORY} 
-            className={`nav-item ${location.pathname === ROUTES.USER_HISTORY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.USER_HISTORY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📜</span>
-            {sidebarOpen && <span className="nav-text">User History</span>}
-          </Link>
-          <Link 
-            to={ROUTES.ENQUIRIES} 
-            className={`nav-item ${location.pathname === ROUTES.ENQUIRIES ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.ENQUIRIES) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📧</span>
-            {sidebarOpen && <span className="nav-text">Enquiries</span>}
-          </Link>
-          <Link 
-            to={ROUTES.SUPPORT_TICKETS} 
-            className={`nav-item ${location.pathname === ROUTES.SUPPORT_TICKETS ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.SUPPORT_TICKETS) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎫</span>
-            {sidebarOpen && <span className="nav-text">Support Tickets</span>}
-          </Link>
-        </nav>
-
-        <div className="sidebar-footer">
-          {sidebarOpen && user && (
-            <div className="user-info">
-              <div className="user-email">{user.email}</div>
-              {user.name && <div className="user-name">{user.name}</div>}
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="generate-lobby-main">
-        <header className="generate-lobby-page-header">
-          <div className="header-left">
-            <h1>Generate Lobby</h1>
-          </div>
-          <AppHeaderActions />
-        </header>
-
+    <AdminLayout title="Generate Lobby">
       <div className="generate-lobby-page-content">
         <div className="generate-lobby-page-card">
           <h2 className="card-title">Generate  Lobby</h2>
@@ -466,7 +341,7 @@ const GenerateLobbyPage: React.FC = () => {
           )}
         </div>
       </div>
-      </main>
+      {/* </main> */}
 
       {/* Generate Lobby Modal */}
       <GenerateLobby
@@ -524,7 +399,7 @@ const GenerateLobbyPage: React.FC = () => {
           isUpdating={isUpdatingRoom}
         />
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

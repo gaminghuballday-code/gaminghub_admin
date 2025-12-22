@@ -5,13 +5,10 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useUsers, useTopUpBalance, useBulkTopUpBalance } from '@services/api/hooks';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useTopUpPageLogic = () => {
   const navigate = useNavigate();
-  const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   
   // Top-up states
   const [topUpUserQuery, setTopUpUserQuery] = useState<string>('');
@@ -29,6 +26,7 @@ export const useTopUpPageLogic = () => {
   const searchDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // TanStack Query hooks
+  const user = useAppSelector(selectUser);
   useProfile(isAuthenticated && !user);
   
   // User search query
@@ -52,12 +50,6 @@ export const useTopUpPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   // Debounced search function
   const performUserSearch = useCallback((query: string) => {
@@ -245,9 +237,6 @@ export const useTopUpPageLogic = () => {
   };
 
   return {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     // Top-up
     topUpUserQuery,
     topUpSearchResults,

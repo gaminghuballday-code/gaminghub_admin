@@ -10,13 +10,11 @@ import {
   useUnblockUsers,
   useHostStatistics,
 } from '@services/api/hooks';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 export const useDashboardLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
@@ -140,12 +138,6 @@ export const useDashboardLogic = () => {
     // Profile loading is handled by useProfile hook
   }, [navigate, isAuthenticated]);
 
-  // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   const handleRoleFilterChange = (filter: 'all' | 'admin' | 'host' | 'user') => {
     setRoleFilter(filter);
@@ -339,8 +331,6 @@ export const useDashboardLogic = () => {
 
   return {
     user,
-    sidebarOpen,
-    toggleSidebar,
     users: users,
     usersLoading,
     usersError,

@@ -1,17 +1,11 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
 import { useSupportTicketsPageLogic } from './SupportTicketsPage.logic';
-import AppHeaderActions from '@components/common/AppHeaderActions';
-import { ROUTES } from '@utils/constants';
+import AdminLayout from '@components/common/AdminLayout';
 import Modal from '@components/common/Modal/Modal';
 import './SupportTicketsPage.scss';
 
 const SupportTicketsPage: React.FC = () => {
-  const location = useLocation();
   const {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     tickets,
     ticketsLoading,
     ticketsError,
@@ -75,127 +69,8 @@ const SupportTicketsPage: React.FC = () => {
   };
 
   return (
-    <div className={`support-tickets-page-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      {/* Sidebar */}
-      <aside className={`support-tickets-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <h2 className="sidebar-logo">BX</h2>
-          <button
-            className="sidebar-toggle"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-          >
-            {sidebarOpen ? '←' : '→'}
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          <Link
-            to={ROUTES.DASHBOARD}
-            className={`nav-item ${location.pathname === ROUTES.DASHBOARD ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.DASHBOARD) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📊</span>
-            {sidebarOpen && <span className="nav-text">Dashboard</span>}
-          </Link>
-          <Link
-            to={ROUTES.GENERATE_LOBBY}
-            className={`nav-item ${location.pathname === ROUTES.GENERATE_LOBBY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.GENERATE_LOBBY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎮</span>
-            {sidebarOpen && <span className="nav-text">Generate Lobby</span>}
-          </Link>
-          <Link
-            to={ROUTES.TOP_UP}
-            className={`nav-item ${location.pathname === ROUTES.TOP_UP ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.TOP_UP) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">💰</span>
-            {sidebarOpen && <span className="nav-text">Top Up</span>}
-          </Link>
-          <Link
-            to={ROUTES.HOST_CREATION}
-            className={`nav-item ${location.pathname === ROUTES.HOST_CREATION ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.HOST_CREATION) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">👤</span>
-            {sidebarOpen && <span className="nav-text">Host Creation</span>}
-          </Link>
-          <Link
-            to={ROUTES.USER_HISTORY}
-            className={`nav-item ${location.pathname === ROUTES.USER_HISTORY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.USER_HISTORY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📜</span>
-            {sidebarOpen && <span className="nav-text">User History</span>}
-          </Link>
-          <Link
-            to={ROUTES.ENQUIRIES}
-            className={`nav-item ${location.pathname === ROUTES.ENQUIRIES ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.ENQUIRIES) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📧</span>
-            {sidebarOpen && <span className="nav-text">Enquiries</span>}
-          </Link>
-          <Link
-            to={ROUTES.SUPPORT_TICKETS}
-            className={`nav-item ${location.pathname === ROUTES.SUPPORT_TICKETS ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.SUPPORT_TICKETS) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎫</span>
-            {sidebarOpen && <span className="nav-text">Support Tickets</span>}
-          </Link>
-        </nav>
-
-        <div className="sidebar-footer">
-          {sidebarOpen && user && (
-            <div className="user-info">
-              <div className="user-email">{user.email}</div>
-              {user.name && <div className="user-name">{user.name}</div>}
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="support-tickets-main">
-        <header className="support-tickets-header">
-          <div className="header-left">
-            <h1>Support Tickets</h1>
-          </div>
-          <AppHeaderActions />
-        </header>
-
-        <div className="support-tickets-content">
+    <AdminLayout title="Support Tickets">
+      <div className="support-tickets-content-wrapper">
           {/* Filters Section */}
           <div className="filters-section">
             <div className="filters-row">
@@ -359,7 +234,6 @@ const SupportTicketsPage: React.FC = () => {
             )}
           </div>
         </div>
-      </main>
 
       {/* Chat Modal */}
       <Modal
@@ -557,7 +431,7 @@ const SupportTicketsPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

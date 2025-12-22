@@ -5,7 +5,6 @@ import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile, useAllHosts, useCreateHost, useHostStatistics } from '@services/api/hooks';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 type HostTab = 'create' | 'all';
 
@@ -13,7 +12,6 @@ export const useHostCreationPageLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<HostTab>('create');
   
   // Host creation form states
@@ -54,11 +52,6 @@ export const useHostCreationPageLogic = () => {
   }, [navigate, isAuthenticated]);
 
   // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
@@ -140,8 +133,6 @@ export const useHostCreationPageLogic = () => {
 
   return {
     user,
-    sidebarOpen,
-    toggleSidebar,
     // Tabs
     activeTab,
     setActiveTab,

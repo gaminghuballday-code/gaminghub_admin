@@ -7,7 +7,6 @@ import { addToast } from '@store/slices/toastSlice';
 import { useProfile } from '@services/api/hooks';
 import { useAdminTickets, useUpdateTicket, useReplyToTicketAsAdmin } from '@services/api/hooks/useSupportQueries';
 import type { SupportTicket, UpdateTicketRequest } from '@services/api';
-import { useSidebarSync } from '@hooks/useSidebarSync';
 
 interface ChatMessage {
   sender: 'user' | 'support';
@@ -19,7 +18,6 @@ export const useSupportTicketsPageLogic = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in-progress' | 'resolved' | 'closed'>('all');
@@ -159,11 +157,6 @@ export const useSupportTicketsPageLogic = () => {
   }, [navigate, isAuthenticated]);
 
   // Sync sidebar state with CSS variable for dynamic layout
-  useSidebarSync(sidebarOpen);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
 
   const handleStatusFilterChange = (filter: 'all' | 'open' | 'in-progress' | 'resolved' | 'closed') => {
     setStatusFilter(filter);
@@ -309,8 +302,6 @@ export const useSupportTicketsPageLogic = () => {
 
   return {
     user,
-    sidebarOpen,
-    toggleSidebar,
     tickets,
     ticketsLoading,
     ticketsError: ticketsError ? (ticketsError as Error).message : null,

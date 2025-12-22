@@ -1,16 +1,10 @@
-import { useLocation, Link } from 'react-router-dom';
 import { useUserHistoryPageLogic } from './UserHistoryPage.logic';
-import AppHeaderActions from '@components/common/AppHeaderActions';
+import AdminLayout from '@components/common/AdminLayout';
 import { Modal } from '@components/common/Modal';
-import { ROUTES } from '@utils/constants';
 import './UserHistoryPage.scss';
 
 const UserHistoryPage: React.FC = () => {
-  const location = useLocation();
   const {
-    user,
-    sidebarOpen,
-    toggleSidebar,
     emailQuery,
     selectedUser,
     searchLoading,
@@ -29,127 +23,8 @@ const UserHistoryPage: React.FC = () => {
   } = useUserHistoryPageLogic();
 
   return (
-    <div className={`user-history-page-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      {/* Sidebar */}
-      <aside className={`user-history-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <h2 className="sidebar-logo">BX</h2>
-          <button
-            className="sidebar-toggle"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-          >
-            {sidebarOpen ? '←' : '→'}
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          <Link 
-            to={ROUTES.DASHBOARD} 
-            className={`nav-item ${location.pathname === ROUTES.DASHBOARD ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.DASHBOARD) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📊</span>
-            {sidebarOpen && <span className="nav-text">Dashboard</span>}
-          </Link>
-          <Link 
-            to={ROUTES.GENERATE_LOBBY} 
-            className={`nav-item ${location.pathname === ROUTES.GENERATE_LOBBY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.GENERATE_LOBBY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎮</span>
-            {sidebarOpen && <span className="nav-text">Generate Lobby</span>}
-          </Link>
-          <Link 
-            to={ROUTES.TOP_UP} 
-            className={`nav-item ${location.pathname === ROUTES.TOP_UP ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.TOP_UP) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">💰</span>
-            {sidebarOpen && <span className="nav-text">Top Up</span>}
-          </Link>
-          <Link 
-            to={ROUTES.HOST_CREATION} 
-            className={`nav-item ${location.pathname === ROUTES.HOST_CREATION ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.HOST_CREATION) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">👤</span>
-            {sidebarOpen && <span className="nav-text">Host Creation</span>}
-          </Link>
-          <Link 
-            to={ROUTES.USER_HISTORY} 
-            className={`nav-item ${location.pathname === ROUTES.USER_HISTORY ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.USER_HISTORY) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📜</span>
-            {sidebarOpen && <span className="nav-text">User History</span>}
-          </Link>
-          <Link 
-            to={ROUTES.ENQUIRIES} 
-            className={`nav-item ${location.pathname === ROUTES.ENQUIRIES ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.ENQUIRIES) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">📧</span>
-            {sidebarOpen && <span className="nav-text">Enquiries</span>}
-          </Link>
-          <Link 
-            to={ROUTES.SUPPORT_TICKETS} 
-            className={`nav-item ${location.pathname === ROUTES.SUPPORT_TICKETS ? 'active' : ''}`}
-            onClick={(e) => {
-              if (location.pathname === ROUTES.SUPPORT_TICKETS) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <span className="nav-icon">🎫</span>
-            {sidebarOpen && <span className="nav-text">Support Tickets</span>}
-          </Link>
-        </nav>
-
-        <div className="sidebar-footer">
-          {sidebarOpen && user && (
-            <div className="user-info">
-              <div className="user-email">{user.email}</div>
-              {user.name && <div className="user-name">{user.name}</div>}
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="user-history-main">
-        <header className="user-history-header">
-          <div className="header-left">
-            <h1>User Transaction History</h1>
-          </div>
-          <AppHeaderActions />
-        </header>
-
-        <div className="user-history-content">
+    <AdminLayout title="User Transaction History">
+      <div className="user-history-content-wrapper">
           {/* Search Section */}
           <div className="user-history-card">
             <h2 className="card-title">Search User by Email</h2>
@@ -214,7 +89,6 @@ const UserHistoryPage: React.FC = () => {
           {/* Transactions Section */}
           
         </div>
-      </main>
 
       {/* Transaction History Modal */}
       {selectedUser && (
@@ -323,7 +197,7 @@ const UserHistoryPage: React.FC = () => {
           </div>
         </Modal>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 
