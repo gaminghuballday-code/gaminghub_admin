@@ -185,7 +185,6 @@
 .host-creation-content {
   @include page-content;
   padding-bottom: $spacing-xl;
-  overflow-x: hidden;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
 }
@@ -233,6 +232,8 @@
   padding: $spacing-lg;
   padding-bottom: $spacing-lg;
   box-sizing: border-box;
+  min-height: 0;
+  flex-shrink: 0;
 
   .card-title {
     @include card-title;

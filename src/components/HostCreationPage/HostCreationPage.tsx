@@ -2,6 +2,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import { Modal } from '@components/common/Modal';
+import AllHostsList from './AllHostsList';
 import { ROUTES } from '@utils/constants';
 import './HostCreationPage.scss';
 
@@ -254,59 +255,13 @@ const HostCreationPage: React.FC = () => {
           {activeTab === 'all' && (
             <div className="host-creation-card">
               <h2 className="card-title">All Hosts</h2>
-              {hostsLoading ? (
-                <div className="hosts-loading">
-                  <p>Loading hosts...</p>
-                </div>
-              ) : hostsError ? (
-                <div className="hosts-error">
-                  <p>{hostsError}</p>
-                </div>
-              ) : hosts.length > 0 ? (
-                <>
-                  <div className="hosts-list">
-                    {hosts.map((host) => {
-                      const hostId = host.hostId || host._id || '';
-                      return (
-                        <div
-                          key={hostId}
-                          className="host-item"
-                          onClick={() => handleHostClick(host)}
-                        >
-                          <div className="host-item-content">
-                            <div className="host-name">{host.name || 'N/A'}</div>
-                            <div className="host-email">{host.email}</div>
-                            {host.totalLobbies !== undefined && (
-                              <div className="host-lobbies">
-                                Total Lobbies: {host.totalLobbies}
-                              </div>
-                            )}
-                          </div>
-                          <div className="host-item-arrow">→</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {pagination && (
-                    <div className="hosts-pagination">
-                      <div className="pagination-info">
-                        <span className="pagination-text">
-                          Page {pagination.page} of {pagination.totalPages}
-                        </span>
-                        {pagination.total > 0 && (
-                          <span className="pagination-total">
-                            (Showing {((pagination.page - 1) * pagination.limit) + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} hosts)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="hosts-empty">
-                  <p>No hosts found.</p>
-                </div>
-              )}
+              <AllHostsList
+                hosts={hosts}
+                hostsLoading={hostsLoading}
+                hostsError={hostsError}
+                pagination={pagination}
+                onHostClick={handleHostClick}
+              />
             </div>
           )}
         </div>

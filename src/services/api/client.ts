@@ -207,23 +207,40 @@ apiClient.interceptors.response.use(
         const isAdmin = isAdminDomain();
         const refreshEndpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
         
+        // Get CSRF token for the request (if available)
+        let csrfToken = localStorage.getItem(STORAGE_KEYS.CSRF_TOKEN);
+        if (!csrfToken) {
+          const cookies = document.cookie.split(';');
+          const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
+          if (xsrfCookie) {
+            csrfToken = decodeURIComponent(xsrfCookie.split('=')[1]);
+          }
+        }
+        
+        // Build headers for refresh request
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (csrfToken) {
+          headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         // Use axios directly to avoid circular dependency (apiClient uses interceptors)
         // Request body: { refreshToken: string }
-        // Note: Using axios directly means response format is { data: { data: {...} } } (wrapped by backend)
+        // Response format: { data: { accessToken: string, refreshToken?: string } }
         return axios
           .post<{ data: { accessToken: string; refreshToken?: string } }>(
             `${API_BASE_URL}${refreshEndpoint}`,
             { refreshToken } as { refreshToken: string },
             { 
               withCredentials: true,
-              headers: {
-                'Content-Type': 'application/json',
-              }
+              timeout: API_TIMEOUT,
+              headers,
             }
           )
           .then((response) => {
-            // Handle both response formats: { data: { accessToken, refreshToken } } or { accessToken, refreshToken }
-            const responseData = (response.data as any)?.data || response.data;
+            // Handle response format: { data: { accessToken, refreshToken } }
+            const responseData = response.data?.data || response.data;
             const { accessToken, refreshToken: newRefreshToken } = responseData;
             
             if (!accessToken) {
@@ -231,9 +248,10 @@ apiClient.interceptors.response.use(
             }
             
             // Update tokens in store and localStorage
+            // Only update refreshToken if a new one is provided
             store.dispatch(updateTokens({
               accessToken,
-              refreshToken: newRefreshToken,
+              ...(newRefreshToken && { refreshToken: newRefreshToken }),
             }));
 
             // Update authorization header for retry
@@ -249,7 +267,7 @@ apiClient.interceptors.response.use(
             // Retry original request
             return apiClient(originalRequest);
           })
-          .catch((refreshError) => {
+          .catch((refreshError: any) => {
             // Refresh failed - reject queued requests and logout
             isRefreshing = false;
             failedQueue.forEach((prom) => prom.reject(refreshError));

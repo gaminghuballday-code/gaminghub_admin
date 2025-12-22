@@ -1,0 +1,119 @@
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+
+.all-hosts-list {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.all-hosts-loading,
+.all-hosts-error,
+.all-hosts-empty {
+  padding: $spacing-xl;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.all-hosts-list-content {
+  @include flex-column;
+  gap: $spacing-md;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.all-hosts-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, 
+    var(--background-color-light) 0%,
+    var(--background-color) 100%
+  );
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    transform: translateX(4px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
+    background: linear-gradient(135deg, 
+      rgba(var(--primary-color-rgb), 0.1) 0%,
+      rgba(var(--primary-color-rgb), 0.05) 100%
+    );
+  }
+}
+
+.all-hosts-item-content {
+  @include flex-column;
+  gap: $spacing-xs;
+  flex: 1;
+}
+
+.all-hosts-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.all-hosts-email {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.all-hosts-lobbies {
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-top: $spacing-xs;
+}
+
+.all-hosts-item-arrow {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  transition: transform $transition-fast;
+}
+
+.all-hosts-item:hover .all-hosts-item-arrow {
+  transform: translateX(4px);
+}
+
+// Pagination
+.all-hosts-pagination {
+  margin-top: $spacing-lg;
+  margin-bottom: 0;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, 
+    rgba(var(--primary-color-rgb), 0.1) 0%,
+    rgba(var(--primary-color-rgb), 0.05) 100%
+  );
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.all-hosts-pagination-info {
+  @include flex-column;
+  align-items: center;
+  gap: $spacing-xs;
+  text-align: center;
+}
+
+.all-hosts-pagination-text {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.all-hosts-pagination-total {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
