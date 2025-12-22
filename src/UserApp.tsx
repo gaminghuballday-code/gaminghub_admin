@@ -17,6 +17,7 @@ const UserTournaments = lazy(() => import('@components/user/Tournaments/Tourname
 const UserLobby = lazy(() => import('@components/user/Lobby/Lobby'));
 const UserHistory = lazy(() => import('@components/user/History/History'));
 const UserWallet = lazy(() => import('@components/user/Wallet/Wallet'));
+const UserSupport = lazy(() => import('@components/user/Support/Support'));
 
 // Static pages (public - no authentication required)
 const CancellationRefunds = lazy(() => import('@components/common/StaticPages/CancellationRefunds'));
@@ -81,6 +82,14 @@ function UserApp() {
             element={
               <ProtectedRoute>
                 <UserWallet />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={USER_ROUTES.SUPPORT}
+            element={
+              <ProtectedRoute>
+                <UserSupport />
               </ProtectedRoute>
             }
           />

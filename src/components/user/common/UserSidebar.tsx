@@ -69,6 +69,13 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ sidebarOpen, toggleSidebar })
           <span className="nav-icon">👤</span>
           {sidebarOpen && <span className="nav-text">Profile</span>}
         </Link>
+        <Link 
+          to={USER_ROUTES.SUPPORT} 
+          className={`nav-item ${location.pathname === USER_ROUTES.SUPPORT ? 'active' : ''}`}
+        >
+          <span className="nav-icon">🎫</span>
+          {sidebarOpen && <span className="nav-text">Support</span>}
+        </Link>
       </nav>
 
       <div className="sidebar-footer">

@@ -9,4 +9,5 @@ export * from './useHealthQueries';
 export * from './useWalletQueries';
 export * from './usePaymentQueries';
 export * from './useEnquiriesQueries';
+export * from './useSupportQueries';
 

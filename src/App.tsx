@@ -17,6 +17,7 @@ const TopUpPage = lazy(() => import('@components/TopUpPage/TopUpPage'));
 const HostCreationPage = lazy(() => import('@components/HostCreationPage/HostCreationPage'));
 const UserHistoryPage = lazy(() => import('@components/UserHistoryPage/UserHistoryPage'));
 const EnquiriesPage = lazy(() => import('@components/EnquiriesPage/EnquiriesPage'));
+const SupportTicketsPage = lazy(() => import('@components/SupportTicketsPage/SupportTicketsPage'));
 
 // Static pages (public - no authentication required)
 const CancellationRefunds = lazy(() => import('@components/common/StaticPages/CancellationRefunds'));
@@ -95,6 +96,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EnquiriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.SUPPORT_TICKETS}
+            element={
+              <ProtectedRoute>
+                <SupportTicketsPage />
               </ProtectedRoute>
             }
           />

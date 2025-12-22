@@ -116,6 +116,18 @@ const UserHistoryPage: React.FC = () => {
             <span className="nav-icon">📧</span>
             {sidebarOpen && <span className="nav-text">Enquiries</span>}
           </Link>
+          <Link 
+            to={ROUTES.SUPPORT_TICKETS} 
+            className={`nav-item ${location.pathname === ROUTES.SUPPORT_TICKETS ? 'active' : ''}`}
+            onClick={(e) => {
+              if (location.pathname === ROUTES.SUPPORT_TICKETS) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <span className="nav-icon">🎫</span>
+            {sidebarOpen && <span className="nav-text">Support Tickets</span>}
+          </Link>
         </nav>
 
         <div className="sidebar-footer">

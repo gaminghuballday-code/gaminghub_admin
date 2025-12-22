@@ -9,6 +9,7 @@ export * from './host.api';
 export * from './wallet.api';
 export * from './payment.api';
 export * from './inquiry.api';
+export * from './support.api';
 export * from '../types/api.types';
 export * from './hooks';
 

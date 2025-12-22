@@ -165,3 +165,121 @@ export interface EnquiriesListResponse {
   };
 }
 
+// Support Ticket Types
+export interface SupportTicket {
+  _id: string;
+  id?: string;
+  ticketId?: string;
+  userId?: string | {
+    _id: string;
+    email: string;
+    name: string;
+  };
+  userEmail?: string;
+  userName?: string;
+  hostId?: string | {
+    _id: string;
+    email: string;
+    name: string;
+  };
+  hostEmail?: string;
+  hostName?: string;
+  subject: string;
+  description?: string;
+  issue?: string; // API uses "issue" for description
+  status: 'open' | 'in-progress' | 'resolved' | 'closed';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  category?: string;
+  resolution?: string;
+  notes?: string;
+  attachments?: string[];
+  messages?: Array<{
+    _id: string;
+    sender: 'user' | 'support';
+    message: string;
+    createdAt: string;
+  }>;
+  createdAt: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  lastRepliedBy?: string;
+  lastReplyAt?: string;
+  tournamentId?: string | null;
+}
+
+export interface CreateTicketRequest {
+  subject: string;
+  issue: string; // API uses "issue" not "description"
+  images?: string[];
+}
+
+export interface UpdateTicketRequest {
+  status?: 'open' | 'in-progress' | 'resolved' | 'closed';
+  resolution?: string;
+  notes?: string;
+}
+
+export interface TicketReplyRequest {
+  message: string;
+}
+
+export interface TicketReplyResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data?: {
+    ticket?: SupportTicket;
+  };
+}
+
+export interface TicketsListResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data: {
+    tickets?: SupportTicket[];
+    total?: number;
+    pagination?: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+}
+
+export interface TicketResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data: {
+    ticket?: SupportTicket;
+  };
+}
+
+// FAQ Types
+export interface FAQ {
+  _id: string;
+  id?: string;
+  question: string;
+  answer: string;
+  category?: string;
+  order?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface FAQsListResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data: {
+    faqs?: FAQ[];
+    total?: number;
+  };
+}
+

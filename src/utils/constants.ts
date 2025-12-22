@@ -13,6 +13,7 @@ export const ADMIN_ROUTES = {
   HOST_CREATION: '/host-creation',
   USER_HISTORY: '/user-history',
   ENQUIRIES: '/enquiries',
+  SUPPORT_TICKETS: '/support-tickets',
 } as const;
 
 // User Routes
@@ -27,6 +28,7 @@ export const USER_ROUTES = {
   LOBBY: '/lobby',
   HISTORY: '/history',
   WALLET: '/wallet',
+  SUPPORT: '/support',
 } as const;
 
 // Static Pages (Public - accessible from both admin and user)
