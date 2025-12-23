@@ -152,7 +152,7 @@ const UserTournaments: React.FC = () => {
 
     // Pre-fill team name with IGN or username if available (user can change)
     setTeamName(
-      tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo'
+      tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')
         ? `${primaryName || 'My'} Team`
         : primaryName || ''
     );
@@ -405,8 +405,8 @@ const UserTournaments: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      {/* Show Teams for Squad/Duo, Players for Solo */}
-                      {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (
+                      {/* Show Teams for Squad/Duo/CS 4v4, Players for Solo */}
+                      {((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) ? (
                         <div className="tournament-detail-item">
                           <span className="detail-label">Teams:</span>
                           <span className="detail-value">

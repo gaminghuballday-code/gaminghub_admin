@@ -292,8 +292,8 @@ const UserLobby: React.FC = () => {
     // Calculate based on joined participants
     let totalEntryFees = 0;
     
-    // For team-based tournaments (squad/duo)
-    if ((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined) {
+    // For team-based tournaments (squad/duo/CS 4v4)
+    if ((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) {
       const joinedTeams = tournament.joinedTeams !== undefined ? tournament.joinedTeams : 0;
       totalEntryFees = tournament.entryFee * joinedTeams;
     } else {
@@ -449,8 +449,8 @@ const UserLobby: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      {/* Show Teams for Squad/Duo, Players for Solo */}
-                      {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (
+                      {/* Show Teams for Squad/Duo/CS 4v4, Players for Solo */}
+                      {((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) ? (
                         <div className="tournament-detail-item">
                           <span className="detail-label">Teams:</span>
                           <span className="detail-value">

@@ -27,7 +27,7 @@ const TournamentResults: React.FC<TournamentResultsProps> = ({
   // Extract results from tournament
   // Assuming backend sends results in this format after declaration
   const results = (tournament as any).finalRankings || (tournament as any).results || [];
-  const isTeamBased = tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo';
+  const isTeamBased = tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4');
 
   // If results is an array of rankings
   const rankings: ResultRanking[] = Array.isArray(results) && results.length > 0 && typeof results[0] === 'object' && 'rank' in results[0]

@@ -120,8 +120,7 @@ export const useDashboardLogic = () => {
   const { 
     data: hostStatsData, 
     isLoading: hostStatsLoading, 
-    error: hostStatsQueryError,
-    refetch: refetchHostStats 
+    error: hostStatsQueryError
   } = useHostStatistics(hostStatsParams, shouldFetchHostStats);
   
   const hostStatistics = hostStatsData?.hosts || [];

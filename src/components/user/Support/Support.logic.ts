@@ -15,8 +15,6 @@ import {
 } from '@services/api/hooks/useSupportQueries';
 import type { SupportTicket, UpdateTicketRequest, CreateTicketRequest } from '@services/api';
 import { useMemo } from 'react';
-import { useAppDispatch } from '@store/hooks';
-import { addToast } from '@store/slices/toastSlice';
 
 interface ChatMessage {
   sender: 'user' | 'support';
@@ -55,8 +53,6 @@ export const useSupportPageLogic = () => {
   const [showTicketDetailModal, setShowTicketDetailModal] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  
-  const dispatch = useAppDispatch();
 
   // TanStack Query hooks
   useUserProfile(isAuthenticated && !user);

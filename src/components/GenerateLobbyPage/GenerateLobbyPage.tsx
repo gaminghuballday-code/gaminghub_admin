@@ -224,8 +224,8 @@ const GenerateLobbyPage: React.FC = () => {
                           tournament.prizePool}
                       </span>
                     </div>
-                    {/* Show Teams for Squad/Duo, Players for Solo */}
-                    {(tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo') && tournament.maxTeams !== undefined ? (
+                    {/* Show Teams for Squad/Duo/CS 4v4, Players for Solo */}
+                    {((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) ? (
                       <div className="tournament-detail-item">
                         <span className="detail-label">Teams:</span>
                         <span className="detail-value">

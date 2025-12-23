@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supportApi, type CreateTicketRequest, type UpdateTicketRequest, type TicketReplyRequest } from '../support.api';
+import { supportApi } from '../support.api';
+import type { CreateTicketRequest, UpdateTicketRequest, TicketReplyRequest } from '../../types/api.types';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 
