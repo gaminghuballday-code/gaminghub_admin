@@ -69,7 +69,11 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     { value: 'LW', label: 'LW (Lone Wolf)' },
     { value: 'CS', label: 'CS (Clash Squad)' },
   ];
-  const subModes = ['solo', 'duo', 'squad'];
+  const allSubModes = ['solo', 'duo', 'squad'];
+  // Filter out 'squad' when Lone Wolf is selected
+  const subModes = formData.mode === 'LW' 
+    ? allSubModes.filter(mode => mode !== 'squad')
+    : allSubModes;
   const regions = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
   const timeHours = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
   const standardTimes = [
@@ -224,7 +228,14 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
               <select
                 className={`form-select ${getFieldError('mode').length > 0 ? 'form-input-error' : ''}`}
                 value={formData.mode}
-                onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
+                onChange={(e) => {
+                  const newMode = e.target.value;
+                  // Remove 'squad' from subModes if switching to Lone Wolf
+                  const updatedSubModes = newMode === 'LW' 
+                    ? formData.subModes.filter(sm => sm !== 'squad')
+                    : formData.subModes;
+                  setFormData({ ...formData, mode: newMode, subModes: updatedSubModes });
+                }}
                 disabled={isSubmitting}
               >
                 {gameModes.map((mode) => (
