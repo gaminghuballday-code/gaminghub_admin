@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogout, useUserLogout } from '@services/api/hooks';
+import { getSocket } from '@services/websocket/socket';
+import { useAppSelector } from '@store/hooks';
+import { selectUser } from '@store/slices/authSlice';
 import ThemeToggle from '@components/common/ThemeToggle';
 import SettingsModal from '@components/common/SettingsModal';
 import ConfirmationModal from '@components/common/ConfirmationModal';
@@ -13,6 +16,7 @@ const AppHeaderActions: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const isAdmin = isAdminDomain();
+  const user = useAppSelector(selectUser);
   const adminLogoutMutation = useLogout();
   const userLogoutMutation = useUserLogout();
   const logoutMutation = isAdmin ? adminLogoutMutation : userLogoutMutation;
@@ -34,6 +38,14 @@ const AppHeaderActions: React.FC = () => {
   }, []);
 
   const handleLogoutConfirm = () => {
+    // Unsubscribe from wallet WebSocket before logout
+    const socket = getSocket();
+    if (socket && user) {
+      const userId = user._id || user.userId;
+      if (userId) {
+        socket.emit('unsubscribe:wallet', userId);
+      }
+    }
     logoutMutation.mutate();
   };
 

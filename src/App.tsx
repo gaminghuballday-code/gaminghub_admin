@@ -14,6 +14,7 @@ const HealthStatus = lazy(() => import('@components/HealthStatus/HealthStatus'))
 const Profile = lazy(() => import('@components/Profile/Profile'));
 const GenerateLobbyPage = lazy(() => import('@components/GenerateLobbyPage/GenerateLobbyPage'));
 const TopUpPage = lazy(() => import('@components/TopUpPage/TopUpPage'));
+const PaymentVerificationPage = lazy(() => import('@components/PaymentVerificationPage/PaymentVerificationPage'));
 const HostCreationPage = lazy(() => import('@components/HostCreationPage/HostCreationPage'));
 const UserHistoryPage = lazy(() => import('@components/UserHistoryPage/UserHistoryPage'));
 const EnquiriesPage = lazy(() => import('@components/EnquiriesPage/EnquiriesPage'));
@@ -72,6 +73,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <TopUpPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.PAYMENT_VERIFICATION}
+            element={
+              <ProtectedRoute>
+                <PaymentVerificationPage />
               </ProtectedRoute>
             }
           />

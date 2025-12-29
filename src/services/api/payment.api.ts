@@ -114,6 +114,84 @@ export interface CloseQRCodeResponse {
   message: string;
 }
 
+// UTR Confirmation Types
+export interface ConfirmPaymentRequest {
+  qrCodeId: string;
+  utr: string; // UTR (8-20 characters)
+}
+
+export interface ConfirmPaymentResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    qrCodeId: string;
+    status: string; // 'pending', 'success', 'failed'
+    amountINR: number;
+    amountGC: number;
+    utr: string;
+  };
+}
+
+// Admin Payment Verification Types
+export interface PendingPayment {
+  _id: string;
+  userId: string | {
+    _id: string;
+    email: string;
+    name?: string;
+  };
+  type: string;
+  amountGC: number;
+  description?: string;
+  tournamentId?: string | null;
+  status: string; // 'pending', 'fail', etc.
+  addedBy: string;
+  paymentId?: string | null;
+  qrCodeId?: string | null;
+  receiptCode?: string | null;
+  paymentMethod?: string | null;
+  amountINR?: number | null;
+  qrCodeExpiresAt?: string | null;
+  paymentVerified: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  utr?: string | null;
+  bankReference?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+export interface PendingPaymentsResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    pendingPayments: PendingPayment[];
+    total?: number;
+    limit?: number;
+    skip?: number;
+    message?: string;
+  };
+}
+
+export interface UpdatePaymentStatusRequest {
+  status: 'success' | 'fail';
+}
+
+export interface UpdatePaymentStatusResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    transactionId: string;
+    status: string;
+    amountGC?: number;
+    userId?: string;
+  };
+}
+
 export const paymentApi = {
   /**
    * Create payment order
@@ -175,6 +253,36 @@ export const paymentApi = {
    */
   closeQRCode: async (qrCodeId: string): Promise<CloseQRCodeResponse> => {
     const response = await apiClient.post<CloseQRCodeResponse>(`/api/payment/close-qr/${qrCodeId}`);
+    return response.data;
+  },
+
+  /**
+   * Confirm payment with UTR (Unique Transaction Reference)
+   * @param data - Payment confirmation data (qrCodeId, utr)
+   */
+  confirmPayment: async (data: ConfirmPaymentRequest): Promise<ConfirmPaymentResponse> => {
+    const response = await apiClient.post<ConfirmPaymentResponse>('/api/payment/confirm', data);
+    return response.data;
+  },
+
+  /**
+   * Get pending payments (Admin only) - payments with UTR that need admin verification
+   */
+  getPendingPayments: async (): Promise<PendingPaymentsResponse> => {
+    const response = await apiClient.get<PendingPaymentsResponse>('/api/admin/payments/pending');
+    return response.data;
+  },
+
+  /**
+   * Update payment status (Admin only) - Approve or Reject payment
+   * @param transactionId - Transaction ID
+   * @param data - Status update data (status: 'success' for approve, 'fail' for reject)
+   */
+  updatePaymentStatus: async (transactionId: string, data: UpdatePaymentStatusRequest): Promise<UpdatePaymentStatusResponse> => {
+    const response = await apiClient.post<UpdatePaymentStatusResponse>(
+      `/api/admin/topup-transactions/${transactionId}/update-status`,
+      data
+    );
     return response.data;
   },
 };

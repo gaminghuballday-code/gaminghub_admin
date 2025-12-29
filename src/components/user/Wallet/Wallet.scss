@@ -214,7 +214,7 @@
 
   // Hide number input arrows (for any number inputs that might be used)
   &[type="number"] {
-    -moz-appearance: textfield;
+    // -moz-appearance: textfield;
     
     &::-webkit-outer-spin-button,
     &::-webkit-inner-spin-button {
@@ -320,6 +320,14 @@
   }
 }
 
+.serial-cell {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: 60px;
+}
+
 .date-cell {
   white-space: nowrap;
   color: var(--text-secondary);
@@ -402,6 +410,79 @@
     color: rgb(239, 68, 68);
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
+}
+
+.payment-id-cell {
+  white-space: nowrap;
+  max-width: 250px;
+}
+
+.payment-id-wrapper {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.payment-id-code {
+  display: inline-block;
+  padding: 4px 8px;
+  background: var(--background-color-light);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-sm;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  font-weight: 500;
+  cursor: default;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 0;
+  
+  &:hover {
+    border-color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.05);
+  }
+}
+
+.copy-payment-id-btn {
+  @include button-reset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--primary-color);
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.7;
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    transition: all 0.2s ease;
+  }
+
+  &:hover {
+    background: rgba(var(--primary-color-rgb), 0.2);
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.no-payment-id {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.85rem;
 }
 
 .description-cell {
@@ -640,14 +721,274 @@
   background: rgba(251, 191, 36, 0.1);
 }
 
-  .qr-status-success {
-    color: rgb(34, 197, 94);
-    background: rgba(34, 197, 94, 0.1);
+.qr-status-success {
+  color: rgb(34, 197, 94);
+  background: rgba(34, 197, 94, 0.1);
 
-    svg {
-      flex-shrink: 0;
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Payment Steps
+.payment-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+  position: relative;
+  padding: 0 $spacing-lg;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 0;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-sm;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: var(--background-color-light);
+      border: 2px solid var(--border-color);
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: center;
+      transition: color 0.3s ease;
+    }
+
+    &.active {
+      .step-number {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+      }
+
+      .step-label {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background: rgb(34, 197, 94);
+        border-color: rgb(34, 197, 94);
+        color: white;
+      }
+
+      .step-label {
+        color: rgb(34, 197, 94);
+      }
     }
   }
+}
+
+// QR Expiration Countdown
+.qr-expiration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: $border-radius-md;
+  color: rgb(251, 191, 36);
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Open UPI Button
+.open-upi-button {
+  @include button-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+}
+
+// UTR Form Section
+.utr-form-section {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid var(--border-color);
+  width: 100%;
+
+  .utr-instructions {
+    margin: 0 0 $spacing-md 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .utr-form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    .submit-button {
+      margin-top: $spacing-sm;
+    }
+  }
+}
+
+// Confirmation Status
+.confirmation-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  text-align: center;
+
+  h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .status-info {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background: var(--background-color-light);
+    border-radius: $border-radius-md;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+
+    span {
+      font-weight: 500;
+    }
+  }
+}
+
+// Verification Message (After UTR Submission)
+.verification-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  text-align: center;
+
+  .info-icon {
+    color: rgb(59, 130, 246);
+    width: 64px;
+    height: 64px;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  .verification-info {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 500;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  .verification-note {
+    margin: $spacing-md 0 0 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .verification-details {
+    margin-top: $spacing-lg;
+    padding: $spacing-lg;
+    background: var(--background-color-light);
+    border-radius: $border-radius-md;
+    text-align: left;
+    width: 100%;
+    max-width: 400px;
+
+    p {
+      margin: $spacing-xs 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+
+      strong {
+        color: var(--text-color);
+        font-weight: 600;
+        margin-right: $spacing-sm;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
 
 // Modal Forms
 .topup-deposit-form,
@@ -754,6 +1095,106 @@
     width: 200px;
     height: 200px;
   }
+
+  .payment-steps {
+    padding: 0 $spacing-sm;
+
+    &::before {
+      left: 5%;
+      right: 5%;
+    }
+
+    .step {
+      .step-number {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+      }
+
+      .step-label {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .utr-form-section {
+    .utr-form {
+      .submit-button {
+        width: 100%;
+      }
+    }
+  }
+
+  .qr-additional-instructions {
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: $border-radius-md;
+
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+  }
+}
+
+// Pagination Controls
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-top: $spacing-xl;
+  padding: $spacing-lg;
+  border-top: 1px solid var(--border-color);
+
+  .pagination-button {
+    @include button-secondary;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 100px;
+    justify-content: center;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .pagination-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-xs;
+    flex: 1;
+    text-align: center;
+
+    span {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .pagination-count {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+  }
 }
 
 @media (max-width: 480px) {
@@ -772,7 +1213,35 @@
   }
 
   .history-table {
-    min-width: 500px;
+    min-width: 700px;
+    
+    .serial-cell {
+      width: 50px;
+      font-size: 0.8rem;
+    }
+    
+    .payment-id-cell {
+      max-width: 180px;
+    }
+    
+    .payment-id-wrapper {
+      gap: 4px;
+    }
+    
+    .payment-id-code {
+      font-size: 0.75rem;
+      padding: 3px 6px;
+    }
+    
+    .copy-payment-id-btn {
+      width: 20px;
+      height: 20px;
+      
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
   }
 
   .input-with-max-button {
@@ -780,6 +1249,19 @@
 
     .max-button {
       width: 100%;
+    }
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: $spacing-md;
+
+    .pagination-button {
+      width: 100%;
+    }
+
+    .pagination-info {
+      order: -1;
     }
   }
 }

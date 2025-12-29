@@ -22,7 +22,17 @@ export interface TopUpHistoryItem {
   addedBy?: string;
   timestamp?: string;
   tournamentId?: string | null;
+  paymentId?: string | null;
   __v?: number;
+}
+
+export interface TopUpHistoryPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 export interface TopUpHistoryResponse {
@@ -31,6 +41,7 @@ export interface TopUpHistoryResponse {
   message: string;
   data?: {
     history: TopUpHistoryItem[];
+    pagination?: TopUpHistoryPagination;
     total?: number;
     limit?: number;
     skip?: number;
@@ -120,9 +131,12 @@ export const walletApi = {
 
   /**
    * Get top-up history for current user
+   * @param page - Page number (default: 1)
    */
-  getTopUpHistory: async (): Promise<TopUpHistoryResponse> => {
-    const response = await apiClient.get<TopUpHistoryResponse>('/api/wallet/topup-history');
+  getTopUpHistory: async (page: number = 1): Promise<TopUpHistoryResponse> => {
+    const response = await apiClient.get<TopUpHistoryResponse>('/api/wallet/topup-history', {
+      params: { page: page.toString() },
+    });
     return response.data;
   },
 

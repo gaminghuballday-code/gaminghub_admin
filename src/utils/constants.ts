@@ -10,6 +10,7 @@ export const ADMIN_ROUTES = {
   PROFILE: '/profile',
   GENERATE_LOBBY: '/generate-lobby',
   TOP_UP: '/top-up',
+  PAYMENT_VERIFICATION: '/payment-verification',
   HOST_CREATION: '/host-creation',
   USER_HISTORY: '/user-history',
   ENQUIRIES: '/enquiries',

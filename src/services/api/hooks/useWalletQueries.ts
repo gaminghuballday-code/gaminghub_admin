@@ -7,7 +7,7 @@ import { addToast } from '@store/slices/toastSlice';
 export const walletKeys = {
   all: ['wallet'] as const,
   balance: () => [...walletKeys.all, 'balance'] as const,
-  history: () => [...walletKeys.all, 'history'] as const,
+  history: (page?: number) => [...walletKeys.all, 'history', page] as const,
   walletHistory: (params?: WalletHistoryParams) => [...walletKeys.all, 'wallet-history', params] as const,
 };
 
@@ -28,13 +28,17 @@ export const useWalletBalance = (enabled = true) => {
 
 /**
  * Hook for fetching top-up history
+ * @param page - Page number (default: 1)
  */
-export const useTopUpHistory = (enabled = true) => {
+export const useTopUpHistory = (page: number = 1, enabled = true) => {
   return useQuery({
-    queryKey: walletKeys.history(),
+    queryKey: walletKeys.history(page),
     queryFn: async () => {
-      const response = await walletApi.getTopUpHistory();
-      return response.data?.history ?? [];
+      const response = await walletApi.getTopUpHistory(page);
+      return {
+        history: response.data?.history ?? [],
+        pagination: response.data?.pagination,
+      };
     },
     enabled,
     refetchOnWindowFocus: false,
@@ -53,7 +57,7 @@ export const useTopUpWallet = () => {
     onSuccess: (response) => {
       // Invalidate and refetch balance and history
       queryClient.invalidateQueries({ queryKey: walletKeys.balance() });
-      queryClient.invalidateQueries({ queryKey: walletKeys.history() });
+      queryClient.invalidateQueries({ queryKey: walletKeys.all });
       
       // Show success message with pending approval info
       const message = response.message || 'Top-up request submitted successfully!';
@@ -93,7 +97,7 @@ export const useWithdrawWallet = () => {
     onSuccess: (response) => {
       // Invalidate and refetch balance and history
       queryClient.invalidateQueries({ queryKey: walletKeys.balance() });
-      queryClient.invalidateQueries({ queryKey: walletKeys.history() });
+      queryClient.invalidateQueries({ queryKey: walletKeys.all });
       
       // Show success message with pending approval info
       const message = response.message || 'Withdraw request submitted successfully!';
