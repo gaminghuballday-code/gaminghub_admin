@@ -252,6 +252,20 @@
   &:last-child {
     border-bottom: none;
   }
+
+  &.ticket-item-clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
 }
 
 .ticket-header {
@@ -282,6 +296,19 @@
   font-weight: 700;
   color: var(--text-color);
   flex: 1;
+}
+
+.ticket-status-wrapper {
+  @include flex-center;
+  gap: $spacing-sm;
+  align-items: center;
+}
+
+.ticket-status-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .ticket-status {
@@ -697,25 +724,35 @@
 }
 
 // Pagination
-.pagination {
-  padding: $spacing-lg;
-  @include flex-between;
-  align-items: center;
-  border-top: 1px solid rgba(var(--border-color-rgb), 0.3);
-  flex-shrink: 0;
-  background: rgba(var(--background-color-rgb), 0.5);
-  border-bottom-left-radius: $border-radius-lg;
-  border-bottom-right-radius: $border-radius-lg;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
 .pagination-controls {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: $spacing-md;
+  margin-top: $spacing-xl;
+  padding: $spacing-lg;
+  border-top: 1px solid var(--border-color);
+
+  .pagination-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-xs;
+    flex: 1;
+    text-align: center;
+
+    span {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .pagination-count {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+  }
 }
 
 .pagination-button {
@@ -763,8 +800,18 @@
     align-items: flex-start;
   }
 
-  .pagination {
+  .pagination-controls {
     flex-direction: column;
     gap: $spacing-md;
+
+    .pagination-info {
+      order: -1;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-controls {
+    padding: $spacing-md;
   }
 }

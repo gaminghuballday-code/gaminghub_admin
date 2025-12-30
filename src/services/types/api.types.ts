@@ -187,7 +187,7 @@ export interface SupportTicket {
   subject: string;
   description?: string;
   issue?: string; // API uses "issue" for description
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
+  status: 'open' | 'closed';
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   category?: string;
   resolution?: string;
@@ -215,7 +215,7 @@ export interface CreateTicketRequest {
 }
 
 export interface UpdateTicketRequest {
-  status?: 'open' | 'in-progress' | 'resolved' | 'closed';
+  status?: 'open' | 'closed';
   resolution?: string;
   notes?: string;
 }

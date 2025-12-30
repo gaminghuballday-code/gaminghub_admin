@@ -59,43 +59,40 @@ const SupportTicketsPage: React.FC = () => {
 
   return (
     <AdminLayout title="Support Tickets">
-      <div className="support-tickets-content-wrapper">
-          {/* Filters Section */}
-          <div className="filters-section">
-            <div className="filters-row">
-              <div className="filter-group">
-                <label className="filter-label">Status</label>
-                <select
-                  className="filter-select"
-                  value={statusFilter}
-                  onChange={(e) =>
-                    handleStatusFilterChange(
-                      e.target.value as 'all' | 'open' | 'in-progress' | 'resolved' | 'closed'
-                    )
-                  }
-                >
-                  <option value="all">All Tickets</option>
-                  <option value="open">Open</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-              <div className="filter-group">
-                <label className="filter-label">Search</label>
-                <input
-                  type="text"
-                  className="filter-input"
-                  placeholder="Search by subject or description..."
-                  value={searchFilter}
-                  onChange={(e) => handleSearchFilterChange(e.target.value)}
-                />
-              </div>
+      {/* Filters Section */}
+      <div className="filters-section">
+          <div className="filters-row">
+            <div className="filter-group">
+              <label className="filter-label">Status</label>
+              <select
+                className="filter-select"
+                value={statusFilter}
+                    onChange={(e) =>
+                      handleStatusFilterChange(
+                        e.target.value as 'all' | 'open' | 'closed'
+                      )
+                    }
+                  >
+                    <option value="all">All Tickets</option>
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                  </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Search</label>
+              <input
+                type="text"
+                className="filter-input"
+                placeholder="Search by subject or description..."
+                value={searchFilter}
+                onChange={(e) => handleSearchFilterChange(e.target.value)}
+              />
             </div>
           </div>
+        </div>
 
-          {/* Tickets List */}
-          <div className="tickets-list">
+        {/* Tickets List */}
+        <div className="tickets-list">
             <div className="tickets-list-header">
               <h2 className="tickets-count">
                 {totalTickets} {totalTickets === 1 ? 'Ticket' : 'Tickets'}
@@ -164,12 +161,15 @@ const SupportTicketsPage: React.FC = () => {
                             })()}
                           </td>
                           <td>
-                            <Badge
-                              type="status"
-                              variant={ticket.status.toLowerCase().replace('-', '')}
-                            >
-                              {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
-                            </Badge>
+                            <div className="ticket-status-wrapper">
+                              <span className="ticket-status-label">Status:</span>
+                              <Badge
+                                type="status"
+                                variant={ticket.status.toLowerCase().replace('-', '')}
+                              >
+                                {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
+                              </Badge>
+                            </div>
                           </td>
                           <td className="ticket-date-cell">{formatDate(ticket.createdAt)}</td>
                           <td className="ticket-actions-cell">
@@ -201,35 +201,65 @@ const SupportTicketsPage: React.FC = () => {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 0 && (
-                  <div className="pagination">
+                {totalPages > 1 && (
+                  <div className="pagination-controls">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handlePreviousPage}
+                      disabled={!hasPrevPage || ticketsLoading}
+                      title="Previous Page"
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                      }
+                    >
+                      Previous
+                    </Button>
+
                     <div className="pagination-info">
-                      Page {currentPage} of {totalPages} ({totalTickets} total)
+                      <span>
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <span className="pagination-count">
+                        ({totalTickets} total items)
+                      </span>
                     </div>
-                    <div className="pagination-controls">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={handlePreviousPage}
-                        disabled={!hasPrevPage}
-                      >
-                        Previous
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleNextPage}
-                        disabled={!hasNextPage}
-                      >
-                        Next
-                      </Button>
-                    </div>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={!hasNextPage || ticketsLoading}
+                      title="Next Page"
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      }
+                    >
+                      Next
+                    </Button>
                   </div>
                 )}
               </>
             )}
-          </div>
-        </div>
+      </div>
 
       {/* Chat Modal */}
       <Modal
@@ -372,14 +402,12 @@ const SupportTicketsPage: React.FC = () => {
                   onChange={(e) =>
                     setUpdateData({
                       ...updateData,
-                      status: e.target.value as 'open' | 'in-progress' | 'resolved' | 'closed',
+                      status: e.target.value as 'open' | 'closed',
                     })
                   }
                   disabled={isUpdating}
                 >
                   <option value="open">Open</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
                   <option value="closed">Closed</option>
                 </select>
               </div>

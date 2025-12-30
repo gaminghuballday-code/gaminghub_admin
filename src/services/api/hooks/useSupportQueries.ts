@@ -200,9 +200,10 @@ export const useReplyToTicket = () => {
   return useMutation({
     mutationFn: ({ ticketId, data }: { ticketId: string; data: TicketReplyRequest }) =>
       supportApi.replyToTicket(ticketId, data),
-    onSuccess: (ticket) => {
+    onSuccess: () => {
+      // Only invalidate tickets list - WebSocket will handle ticket detail updates
       queryClient.invalidateQueries({ queryKey: supportKeys.tickets() });
-      queryClient.invalidateQueries({ queryKey: supportKeys.ticket(ticket.id || ticket._id || ticket.ticketId || '') });
+      // Don't invalidate ticket detail - WebSocket will update it in real-time
       dispatch(
         addToast({
           message: 'Reply sent successfully',
@@ -233,9 +234,10 @@ export const useReplyToTicketAsAdmin = () => {
   return useMutation({
     mutationFn: ({ ticketId, data }: { ticketId: string; data: TicketReplyRequest }) =>
       supportApi.replyToTicketAsAdmin(ticketId, data),
-    onSuccess: (ticket) => {
+    onSuccess: () => {
+      // Only invalidate tickets list - WebSocket will handle ticket detail updates
       queryClient.invalidateQueries({ queryKey: supportKeys.tickets() });
-      queryClient.invalidateQueries({ queryKey: supportKeys.ticket(ticket.id || ticket._id || ticket.ticketId || '') });
+      // Don't invalidate ticket detail - WebSocket will update it in real-time
       dispatch(
         addToast({
           message: 'Reply sent successfully',

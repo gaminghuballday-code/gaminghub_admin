@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
@@ -14,7 +14,8 @@ import {
   useReplyToTicket,
 } from '@services/api/hooks/useSupportQueries';
 import type { SupportTicket, UpdateTicketRequest, CreateTicketRequest } from '@services/api';
-import { useMemo } from 'react';
+import { useSupportTicketSocket, type TicketReplyAdded, type TicketStatusUpdate, type TicketClosed } from '@hooks/useSupportTicketSocket';
+import { useSupportTicketsListSocket } from '@hooks/useSupportTicketsListSocket';
 
 interface ChatMessage {
   sender: 'user' | 'support';
@@ -22,14 +23,14 @@ interface ChatMessage {
   timestamp: string;
 }
 
-export const useSupportPageLogic = () => {
+export const useSupportPageLogic = (activeTab: 'tickets' | 'faqs' = 'tickets') => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isHost = user?.role === 'host';
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in-progress' | 'resolved' | 'closed'>('all');
+  // Filter states - only 'open' and 'closed' statuses (backend has only 2 statuses)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'closed'>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
 
@@ -53,6 +54,7 @@ export const useSupportPageLogic = () => {
   const [showTicketDetailModal, setShowTicketDetailModal] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [realTimeMessages, setRealTimeMessages] = useState<ChatMessage[]>([]);
 
   // TanStack Query hooks
   useUserProfile(isAuthenticated && !user);
@@ -79,13 +81,80 @@ export const useSupportPageLogic = () => {
     refetch: refetchUserTickets,
   } = useUserTickets(queryParams, isAuthenticated && !isHost);
 
-  const { data: faqsData, isLoading: faqsLoading } = useFAQs(isAuthenticated && !isHost);
+  // Only fetch FAQs when FAQs tab is active
+  const { data: faqsData, isLoading: faqsLoading } = useFAQs(
+    isAuthenticated && !isHost && activeTab === 'faqs'
+  );
 
   const {
     data: ticketDetail,
     isLoading: ticketDetailLoading,
     refetch: refetchTicketDetail,
   } = useTicket(selectedTicketId || '', isAuthenticated && !isHost && !!selectedTicketId);
+
+  // WebSocket for real-time ticket updates
+  const handleReplyAdded = useCallback((data: TicketReplyAdded) => {
+    // Backend sends reply.role: 'user', 'admin', or 'host'
+    // For UI, we need 'user' or 'support'
+    const sender: 'user' | 'support' = data.reply.role === 'user' ? 'user' : 'support';
+    
+    const newChatMessage: ChatMessage = {
+      sender,
+      content: data.reply.message,
+      timestamp: data.reply.createdAt,
+    };
+    
+    setRealTimeMessages((prev) => {
+      // Check if message already exists (avoid duplicates)
+      const exists = prev.some(
+        (msg) => msg.timestamp === newChatMessage.timestamp && msg.content === newChatMessage.content
+      );
+      if (exists) {
+        return prev;
+      }
+      return [...prev, newChatMessage].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+    });
+  }, []);
+
+  const handleStatusUpdate = useCallback((data: TicketStatusUpdate) => {
+    // Update ticket status - WebSocket provides all needed data
+    if (selectedTicketId === data.ticketId) {
+      // Refetch to get complete updated ticket data
+      refetchTicketDetail();
+    }
+  }, [selectedTicketId, refetchTicketDetail]);
+
+  const handleTicketClosed = useCallback((data: TicketClosed) => {
+    // Ticket closed - backend will auto-disconnect socket after 1 second
+    if (selectedTicketId === data.ticketId) {
+      // Refetch to get updated status
+      refetchTicketDetail();
+      // UI will automatically disable reply input when status is 'closed'
+    }
+  }, [selectedTicketId, refetchTicketDetail]);
+
+  // WebSocket hook - only enabled when modal is open and ticketId exists
+  useSupportTicketSocket({
+    ticketId: selectedTicketId,
+    enabled: showTicketDetailModal && !!selectedTicketId && !isHost,
+    onReplyAdded: handleReplyAdded,
+    onStatusUpdate: handleStatusUpdate,
+    onTicketClosed: handleTicketClosed,
+  });
+
+  // WebSocket for tickets list updates (subscribe to user/host tickets)
+  const userId = user?._id || user?.userId;
+  useSupportTicketsListSocket({
+    subscriptionType: isHost ? 'host-tickets' : 'user-tickets',
+    userId: userId || null,
+    enabled: isAuthenticated,
+    onTicketUpdate: () => {
+      // Refetch tickets list when updates come via WebSocket
+      refetchTickets();
+    },
+  });
 
   // Select appropriate data based on role
   const ticketsData = isHost ? hostTicketsData : userTicketsData;
@@ -111,7 +180,7 @@ export const useSupportPageLogic = () => {
     }
   }, [navigate, isAuthenticated]);
 
-  const handleStatusFilterChange = (filter: 'all' | 'open' | 'in-progress' | 'resolved' | 'closed') => {
+  const handleStatusFilterChange = (filter: 'all' | 'open' | 'closed') => {
     setStatusFilter(filter);
     setCurrentPage(1);
   };
@@ -212,6 +281,7 @@ export const useSupportPageLogic = () => {
   const handleOpenTicketDetail = (ticketId: string) => {
     setSelectedTicketId(ticketId);
     setNewMessage('');
+    setRealTimeMessages([]); // Clear real-time messages when opening new ticket
     setShowTicketDetailModal(true);
   };
 
@@ -219,9 +289,10 @@ export const useSupportPageLogic = () => {
     setShowTicketDetailModal(false);
     setSelectedTicketId(null);
     setNewMessage('');
+    setRealTimeMessages([]); // Clear real-time messages when closing modal
   };
 
-  // Parse chat messages from ticket
+  // Parse chat messages from ticket and merge with real-time messages
   const chatMessages = useMemo<ChatMessage[]>(() => {
     if (!ticketDetail) return [];
 
@@ -276,8 +347,18 @@ export const useSupportPageLogic = () => {
       });
     }
 
-    return messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  }, [ticketDetail]);
+    // Merge with real-time messages and remove duplicates
+    const allMessages = [...messages, ...realTimeMessages];
+    const uniqueMessages = allMessages.filter((msg, index, self) => {
+      return index === self.findIndex((m) => 
+        m.timestamp === msg.timestamp && 
+        m.content === msg.content && 
+        m.sender === msg.sender
+      );
+    });
+
+    return uniqueMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }, [ticketDetail, realTimeMessages]);
 
   // Send message handler
   const handleSendMessage = async () => {
@@ -285,21 +366,21 @@ export const useSupportPageLogic = () => {
       return;
     }
 
+    const messageText = newMessage.trim();
+    setNewMessage(''); // Clear input immediately for better UX
+
     try {
       await replyMutation.mutateAsync({
         ticketId: selectedTicketId,
         data: {
-          message: newMessage.trim(),
+          message: messageText,
         },
       });
-
-      setNewMessage('');
-      // Refetch tickets list to get updated data
-      refetchTickets();
-      // Refetch ticket detail to get updated messages
-      // useReplyToTicket already invalidates the query, but we refetch immediately for better UX
-      refetchTicketDetail();
+      // Don't refetch - WebSocket will handle real-time updates
+      // Backend will broadcast ticket:reply-added event via WebSocket
     } catch (error) {
+      // Restore message on error
+      setNewMessage(messageText);
       // Error handling is done in the mutation hook
     }
   };

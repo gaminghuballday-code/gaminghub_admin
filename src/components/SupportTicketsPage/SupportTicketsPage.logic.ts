@@ -7,6 +7,7 @@ import { addToast } from '@store/slices/toastSlice';
 import { useProfile } from '@services/api/hooks';
 import { useAdminTickets, useUpdateTicket, useReplyToTicketAsAdmin } from '@services/api/hooks/useSupportQueries';
 import type { SupportTicket, UpdateTicketRequest } from '@services/api';
+import { useSupportTicketsListSocket } from '@hooks/useSupportTicketsListSocket';
 
 interface ChatMessage {
   sender: 'user' | 'support';
@@ -19,8 +20,8 @@ export const useSupportTicketsPageLogic = () => {
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in-progress' | 'resolved' | 'closed'>('all');
+  // Filter states - only 'open' and 'closed' statuses (backend has only 2 statuses)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'closed'>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
@@ -58,6 +59,16 @@ export const useSupportTicketsPageLogic = () => {
     error: ticketsError,
     refetch: refetchTickets,
   } = useAdminTickets(queryParams, isAuthenticated);
+
+  // WebSocket for admin tickets list updates
+  useSupportTicketsListSocket({
+    subscriptionType: 'admin-tickets',
+    enabled: isAuthenticated,
+    onTicketUpdate: () => {
+      // Refetch tickets list when updates come via WebSocket
+      refetchTickets();
+    },
+  });
 
   const tickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination;
@@ -158,7 +169,7 @@ export const useSupportTicketsPageLogic = () => {
 
   // Sync sidebar state with CSS variable for dynamic layout
 
-  const handleStatusFilterChange = (filter: 'all' | 'open' | 'in-progress' | 'resolved' | 'closed') => {
+  const handleStatusFilterChange = (filter: 'all' | 'open' | 'closed') => {
     setStatusFilter(filter);
     setCurrentPage(1);
   };

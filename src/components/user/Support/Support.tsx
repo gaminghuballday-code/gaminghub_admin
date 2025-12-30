@@ -10,6 +10,9 @@ import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Support.scss';
 
 const Support: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'tickets' | 'faqs'>('tickets');
+
   const {
     user,
     isHost,
@@ -58,10 +61,7 @@ const Support: React.FC = () => {
     // FAQs (users only)
     faqs,
     faqsLoading,
-  } = useSupportPageLogic();
-
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'faqs'>('tickets');
+  } = useSupportPageLogic(activeTab);
 
   useSidebarSync(sidebarOpen);
 
@@ -155,14 +155,12 @@ const Support: React.FC = () => {
                     value={statusFilter}
                     onChange={(e) =>
                       handleStatusFilterChange(
-                        e.target.value as 'all' | 'open' | 'in-progress' | 'resolved' | 'closed'
+                        e.target.value as 'all' | 'open' | 'closed'
                       )
                     }
                   >
                     <option value="all">All Tickets</option>
                     <option value="open">Open</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
                     <option value="closed">Closed</option>
                   </select>
                 </div>
@@ -185,22 +183,26 @@ const Support: React.FC = () => {
                 ) : (
                   <>
                     {tickets.map((ticket) => (
-                      <div key={ticket._id || ticket.id || ticket.ticketId} className="ticket-item">
+                      <div 
+                        key={ticket._id || ticket.id || ticket.ticketId} 
+                        className={`ticket-item ${!isHost ? 'ticket-item-clickable' : ''}`}
+                        onClick={() => !isHost && handleOpenTicketDetail(ticket._id || ticket.id || ticket.ticketId || '')}
+                      >
                         <div className="ticket-header">
                           <div className="ticket-info">
                             <div className="ticket-subject-row">
-                              <div
-                                className={`ticket-subject ${!isHost ? 'cursor-pointer' : 'cursor-default'}`}
-                                onClick={() => !isHost && handleOpenTicketDetail(ticket._id || ticket.id || ticket.ticketId || '')}
-                              >
+                              <div className="ticket-subject">
                                 {ticket.subject}
                               </div>
-                              <Badge
-                                type="status"
-                                variant={ticket.status.toLowerCase().replace('-', '')}
-                              >
-                                {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
-                              </Badge>
+                              <div className="ticket-status-wrapper">
+                                <span className="ticket-status-label">Status:</span>
+                                <Badge
+                                  type="status"
+                                  variant={ticket.status.toLowerCase().replace('-', '')}
+                                >
+                                  {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
+                                </Badge>
+                              </div>
                             </div>
                             <div className="ticket-meta">
                               <div className="ticket-date">{formatDate(ticket.createdAt)}</div>
@@ -218,50 +220,86 @@ const Support: React.FC = () => {
                             <Button
                               variant="primary"
                               size="sm"
-                              onClick={() => handleOpenUpdateModal(ticket)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenUpdateModal(ticket);
+                              }}
                             >
                               Update
                             </Button>
                           )}
                         </div>
-                        <div className="ticket-description">{ticket.description}</div>
-                        {ticket.notes && (
+                        {ticket.description && ticket.description.trim() && (
+                          <div className="ticket-description">{ticket.description}</div>
+                        )}
+                        {ticket.notes && ticket.notes.trim() && (
                           <div className="ticket-notes">
                             <strong>Notes:</strong> {ticket.notes}
                           </div>
                         )}
-                        {ticket.resolution && (
+                        {ticket.resolution && ticket.resolution.trim() && (
                           <div className="ticket-resolution">
                             <strong>Resolution:</strong> {ticket.resolution}
                           </div>
                         )}
                       </div>
                     ))}
-
+                    
                     {/* Pagination */}
-                    {totalPages > 0 && (
-                      <div className="pagination">
+                    {totalPages > 1 && (
+                      <div className="pagination-controls">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handlePreviousPage?.()}
+                          disabled={!hasPrevPage || ticketsLoading}
+                          title="Previous Page"
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                          }
+                        >
+                          Previous
+                        </Button>
+
                         <div className="pagination-info">
-                          Page {currentPage} of {totalPages} ({totalTickets} total)
+                          <span>
+                            Page {currentPage} of {totalPages}
+                          </span>
+                          <span className="pagination-count">
+                            ({totalTickets} total items)
+                          </span>
                         </div>
-                        <div className="pagination-controls">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handlePreviousPage?.()}
-                            disabled={!hasPrevPage}
-                          >
-                            Previous
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleNextPage?.()}
-                            disabled={!hasNextPage}
-                          >
-                            Next
-                          </Button>
-                        </div>
+
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleNextPage?.()}
+                          disabled={!hasNextPage || ticketsLoading}
+                          title="Next Page"
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                          }
+                        >
+                          Next
+                        </Button>
                       </div>
                     )}
                   </>
@@ -282,15 +320,19 @@ const Support: React.FC = () => {
           <div className="create-ticket-modal">
             <div className="form-group">
               <label className="form-label">Subject *</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Enter ticket subject"
+              <select
+                className="form-select"
                 value={createData.subject}
                 onChange={(e) => setCreateData({ ...createData, subject: e.target.value })}
                 disabled={isCreating}
                 required
-              />
+              >
+                <option value="">Select a subject</option>
+                <option value="Dispute">Dispute</option>
+                <option value="Refund">Refund</option>
+                <option value="Top-up Limit">Top-up Limit</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
             <div className="form-group">
               <label className="form-label">Issue/Description *</label>
@@ -365,14 +407,12 @@ const Support: React.FC = () => {
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
-                    status: e.target.value as 'open' | 'in-progress' | 'resolved' | 'closed',
+                    status: e.target.value as 'open' | 'closed',
                   })
                 }
                 disabled={isUpdating}
               >
                 <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
-                <option value="resolved">Resolved</option>
                 <option value="closed">Closed</option>
               </select>
             </div>
