@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import { addToast } from '@store/slices/toastSlice';
@@ -88,6 +88,25 @@ export const useWalletLogic = () => {
   // QR Payment Modal state
   const [showQRPaymentModal, setShowQRPaymentModal] = useState(false);
 
+  // Refs to avoid stale closures in callbacks
+  const qrPaymentStateRef = useRef(qrPaymentState);
+  const resetQRCodePaymentRef = useRef<(() => void) | undefined>(undefined);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    qrPaymentStateRef.current = qrPaymentState;
+    
+    // Auto-open modal when QR code data is ready and modal is not already open
+    if (
+      qrPaymentState.qrCodeId &&
+      qrPaymentState.qrCodeImage &&
+      qrPaymentState.paymentStep === 'payment' &&
+      !showQRPaymentModal
+    ) {
+      setShowQRPaymentModal(true);
+    }
+  }, [qrPaymentState, showQRPaymentModal]);
+
   // Mutations
   const createQRCodeMutation = useCreateQRCode();
   const confirmPaymentMutation = useConfirmPayment();
@@ -110,7 +129,7 @@ export const useWalletLogic = () => {
     setQrPaymentState((prev) => ({ ...prev, ...updates }));
   };
 
-  const resetQRCodePayment = () => {
+  const resetQRCodePayment = useCallback(() => {
     setQrPaymentState({
       qrCodeId: null,
       qrCodeImage: null,
@@ -126,7 +145,12 @@ export const useWalletLogic = () => {
     setTopUpAmount('');
     setAmountError('');
     setShowQRPaymentModal(false);
-  };
+  }, []);
+
+  // Store resetQRCodePayment in ref for use in effects
+  useEffect(() => {
+    resetQRCodePaymentRef.current = resetQRCodePayment;
+  }, [resetQRCodePayment]);
 
   // WebSocket subscription for real-time wallet updates
   useWalletWebSocket({
@@ -211,18 +235,28 @@ export const useWalletLogic = () => {
     }
 
     const interval = setInterval(() => {
+      // Use ref to get current values (fixes stale closure bug)
+      const currentState = qrPaymentStateRef.current;
+      
+      if (!currentState.qrExpiresAt || currentState.paymentStep === 'submitted') {
+        clearInterval(interval);
+        return;
+      }
+
       const now = new Date().getTime();
-      const expires = qrPaymentState.qrExpiresAt!.getTime();
+      const expires = currentState.qrExpiresAt.getTime();
       const remaining = Math.max(0, Math.floor((expires - now) / 1000));
 
       updateQrPaymentState({ timeRemaining: remaining });
 
       if (remaining === 0) {
-        // QR expired
-        if (qrPaymentState.qrCodeId) {
-          closeQRCodeMutation.mutate(qrPaymentState.qrCodeId);
+        // QR expired - use current values from ref
+        if (currentState.qrCodeId) {
+          closeQRCodeMutation.mutate(currentState.qrCodeId);
         }
-        resetQRCodePayment();
+        if (resetQRCodePaymentRef.current) {
+          resetQRCodePaymentRef.current();
+        }
         dispatch(
           addToast({
             message: 'QR code expired. Please create a new one.',
@@ -233,12 +267,15 @@ export const useWalletLogic = () => {
       }
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [qrPaymentState.qrExpiresAt, qrPaymentState.paymentStep, qrPaymentState.qrCodeId, closeQRCodeMutation, dispatch]);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [qrPaymentState.qrExpiresAt, qrPaymentState.paymentStep, qrPaymentState.qrCodeId, closeQRCodeMutation, dispatch, resetQRCodePayment]);
 
   // WebSocket listener for QR code status updates
   useEffect(() => {
-    if (!qrPaymentState.qrCodeId) {
+    const currentQrCodeId = qrPaymentState.qrCodeId;
+    if (!currentQrCodeId) {
       return;
     }
 
@@ -248,7 +285,7 @@ export const useWalletLogic = () => {
     }
 
     const subscribe = () => {
-      socket.emit('subscribe:qr', qrPaymentState.qrCodeId);
+      socket.emit('subscribe:qr', currentQrCodeId);
     };
 
     if (socket.connected) {
@@ -261,12 +298,14 @@ export const useWalletLogic = () => {
       qrCodeId: string;
       status: QRCodeStatusResponse;
     }) => {
-      if (payload.qrCodeId !== qrPaymentState.qrCodeId) {
+      // Use ref to get current value (fixes stale closure bug)
+      const currentState = qrPaymentStateRef.current;
+      if (payload.qrCodeId !== currentState.qrCodeId) {
         return;
       }
 
       queryClient.setQueryData<QRCodeStatusResponse>(
-        paymentKeys.qrStatus(qrPaymentState.qrCodeId),
+        paymentKeys.qrStatus(currentState.qrCodeId),
         payload.status
       );
       updateQrPaymentState({ qrStatusFromSocket: payload.status.data || null });
@@ -277,7 +316,7 @@ export const useWalletLogic = () => {
     return () => {
       if (socket) {
         socket.off('payment:qr-status-updated', handleQRStatusUpdate);
-        socket.emit('unsubscribe:qr', qrPaymentState.qrCodeId);
+        socket.emit('unsubscribe:qr', currentQrCodeId);
       }
     };
   }, [qrPaymentState.qrCodeId, queryClient]);
@@ -332,12 +371,13 @@ export const useWalletLogic = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (qrPaymentState.qrCodeId) {
-        closeQRCodeMutation.mutate(qrPaymentState.qrCodeId);
+      // Use ref to get current value (fixes stale closure bug)
+      const currentState = qrPaymentStateRef.current;
+      if (currentState.qrCodeId) {
+        closeQRCodeMutation.mutate(currentState.qrCodeId);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [closeQRCodeMutation]);
 
   // Validation functions
   const validateUTR = (value: string): boolean => {
@@ -397,23 +437,34 @@ export const useWalletLogic = () => {
         throw new Error(result.message || 'Failed to create QR code');
       }
 
+      // Validate required data
+      if (!result.data.qrCodeId || !result.data.qrCodeImage) {
+        throw new Error('QR code data is incomplete. Please try again.');
+      }
+
       // Set QR code data and move to payment step
+      // Calculate expiration time first
+      const qrExpiresAt = result.data.expiresAt 
+        ? new Date(result.data.expiresAt)
+        : (() => {
+            const expires = new Date();
+            expires.setMinutes(expires.getMinutes() + 10);
+            return expires;
+          })();
+
+      // Update all state in a single call to avoid race conditions
       updateQrPaymentState({
         qrCodeImage: result.data.qrCodeImage,
         qrCodeId: result.data.qrCodeId,
         qrAmount: amountINR,
         paymentStep: 'payment',
+        qrExpiresAt: qrExpiresAt,
       });
-      setShowQRPaymentModal(true);
-
-      // Set expiration time
-      if (result.data.expiresAt) {
-        updateQrPaymentState({ qrExpiresAt: new Date(result.data.expiresAt) });
-      } else {
-        const expires = new Date();
-        expires.setMinutes(expires.getMinutes() + 10);
-        updateQrPaymentState({ qrExpiresAt: expires });
-      }
+      
+      // Open modal after state update - use setTimeout to ensure state has propagated
+      setTimeout(() => {
+        setShowQRPaymentModal(true);
+      }, 0);
 
       dispatch(
         addToast({

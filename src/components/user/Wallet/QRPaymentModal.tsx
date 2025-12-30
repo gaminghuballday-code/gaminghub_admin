@@ -39,9 +39,11 @@ const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
     onClose();
   };
 
+  const modalIsOpen = isOpen && !!qrPaymentState.qrCodeId && !!qrPaymentState.qrCodeImage && qrPaymentState.paymentStep !== 'qr';
+  
   return (
     <Modal
-      isOpen={isOpen && !!qrPaymentState.qrCodeId && !!qrPaymentState.qrCodeImage && qrPaymentState.paymentStep !== 'qr'}
+      isOpen={modalIsOpen}
       onClose={handleClose}
       title="Complete Payment"
       showCloseButton={true}
