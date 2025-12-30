@@ -3,6 +3,7 @@ import { useWalletHistory } from '@services/api/hooks';
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
+import { Badge } from '@components/common/Badge';
 import { useSidebarSync } from '@hooks/useSidebarSync';
 import './History.scss';
 
@@ -124,7 +125,12 @@ const UserHistory: React.FC = () => {
                             <td className="status-cell">
                               {type ? (
                                 <div className="status-info">
-                                  <span className={`type-badge type-${type.toLowerCase()}`}>{getTypeLabel(type)}</span>
+                                  <Badge
+                                    type="type"
+                                    variant={type.toLowerCase()}
+                                  >
+                                    {getTypeLabel(type)}
+                                  </Badge>
                                   {description && (
                                     <div className="status-info-icon">
                                       <span className="info-icon">i</span>

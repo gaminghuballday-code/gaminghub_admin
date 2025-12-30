@@ -5,6 +5,7 @@ import EditTournament from '@components/EditTournament/EditTournament';
 import ConfirmationModal from '@components/common/ConfirmationModal';
 import HostApplications from '@components/HostApplications/HostApplications';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
+import { Button } from '@components/common/Button';
 import './GenerateLobbyPage.scss';
 
 const GenerateLobbyPage: React.FC = () => {
@@ -57,14 +58,14 @@ const GenerateLobbyPage: React.FC = () => {
           <p className="card-description">
             Create and configure lobbies for the next day. Select date, time slots, game mode, sub modes, and region.
           </p>
-          <button
-            className="generate-lobby-button"
+          <Button
+            variant="primary"
             onClick={() => setShowGenerateLobbyModal(true)}
             aria-label="Open Generate Lobby Modal"
+            icon={<span>🎮</span>}
           >
-            <span className="button-icon">🎮</span>
-            <span>Generate Lobby</span>
-          </button>
+            Generate Lobby
+          </Button>
         </div>
 
         {/* Tournaments List */}
@@ -156,15 +157,16 @@ const GenerateLobbyPage: React.FC = () => {
                   disabled={tournamentsLoading}
                 />
                 {selectedDate && (
-                  <button
-                    className="clear-date-button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setSelectedDate('')}
                     disabled={tournamentsLoading}
                     title="Clear date filter"
                     aria-label="Clear date filter"
                   >
                     ✕
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -274,15 +276,16 @@ const GenerateLobbyPage: React.FC = () => {
                     {tournament.status !== 'completed' && tournament.status !== 'cancelled' && tournament.status !== 'pendingResult' && (
                       <>
                         {!tournament.hostId ? (
-                          <button
-                            className="tournament-action-button tournament-applications-button"
+                          <Button
+                            variant="primary"
+                            size="sm"
                             onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
                             disabled={tournamentsLoading || isUpdating || isDeleting}
                             title="View Host Applications"
+                            icon={<span>👥</span>}
                           >
-                            <span className="action-icon">👥</span>
-                            <span>View Applications</span>
-                          </button>
+                            View Applications
+                          </Button>
                         ) : (
                           <button
                             className="tournament-action-button tournament-edit-host-button"

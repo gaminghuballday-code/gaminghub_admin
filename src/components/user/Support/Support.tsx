@@ -4,6 +4,8 @@ import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import Modal from '@components/common/Modal/Modal';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Support.scss';
 
@@ -78,20 +80,7 @@ const Support: React.FC = () => {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'status-open';
-      case 'in-progress':
-        return 'status-in-progress';
-      case 'resolved':
-        return 'status-resolved';
-      case 'closed':
-        return 'status-closed';
-      default:
-        return '';
-    }
-  };
+  // Removed getStatusColor - using Badge component instead
 
   return (
     <div className={`support-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -151,9 +140,9 @@ const Support: React.FC = () => {
             <>
               {!isHost && (
                 <div className="support-actions">
-                  <button className="create-ticket-button" onClick={handleOpenCreateModal}>
+                  <Button variant="primary" onClick={handleOpenCreateModal}>
                     + Create New Ticket
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -201,15 +190,17 @@ const Support: React.FC = () => {
                           <div className="ticket-info">
                             <div className="ticket-subject-row">
                               <div
-                                className="ticket-subject"
+                                className={`ticket-subject ${!isHost ? 'cursor-pointer' : 'cursor-default'}`}
                                 onClick={() => !isHost && handleOpenTicketDetail(ticket._id || ticket.id || ticket.ticketId || '')}
-                                style={{ cursor: !isHost ? 'pointer' : 'default' }}
                               >
                                 {ticket.subject}
                               </div>
-                              <div className={`ticket-status ${getStatusColor(ticket.status)}`}>
+                              <Badge
+                                type="status"
+                                variant={ticket.status.toLowerCase().replace('-', '')}
+                              >
                                 {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
-                              </div>
+                              </Badge>
                             </div>
                             <div className="ticket-meta">
                               <div className="ticket-date">{formatDate(ticket.createdAt)}</div>
@@ -224,12 +215,13 @@ const Support: React.FC = () => {
                             </div>
                           </div>
                           {isHost && (
-                            <button
-                              className="update-button"
+                            <Button
+                              variant="primary"
+                              size="sm"
                               onClick={() => handleOpenUpdateModal(ticket)}
                             >
                               Update
-                            </button>
+                            </Button>
                           )}
                         </div>
                         <div className="ticket-description">{ticket.description}</div>
@@ -253,20 +245,22 @@ const Support: React.FC = () => {
                           Page {currentPage} of {totalPages} ({totalTickets} total)
                         </div>
                         <div className="pagination-controls">
-                          <button
-                            className="pagination-button"
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handlePreviousPage?.()}
                             disabled={!hasPrevPage}
                           >
                             Previous
-                          </button>
-                          <button
-                            className="pagination-button"
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleNextPage?.()}
                             disabled={!hasNextPage}
                           >
                             Next
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -323,22 +317,23 @@ const Support: React.FC = () => {
                 }}
                 disabled={isCreating}
               />
-              <small style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+              <small className="form-hint form-hint-block">
                 Enter image URLs separated by commas (e.g., https://example.com/image1.jpg, https://example.com/image2.jpg)
               </small>
             </div>
             {createError && <div className="error-message">{createError}</div>}
             <div className="modal-actions">
-              <button className="cancel-button" onClick={handleCloseCreateModal} disabled={isCreating}>
+              <Button variant="secondary" onClick={handleCloseCreateModal} disabled={isCreating}>
                 Cancel
-              </button>
-              <button
-                className="submit-button"
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleCreateSubmit}
                 disabled={isCreating || !createData.subject.trim() || !createData.issue.trim()}
+                loading={isCreating}
               >
-                {isCreating ? 'Creating...' : 'Create Ticket'}
-              </button>
+                Create Ticket
+              </Button>
             </div>
           </div>
         </Modal>
@@ -394,16 +389,17 @@ const Support: React.FC = () => {
             </div>
             {updateError && <div className="error-message">{updateError}</div>}
             <div className="modal-actions">
-              <button className="cancel-button" onClick={handleCloseUpdateModal} disabled={isUpdating}>
+              <Button variant="secondary" onClick={handleCloseUpdateModal} disabled={isUpdating}>
                 Cancel
-              </button>
-              <button
-                className="submit-button"
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleUpdateSubmit}
                 disabled={isUpdating}
+                loading={isUpdating}
               >
-                {isUpdating ? 'Updating...' : 'Update Ticket'}
-              </button>
+                Update Ticket
+              </Button>
             </div>
           </div>
         </Modal>
@@ -427,9 +423,12 @@ const Support: React.FC = () => {
                   <div className="chat-ticket-info">
                     <div className="chat-info-row">
                       <span className="chat-info-label">Status:</span>
-                      <span className={`chat-status-badge ${getStatusColor(ticketDetail.status)}`}>
+                      <Badge
+                        type="status"
+                        variant={ticketDetail.status.toLowerCase().replace('-', '')}
+                      >
                         {ticketDetail.status.charAt(0).toUpperCase() + ticketDetail.status.slice(1).replace('-', ' ')}
-                      </span>
+                      </Badge>
                     </div>
                     {ticketDetail.category && (
                       <div className="chat-info-row">

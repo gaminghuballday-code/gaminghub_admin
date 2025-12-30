@@ -2,6 +2,8 @@ import React from 'react';
 import { useSupportTicketsPageLogic } from './SupportTicketsPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import Modal from '@components/common/Modal/Modal';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import './SupportTicketsPage.scss';
 
 const SupportTicketsPage: React.FC = () => {
@@ -53,20 +55,7 @@ const SupportTicketsPage: React.FC = () => {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'status-open';
-      case 'in-progress':
-        return 'status-in-progress';
-      case 'resolved':
-        return 'status-resolved';
-      case 'closed':
-        return 'status-closed';
-      default:
-        return '';
-    }
-  };
+  // Removed getStatusColor - using Badge component instead
 
   return (
     <AdminLayout title="Support Tickets">
@@ -175,30 +164,35 @@ const SupportTicketsPage: React.FC = () => {
                             })()}
                           </td>
                           <td>
-                            <span className={`ticket-status-badge ${getStatusColor(ticket.status)}`}>
+                            <Badge
+                              type="status"
+                              variant={ticket.status.toLowerCase().replace('-', '')}
+                            >
                               {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('-', ' ')}
-                            </span>
+                            </Badge>
                           </td>
                           <td className="ticket-date-cell">{formatDate(ticket.createdAt)}</td>
                           <td className="ticket-actions-cell">
-                            <button
-                              className="chat-button"
+                            <Button
+                              variant="secondary"
+                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenChat(ticket);
                               }}
                             >
                               Open Chat
-                            </button>
-                            <button
-                              className="update-button-small"
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenUpdateModal(ticket);
                               }}
                             >
                               Update
-                            </button>
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -213,20 +207,22 @@ const SupportTicketsPage: React.FC = () => {
                       Page {currentPage} of {totalPages} ({totalTickets} total)
                     </div>
                     <div className="pagination-controls">
-                      <button
-                        className="pagination-button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={handlePreviousPage}
                         disabled={!hasPrevPage}
                       >
                         Previous
-                      </button>
-                      <button
-                        className="pagination-button"
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={handleNextPage}
                         disabled={!hasNextPage}
                       >
                         Next
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -263,9 +259,12 @@ const SupportTicketsPage: React.FC = () => {
                 </div>
                 <div className="chat-info-row">
                   <span className="chat-info-label">Status:</span>
-                  <span className={`chat-status-badge ${getStatusColor(selectedChatTicket.status)}`}>
+                  <Badge
+                    type="status"
+                    variant={selectedChatTicket.status.toLowerCase().replace('-', '')}
+                  >
                     {selectedChatTicket.status.charAt(0).toUpperCase() + selectedChatTicket.status.slice(1).replace('-', ' ')}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -308,20 +307,22 @@ const SupportTicketsPage: React.FC = () => {
                   }}
                 />
                 <div className="chat-actions">
-                  <button
-                    className="end-chat-button"
+                  <Button
+                    variant="danger"
                     onClick={handleEndChat}
                     disabled={isSendingMessage || isEndingChat}
+                    loading={isEndingChat}
                   >
-                    {isEndingChat ? 'Ending...' : 'End Chat'}
-                  </button>
-                  <button
-                    className="send-message-button"
+                    End Chat
+                  </Button>
+                  <Button
+                    variant="primary"
                     onClick={handleSendMessage}
-                    disabled={isSendingMessage || isEndingChat || !newMessage.trim()}
+                    disabled={isEndingChat || !newMessage.trim()}
+                    loading={isSendingMessage}
                   >
-                    {isSendingMessage ? 'Sending...' : 'Send'}
-                  </button>
+                    Send
+                  </Button>
                 </div>
               </div>
             )}
@@ -356,13 +357,13 @@ const SupportTicketsPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="update-ticket-label">Description</div>
-                  <div className="update-ticket-value" style={{ whiteSpace: 'pre-wrap', marginTop: '4px' }}>
+                  <div className="update-ticket-value text-pre-wrap mt-4px">
                     {selectedTicket.description}
                   </div>
                 </div>
               </div>
               <div>
-                <label className="filter-label" style={{ marginBottom: '8px', display: 'block' }}>
+                <label className="filter-label mb-8px d-block">
                   Status
                 </label>
                 <select
@@ -383,7 +384,7 @@ const SupportTicketsPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="filter-label" style={{ marginBottom: '8px', display: 'block' }}>
+                <label className="filter-label mb-8px d-block">
                   Resolution
                 </label>
                 <textarea
@@ -395,7 +396,7 @@ const SupportTicketsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="filter-label" style={{ marginBottom: '8px', display: 'block' }}>
+                <label className="filter-label mb-8px d-block">
                   Notes
                 </label>
                 <textarea
@@ -407,7 +408,7 @@ const SupportTicketsPage: React.FC = () => {
                 />
               </div>
               {updateError && (
-                <div className="error-message" style={{ margin: 0 }}>
+                <div className="error-message margin-0">
                   Error: {updateError}
                 </div>
               )}

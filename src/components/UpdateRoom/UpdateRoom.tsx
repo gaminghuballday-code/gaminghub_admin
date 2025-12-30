@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { type Tournament, type UpdateRoomRequest } from '@services/api';
 import { Modal } from '@components/common/Modal';
+import { Button } from '@components/common/Button';
 import './UpdateRoom.scss';
 
 interface UpdateRoomProps {
@@ -101,21 +102,22 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({
           </div>
 
           <div className="update-room-modal-footer">
-            <button
+            <Button
               type="button"
-              className="form-button form-button-secondary"
+              variant="secondary"
               onClick={onClose}
               disabled={isUpdating}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="form-button form-button-primary"
+              variant="primary"
               disabled={isUpdating}
+              loading={isUpdating}
             >
-              {isUpdating ? 'Updating...' : 'Update Room'}
-            </button>
+              Update Room
+            </Button>
           </div>
         </form>
     </Modal>

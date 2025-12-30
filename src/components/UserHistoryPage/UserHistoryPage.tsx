@@ -1,6 +1,8 @@
 import { useUserHistoryPageLogic } from './UserHistoryPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import { Modal } from '@components/common/Modal';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import './UserHistoryPage.scss';
 
 const UserHistoryPage: React.FC = () => {
@@ -43,13 +45,14 @@ const UserHistoryPage: React.FC = () => {
                   }}
                   disabled={searchLoading}
                 />
-                <button
-                  className="search-button"
+                <Button
+                  variant="primary"
                   onClick={handleSearchByEmail}
                   disabled={searchLoading || !emailQuery.trim()}
+                  loading={searchLoading}
                 >
-                  {searchLoading ? 'Searching...' : '🔍 SEARCH'}
-                </button>
+                  🔍 SEARCH
+                </Button>
               </div>
             </div>
 
@@ -75,13 +78,13 @@ const UserHistoryPage: React.FC = () => {
                     <span className="detail-value">{selectedUser.role || 'N/A'}</span>
                   </div>
                 </div>
-                <button
-                  className="transaction-history-button"
+                <Button
+                  variant="secondary"
                   onClick={handleOpenTransactionModal}
                   type="button"
                 >
                   Transaction History
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -142,9 +145,12 @@ const UserHistoryPage: React.FC = () => {
                             </span>
                           </td>
                           <td>
-                            <span className={`status-badge ${transaction.status === 'success' ? 'success' : 'fail'}`}>
+                            <Badge
+                              type="status"
+                              variant={transaction.status === 'success' ? 'completed' : 'failed'}
+                            >
                               {transaction.status === 'success' ? '✓ Success' : '✗ Failed'}
-                            </span>
+                            </Badge>
                           </td>
                           <td className="description-cell">
                             {transaction.description || 'N/A'}
@@ -169,22 +175,24 @@ const UserHistoryPage: React.FC = () => {
                       )}
                     </div>
                     <div className="pagination-controls">
-                      <button
-                        className="pagination-button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleTransactionPageChange(transactionPage - 1)}
                         disabled={transactionPage <= 1 || modalTransactionsLoading}
                         type="button"
                       >
                         Previous
-                      </button>
-                      <button
-                        className="pagination-button"
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleTransactionPageChange(transactionPage + 1)}
                         disabled={transactionPage >= modalTotalPages || modalTransactionsLoading}
                         type="button"
                       >
                         Next
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}

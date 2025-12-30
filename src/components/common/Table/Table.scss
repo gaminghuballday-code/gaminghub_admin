@@ -1,0 +1,100 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  margin-top: $spacing-md;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: var(--background-color-light);
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: var(--background-color-light);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.table-row-clickable {
+        cursor: pointer;
+
+        &:hover {
+          background: var(--background-color-light);
+          transform: translateX(2px);
+        }
+      }
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    color: var(--text-color);
+    vertical-align: middle;
+  }
+}
+
+.table-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-xxl;
+  color: var(--text-secondary);
+}
+
+.table-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-xxl;
+  text-align: center;
+  color: var(--text-secondary);
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.8rem;
+    min-width: 600px;
+
+    th,
+    td {
+      padding: $spacing-sm $spacing-md;
+    }
+
+    th {
+      font-size: 0.75rem;
+    }
+  }
+}

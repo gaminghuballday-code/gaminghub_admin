@@ -14,6 +14,8 @@ import {
 } from '@services/api/hooks';
 import { Modal } from '@components/common/Modal';
 import ConfirmationModal from '@components/common/ConfirmationModal';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import './HostApplications.scss';
 
 interface HostApplicationsProps {
@@ -359,9 +361,12 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
                         )}
                         <div className="application-status">
                           <span className="application-label">Status:</span>
-                          <span className={`application-value status-badge status-${application.status}`}>
+                          <Badge
+                            type="status"
+                            variant={application.status.toLowerCase()}
+                          >
                             {application.status}
-                          </span>
+                          </Badge>
                         </div>
                         {application.createdAt && (
                           <div className="application-date">
@@ -380,20 +385,22 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
                       </div>
                       {application.status === 'pending' && (
                         <div className="application-actions">
-                          <button
-                            className="application-button application-button-approve"
+                          <Button
+                            variant="success"
                             onClick={() => handleApprove(application._id || application.id || '')}
                             disabled={processingId === (application._id || application.id)}
+                            loading={processingId === (application._id || application.id)}
                           >
-                            {processingId === (application._id || application.id) ? 'Processing...' : 'Accept'}
-                          </button>
-                          <button
-                            className="application-button application-button-reject"
+                            Accept
+                          </Button>
+                          <Button
+                            variant="danger"
                             onClick={() => handleReject(application._id || application.id || '')}
                             disabled={processingId === (application._id || application.id)}
+                            loading={processingId === (application._id || application.id)}
                           >
-                            {processingId === (application._id || application.id) ? 'Processing...' : 'Reject'}
-                          </button>
+                            Reject
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -470,13 +477,14 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
                         )}
                       </div>
                       <div className="host-actions">
-                        <button
-                          className={`host-button host-button-assign ${host.hasTimeConflict ? 'host-button-warning' : ''}`}
+                        <Button
+                          variant={host.hasTimeConflict ? 'danger' : 'primary'}
                           onClick={() => handleAssignHost(host)}
                           disabled={processingId === host.hostId}
+                          loading={processingId === host.hostId}
                         >
-                          {processingId === host.hostId ? 'Assigning...' : 'Assign Host'}
-                        </button>
+                          Assign Host
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -486,14 +494,14 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
           </div>
 
           <div className="host-applications-modal-footer">
-            <button
+            <Button
               type="button"
-              className="host-applications-button host-applications-button-secondary"
+              variant="secondary"
               onClick={onClose}
               disabled={loading}
             >
               Close
-            </button>
+            </Button>
           </div>
       </Modal>
 

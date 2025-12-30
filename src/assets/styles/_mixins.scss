@@ -244,3 +244,101 @@
   }
 }
 
+// ============================================
+// Scrollbar Mixin - Custom scrollbar styling
+// ============================================
+@mixin custom-scrollbar($thumb-color: rgba(var(--primary-color-rgb), 0.3)) {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.5);
+    }
+  }
+}
+
+// ============================================
+// Modal Footer Mixin - Standardized modal footer
+// ============================================
+@mixin modal-footer {
+  @include flex-between;
+  padding: $spacing-xl;
+  border-top: 1px solid var(--border-color);
+  gap: $spacing-md;
+  flex-shrink: 0;
+  background: var(--background-color);
+  margin-top: auto;
+}
+
+// ============================================
+// Form Group Mixin - Standardized form group
+// ============================================
+@mixin form-group {
+  @include flex-column;
+  gap: $spacing-sm;
+  width: 100%;
+}
+
+// ============================================
+// Form Input Mixin - Standardized form input
+// ============================================
+@mixin form-input-base {
+  @include input-base;
+  width: 100%;
+  
+  &.form-input-error {
+    border-color: #ef4444;
+    
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+// ============================================
+// Form Label Mixin - Standardized form label
+// ============================================
+@mixin form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: $spacing-xs;
+}
+
+// ============================================
+// Form Error Mixin - Standardized form error
+// ============================================
+@mixin form-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: $spacing-xs;
+  display: block;
+  line-height: 1.4;
+}
+
+// ============================================
+// Form Hint Mixin - Standardized form hint
+// ============================================
+@mixin form-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: $spacing-xs;
+  line-height: 1.4;
+  
+  &.form-hint-block {
+    margin-top: 8px;
+    display: block;
+  }
+}

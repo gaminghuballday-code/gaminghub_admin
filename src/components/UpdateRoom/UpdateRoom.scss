@@ -1,46 +1,29 @@
 @use 'sass:color';
 @use '../../assets/styles/variables' as *;
 @use '../../assets/styles/mixins' as *;
+@use '../../assets/styles/utilities' as *;
 
 // UpdateRoom specific styles
 // Base modal styles are in Modal.scss
 
 .form-group {
+  @include form-group;
   margin-bottom: 20px;
 }
 
 .form-label {
+  @include form-label;
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
   color: var(--text-primary);
   font-size: 14px;
 }
 
 .form-input {
-  width: 100%;
+  @include form-input-base;
   padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  font-size: 14px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 14px;
-  transition: all 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &::placeholder {
-    color: var(--text-secondary);
-  }
 }
 
 .form-error-message {
@@ -61,44 +44,9 @@
 }
 
 .update-room-modal-footer {
-  padding: 20px 24px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
+  @include modal-footer;
   justify-content: flex-end;
-  gap: 12px;
 }
 
-.form-button {
-  padding: 10px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.form-button-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-
-  &:hover:not(:disabled) {
-    background: var(--hover-bg);
-  }
-}
-
-.form-button-primary {
-  background: var(--primary-color);
-  color: white;
-
-  &:hover:not(:disabled) {
-    background: var(--primary-color-dark);
-  }
-}
+// Form button styles removed - using Button component now
 

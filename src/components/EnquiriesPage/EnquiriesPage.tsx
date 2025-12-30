@@ -1,5 +1,6 @@
 import { useEnquiriesPageLogic } from './EnquiriesPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
+import { Button } from '@components/common/Button';
 import './EnquiriesPage.scss';
 
 const EnquiriesPage: React.FC = () => {
@@ -107,12 +108,13 @@ const EnquiriesPage: React.FC = () => {
                         </div>
                       </div>
                       {!enquiry.replied && (
-                        <button
-                          className="reply-button"
+                        <Button
+                          variant="primary"
+                          size="sm"
                           onClick={() => handleOpenReplyModal(enquiry)}
                         >
                           Reply
-                        </button>
+                        </Button>
                       )}
                     </div>
                     <div className="enquiry-message">{enquiry.message}</div>
@@ -120,7 +122,7 @@ const EnquiriesPage: React.FC = () => {
                       <div className="enquiry-reply-info">
                         <strong>Reply:</strong> {enquiry.replyMessage}
                         {enquiry.repliedAt && (
-                          <div style={{ marginTop: '8px', fontSize: '0.8rem', opacity: 0.8 }}>
+                          <div className="mt-8px font-size-0-8rem">
                             Replied on: {formatDate(enquiry.repliedAt)}
                           </div>
                         )}
@@ -136,20 +138,22 @@ const EnquiriesPage: React.FC = () => {
                       Page {currentPage} of {totalPages} ({totalEnquiries} total)
                     </div>
                     <div className="pagination-controls">
-                      <button
-                        className="pagination-button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={handlePreviousPage}
                         disabled={!hasPrevPage}
                       >
                         Previous
-                      </button>
-                      <button
-                        className="pagination-button"
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={handleNextPage}
                         disabled={!hasNextPage}
                       >
                         Next
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -185,24 +189,17 @@ const EnquiriesPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="reply-enquiry-label">Message</div>
-                  <div className="reply-enquiry-value" style={{ whiteSpace: 'pre-wrap', marginTop: '4px' }}>
+                  <div className="reply-enquiry-value text-pre-wrap mt-4px">
                     {selectedEnquiry.message}
                   </div>
                 </div>
               </div>
               <div>
-                <label className="filter-label" style={{ marginBottom: '8px', display: 'block' }}>
+                <label className="filter-label mb-8px d-block">
                   Your Reply
                 </label>
-                <div style={{ 
-                  marginBottom: '8px', 
-                  padding: '8px', 
-                  background: 'rgba(var(--primary-color-rgb), 0.1)', 
-                  borderRadius: '4px',
-                  fontSize: '0.85rem',
-                  color: 'var(--text-secondary)'
-                }}>
-                  📧 Reply will be sent to: <strong style={{ color: 'var(--primary-color)' }}>{selectedEnquiry.email}</strong>
+                <div className="reply-info-box">
+                  📧 Reply will be sent to: <strong>{selectedEnquiry.email}</strong>
                 </div>
                 <textarea
                   className="reply-textarea"
@@ -213,26 +210,27 @@ const EnquiriesPage: React.FC = () => {
                 />
               </div>
               {replyError && (
-                <div className="error-message" style={{ margin: 0 }}>
+                <div className="error-message margin-0">
                   Error: {replyError}
                 </div>
               )}
             </div>
             <div className="reply-modal-footer">
-              <button
-                className="reply-cancel-button"
+              <Button
+                variant="secondary"
                 onClick={handleCloseReplyModal}
                 disabled={isReplying}
               >
                 Cancel
-              </button>
-              <button
-                className="reply-submit-button"
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleReplySubmit}
                 disabled={isReplying || !replyMessage.trim()}
+                loading={isReplying}
               >
-                {isReplying ? 'Sending...' : 'Send Reply'}
-              </button>
+                Send Reply
+              </Button>
             </div>
           </div>
         </div>

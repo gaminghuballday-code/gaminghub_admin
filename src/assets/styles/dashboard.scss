@@ -2,6 +2,7 @@
 @use './variables' as *;
 @use './mixins' as *;
 @use './theme' as *;
+@use './utilities' as *;
 
 * {
   margin: 0;

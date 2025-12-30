@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { type Tournament, type UpdateTournamentRequest } from '@services/api';
 import { Modal } from '@components/common/Modal';
+import { Button } from '@components/common/Button';
 import './EditTournament.scss';
 
 interface EditTournamentProps {
@@ -151,21 +152,22 @@ const EditTournament: React.FC<EditTournamentProps> = ({
           </div>
 
           <div className="edit-tournament-modal-footer">
-            <button
+            <Button
               type="button"
-              className="form-button form-button-secondary"
+              variant="secondary"
               onClick={onClose}
               disabled={isUpdating}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="form-button form-button-primary"
+              variant="primary"
               disabled={isUpdating}
+              loading={isUpdating}
             >
-              {isUpdating ? 'Updating...' : 'Update Tournament'}
-            </button>
+              Update Tournament
+            </Button>
           </div>
         </form>
     </Modal>

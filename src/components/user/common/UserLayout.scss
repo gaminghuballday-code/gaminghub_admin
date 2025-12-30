@@ -1,50 +1,122 @@
 @use '../../../assets/styles/variables' as *;
 @use '../../../assets/styles/mixins' as *;
 
-// Shared layout styles for all user pages
+// User Layout Container - Same pattern as AdminLayout
+.user-layout {
+  @include flex-between;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+  position: relative;
+  overflow-x: hidden;
+}
+
+// Main Content Area - Fixed structure
 .user-main {
   flex: 1;
   margin-left: var(--sidebar-width, 250px);
   transition: margin-left $transition-normal;
-  @include flex-column;
   height: 100vh;
   width: calc(100% - var(--sidebar-width, 250px));
-  max-width: 100%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-
+  
   @media (max-width: 768px) {
     margin-left: 70px;
     width: calc(100% - 70px);
   }
 }
 
+// Header - Fixed at top
 .user-header {
   @include flex-between;
-  padding: $spacing-lg $spacing-xl;
-  background: var(--background-color-light);
-  border-bottom: 1px solid var(--border-color);
+  padding: $spacing-xl $spacing-lg;
+  background: linear-gradient(135deg, 
+    var(--background-color-dark) 0%,
+    var(--background-color) 100%
+  );
+  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
   position: relative;
   z-index: 100;
-  backdrop-filter: blur(10px);
   flex-shrink: 0;
 
-  h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .header-left {
+    @include flex-center;
+    gap: $spacing-md;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--text-color) 0%, var(--text-color-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
   }
 }
 
+// Content Area with Scroll - Only this scrolls
 .user-content {
   flex: 1;
+  min-height: 0;
   padding: $spacing-xl;
-  padding-bottom: calc(#{$spacing-xl} + 120px); // Extra padding for footer
-  @include flex-column;
+  padding-bottom: calc(#{$spacing-xl} + var(--user-footer-height, 120px));
+  display: flex;
+  flex-direction: column;
   gap: $spacing-xl;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
+  
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--background-color-dark);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.3);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.5);
+    }
+  }
 }
 
+// CSS custom property for footer height
+:root {
+  --user-footer-height: 120px;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .user-header {
+    padding: $spacing-md $spacing-sm;
+
+    .header-left h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .user-content {
+    padding: $spacing-md;
+    padding-bottom: calc(#{$spacing-md} + var(--user-footer-height, 120px));
+  }
+}

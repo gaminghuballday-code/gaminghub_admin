@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import UserSidebar from "@components/user/common/UserSidebar";
-import AppHeaderActions from "@components/common/AppHeaderActions";
+import UserLayout from "@components/user/common/UserLayout";
 import Loading from "@components/common/Loading";
 import Modal from "@components/common/Modal/Modal";
+import { Button } from "@components/common/Button";
+import { Badge } from "@components/common/Badge";
 import {
   useWalletBalance,
   useTopUpHistory,
@@ -18,7 +19,6 @@ import { useAppSelector, useAppDispatch } from "@store/hooks";
 import { selectUser } from "@store/slices/authSlice";
 import { addToast } from "@store/slices/toastSlice";
 import type { TopUpHistoryItem } from "@services/api/wallet.api";
-import { useSidebarSync } from "@hooks/useSidebarSync";
 import { useWalletWebSocket } from "@hooks/useWalletWebSocket";
 import { getSocket } from "@services/websocket/socket";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,10 +40,7 @@ const UserWallet: React.FC = () => {
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState("");
-
-  useSidebarSync(sidebarOpen);
 
   // WebSocket subscription for real-time wallet updates
   useWalletWebSocket({
@@ -125,9 +122,6 @@ const UserWallet: React.FC = () => {
     },
   });
 
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
   const [showTopUpForm, setShowTopUpForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [amountError, setAmountError] = useState("");
@@ -533,32 +527,7 @@ const UserWallet: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    // Normalize status: "fail" -> "failed", keep others as is
-    const normalizedStatus =
-      status === "fail" ? "failed" : status.toLowerCase();
-    const statusClass = `status-badge status-${normalizedStatus}`;
-    const statusLabel =
-      normalizedStatus === "failed"
-        ? "Failed"
-        : normalizedStatus === "pending"
-        ? "Pending"
-        : normalizedStatus === "completed"
-        ? "Completed"
-        : status.charAt(0).toUpperCase() + status.slice(1);
-    return <span className={statusClass}>{statusLabel}</span>;
-  };
-
-  const getTypeBadge = (type: string) => {
-    const typeClass = `type-badge type-${type.toLowerCase()}`;
-    const typeLabel =
-      type === "topup"
-        ? "Top Up"
-        : type === "deduction"
-        ? "Deduction"
-        : "Refund";
-    return <span className={typeClass}>{typeLabel}</span>;
-  };
+  // Removed getStatusBadge and getTypeBadge - using Badge component instead
 
 
   // Handle Withdraw
@@ -634,38 +603,32 @@ const UserWallet: React.FC = () => {
   };
 
   return (
-    <div className="user-wallet-container">
-      <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-
-      <main className="user-main">
-        <header className="user-header">
-          <h1>Wallet</h1>
-          <AppHeaderActions />
-        </header>
-
-        <div className="user-content">
+    <UserLayout title="Wallet">
+      <div className="wallet-page-content">
           {/* Balance Card */}
           <div className="wallet-card balance-card">
             <div className="card-header">
               <h2 className="card-title">Wallet Balance</h2>
-              <button
-                className="refresh-button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => refetchBalance()}
                 disabled={balanceLoading}
+                loading={balanceLoading}
                 title="Refresh Balance"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className={balanceLoading ? "spinning" : ""}
-                >
-                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-                </svg>
-              </button>
+                icon={
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                  </svg>
+                }
+              />
             </div>
             <div className="balance-display">
               {balanceLoading ? (
@@ -681,18 +644,18 @@ const UserWallet: React.FC = () => {
                     </span>
                   </div>
                   <div className="wallet-action-buttons">
-                    <button
-                      className="topup-button"
+                    <Button
+                      variant="primary"
                       onClick={() => setShowTopUpForm(!showTopUpForm)}
                     >
                       {showTopUpForm ? "Cancel" : "Top Up"}
-                    </button>
-                    <button
-                      className="withdraw-button"
+                    </Button>
+                    <Button
+                      variant="danger"
                       onClick={handleWithdrawClick}
                     >
                       Withdraw
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}
@@ -724,14 +687,7 @@ const UserWallet: React.FC = () => {
                     }
                   />
                   {amountError && (
-                    <small
-                      className="form-error"
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "0.85rem",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <small className="form-error">
                       {amountError}
                     </small>
                   )}
@@ -742,9 +698,9 @@ const UserWallet: React.FC = () => {
                   </small>
                 </div>
                 <div className="form-actions">
-                  <button
+                  <Button
                     type="button"
-                    className="cancel-button"
+                    variant="secondary"
                     onClick={() => {
                       setShowTopUpForm(false);
                       setTopUpAmount("");
@@ -757,22 +713,19 @@ const UserWallet: React.FC = () => {
                     }
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="submit-button"
+                    variant="primary"
+                    loading={isProcessing || createQRCodeMutation.isPending}
                     disabled={
-                      isProcessing ||
-                      createQRCodeMutation.isPending ||
                       !topUpAmount ||
                       parseFloat(topUpAmount) < 1 ||
                       !!amountError
                     }
                   >
-                    {isProcessing || createQRCodeMutation.isPending
-                      ? "Processing..."
-                      : "Generate QR Code"}
-                  </button>
+                    Generate QR Code
+                  </Button>
                 </div>
               </form>
             )}
@@ -895,20 +848,18 @@ const UserWallet: React.FC = () => {
                             alphanumeric characters)
                           </small>
                         </div>
-                        <button
+                        <Button
                           type="submit"
-                          className="submit-button"
+                          variant="primary"
+                          loading={confirmPaymentMutation.isPending}
                           disabled={
-                            confirmPaymentMutation.isPending ||
                             !utr.trim() ||
                             !validateUTR(utr.trim()) ||
                             !!utrError
                           }
                         >
-                          {confirmPaymentMutation.isPending
-                            ? "Submitting..."
-                            : "Submit UTR"}
-                        </button>
+                          Submit UTR
+                        </Button>
                       </form>
                     </div>
                   </div>
@@ -1002,7 +953,16 @@ const UserWallet: React.FC = () => {
                               {formatDate(transaction.createdAt)}
                             </td>
                             <td className="type-cell">
-                              {getTypeBadge(transaction.type)}
+                              <Badge
+                                type="type"
+                                variant={transaction.type}
+                              >
+                                {transaction.type === "topup"
+                                  ? "Top Up"
+                                  : transaction.type === "deduction"
+                                  ? "Deduction"
+                                  : "Refund"}
+                              </Badge>
                             </td>
                             <td
                               className={`amount-cell ${
@@ -1015,7 +975,23 @@ const UserWallet: React.FC = () => {
                               {transaction.amountGC.toLocaleString("en-IN")}
                             </td>
                             <td className="status-cell">
-                              {getStatusBadge(transaction.status)}
+                              <Badge
+                                type="status"
+                                variant={
+                                  transaction.status === "fail"
+                                    ? "failed"
+                                    : transaction.status.toLowerCase()
+                                }
+                              >
+                                {transaction.status === "fail"
+                                  ? "Failed"
+                                  : transaction.status === "pending"
+                                  ? "Pending"
+                                  : transaction.status === "completed"
+                                  ? "Completed"
+                                  : transaction.status.charAt(0).toUpperCase() +
+                                    transaction.status.slice(1)}
+                              </Badge>
                             </td>
                             <td className="payment-id-cell">
                               {transaction.paymentId ? (
@@ -1065,24 +1041,27 @@ const UserWallet: React.FC = () => {
                 {/* Pagination Controls */}
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination-controls">
-                    <button
-                      className="pagination-button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => setHistoryPage((prev) => Math.max(1, prev - 1))}
                       disabled={!pagination.hasPrevPage || historyLoading}
                       title="Previous Page"
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                      }
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                      </svg>
                       Previous
-                    </button>
+                    </Button>
 
                     <div className="pagination-info">
                       <span>
@@ -1093,24 +1072,27 @@ const UserWallet: React.FC = () => {
                       </span>
                     </div>
 
-                    <button
-                      className="pagination-button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => setHistoryPage((prev) => prev + 1)}
                       disabled={!pagination.hasNextPage || historyLoading}
                       title="Next Page"
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      }
                     >
                       Next
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -1120,105 +1102,95 @@ const UserWallet: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      </main>
 
-      {/* Withdraw Modal */}
-      <Modal
-        isOpen={showWithdrawModal}
-        onClose={() => {
-          setShowWithdrawModal(false);
-          setWithdrawAmount("");
-          setWithdrawError("");
-        }}
-        title="Withdraw Funds"
-        showCloseButton={true}
-      >
-        <form className="withdraw-form" onSubmit={handleWithdrawSubmit}>
-          <div className="form-group">
-            <label htmlFor="withdraw-amount" className="form-label">
-              Amount (GC)
-            </label>
-            <div className="input-with-max-button">
-              <input
-                type="text"
-                id="withdraw-amount"
-                className="form-input"
-                value={withdrawAmount}
-                onChange={handleWithdrawAmountChange}
-                placeholder="Enter amount to withdraw"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                required
-                disabled={withdrawWalletMutation.isPending}
-              />
-              <button
-                type="button"
-                className="max-button"
-                onClick={handleMaxWithdrawClick}
-                disabled={
-                  withdrawWalletMutation.isPending || !balance || balance <= 0
-                }
-                title={`Max: ${balance?.toLocaleString("en-IN") ?? 0} GC`}
-              >
-                Max
-              </button>
+        {/* Withdraw Modal */}
+        <Modal
+          isOpen={showWithdrawModal}
+          onClose={() => {
+            setShowWithdrawModal(false);
+            setWithdrawAmount("");
+            setWithdrawError("");
+          }}
+          title="Withdraw Funds"
+          showCloseButton={true}
+        >
+          <form className="withdraw-form" onSubmit={handleWithdrawSubmit}>
+            <div className="form-group">
+              <label htmlFor="withdraw-amount" className="form-label">
+                Amount (GC)
+              </label>
+              <div className="input-with-max-button">
+                <input
+                  type="text"
+                  id="withdraw-amount"
+                  className="form-input"
+                  value={withdrawAmount}
+                  onChange={handleWithdrawAmountChange}
+                  placeholder="Enter amount to withdraw"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  required
+                  disabled={withdrawWalletMutation.isPending}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleMaxWithdrawClick}
+                  disabled={
+                    withdrawWalletMutation.isPending || !balance || balance <= 0
+                  }
+                  title={`Max: ${balance?.toLocaleString("en-IN") ?? 0} GC`}
+                >
+                  Max
+                </Button>
+              </div>
+              {withdrawError && (
+                <small className="form-error">
+                  {withdrawError}
+                </small>
+              )}
+              <small className="form-hint">
+                Available balance: {balance?.toLocaleString("en-IN") ?? 0} GC
+              </small>
+              {user?.paymentUPI && (
+                <small className="form-hint form-hint-block">
+                  Funds will be sent to: {user.paymentUPI}
+                </small>
+              )}
             </div>
-            {withdrawError && (
-              <small
-                className="form-error"
-                style={{
-                  color: "#ef4444",
-                  fontSize: "0.85rem",
-                  marginTop: "4px",
+            <div className="form-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setShowWithdrawModal(false);
+                  setWithdrawAmount("");
+                  setWithdrawError("");
                 }}
+                disabled={withdrawWalletMutation.isPending}
               >
-                {withdrawError}
-              </small>
-            )}
-            <small className="form-hint">
-              Available balance: {balance?.toLocaleString("en-IN") ?? 0} GC
-            </small>
-            {user?.paymentUPI && (
-              <small
-                className="form-hint"
-                style={{ marginTop: "8px", display: "block" }}
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="danger"
+                loading={withdrawWalletMutation.isPending}
+                disabled={
+                  !withdrawAmount ||
+                  parseFloat(withdrawAmount) <= 0 ||
+                  !balance ||
+                  parseFloat(withdrawAmount) > balance ||
+                  !!withdrawError
+                }
               >
-                Funds will be sent to: {user.paymentUPI}
-              </small>
-            )}
-          </div>
-          <div className="form-actions">
-            <button
-              type="button"
-              className="cancel-button"
-              onClick={() => {
-                setShowWithdrawModal(false);
-                setWithdrawAmount("");
-                setWithdrawError("");
-              }}
-              disabled={withdrawWalletMutation.isPending}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={
-                withdrawWalletMutation.isPending ||
-                !withdrawAmount ||
-                parseFloat(withdrawAmount) <= 0 ||
-                !balance ||
-                parseFloat(withdrawAmount) > balance ||
-                !!withdrawError
-              }
-            >
-              {withdrawWalletMutation.isPending ? "Processing..." : "Withdraw"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </div>
+                Withdraw
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      </div>
+    </UserLayout>
   );
 };
 

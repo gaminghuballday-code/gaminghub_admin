@@ -1,6 +1,8 @@
 import { useDashboardLogic } from './Dashboard.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import HostStatistics from './HostStatistics';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
@@ -128,13 +130,14 @@ const Dashboard: React.FC = () => {
                   }}
                   disabled={usersLoading}
                 />
-                <button
-                  className="query-button"
+                <Button
+                  variant="primary"
                   onClick={handleQueryUsers}
                   disabled={usersLoading}
+                  loading={usersLoading}
                 >
                   🔍 Query
-                </button>
+                </Button>
               </div>
             </div>
             {usersLoading ? (
@@ -174,20 +177,22 @@ const Dashboard: React.FC = () => {
                     </label>
                     {selectedUserIds.size > 0 && (
                       <div className="action-buttons">
-                        <button
-                          className="action-button block-button"
+                        <Button
+                          variant="danger"
                           onClick={handleBlockUsers}
-                          disabled={isBlocking || isUnblocking || usersLoading}
+                          disabled={isUnblocking || usersLoading}
+                          loading={isBlocking}
                         >
-                          {isBlocking ? 'Blocking...' : 'Block'}
-                        </button>
-                        <button
-                          className="action-button unblock-button"
+                          Block
+                        </Button>
+                        <Button
+                          variant="success"
                           onClick={handleUnblockUsers}
-                          disabled={isBlocking || isUnblocking || usersLoading}
+                          disabled={isBlocking || usersLoading}
+                          loading={isUnblocking}
                         >
-                          {isUnblocking ? 'Unblocking...' : 'Unblock'}
-                        </button>
+                          Unblock
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -221,18 +226,20 @@ const Dashboard: React.FC = () => {
                             <span className="user-label">Email:</span>
                             <span className="user-value">
                               {adminUser.email}
-                              <button
+                              <Button
                                 type="button"
-                                className="copy-email-btn"
+                                variant="secondary"
+                                size="sm"
                                 onClick={(e) => handleCopyEmail(adminUser.email, e)}
                                 title="Copy email"
                                 aria-label="Copy email"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                              </button>
+                                icon={
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                  </svg>
+                                }
+                              />
                             </span>
                           </div>
                           <div className="user-balance">
@@ -242,9 +249,12 @@ const Dashboard: React.FC = () => {
                           <div className="user-status-row">
                             <div className="user-status">
                               <span className="user-label">Status:</span>
-                              <span className={`user-value status-badge ${adminUser.isBlocked ? 'blocked' : 'active'}`}>
+                              <Badge
+                                type="status"
+                                variant={adminUser.isBlocked ? 'failed' : 'completed'}
+                              >
                                 {adminUser.isBlocked ? 'Blocked' : 'Active'}
-                              </span>
+                              </Badge>
                             </div>
                             <div className="user-action-buttons" onClick={(e) => e.stopPropagation()}>
                               {adminUser.role?.toLowerCase() === 'admin' ? (
@@ -252,23 +262,27 @@ const Dashboard: React.FC = () => {
                                   Admin
                                 </span>
                               ) : adminUser.isBlocked ? (
-                                <button
-                                  className="user-action-button unblock-button"
+                                <Button
+                                  variant="success"
+                                  size="sm"
                                   onClick={() => handleUnblockSingleUser(userId)}
-                                  disabled={processingUserId === userId || isBlocking || isUnblocking || usersLoading}
+                                  disabled={processingUserId !== userId && (isBlocking || isUnblocking || usersLoading)}
+                                  loading={processingUserId === userId}
                                   title="Unblock user"
                                 >
-                                  {processingUserId === userId ? 'Unblocking...' : 'Unblock'}
-                                </button>
+                                  Unblock
+                                </Button>
                               ) : (
-                                <button
-                                  className="user-action-button block-button"
+                                <Button
+                                  variant="danger"
+                                  size="sm"
                                   onClick={() => handleBlockSingleUser(userId)}
-                                  disabled={processingUserId === userId || isBlocking || isUnblocking || usersLoading}
+                                  disabled={processingUserId !== userId && (isBlocking || isUnblocking || usersLoading)}
+                                  loading={processingUserId === userId}
                                   title="Block user"
                                 >
-                                  {processingUserId === userId ? 'Blocking...' : 'Block'}
-                                </button>
+                                  Block
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -280,14 +294,15 @@ const Dashboard: React.FC = () => {
                 {/* Pagination Controls */}
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination-controls">
-                    <button
-                      className="pagination-button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handlePreviousPage}
                       disabled={currentPage === 1 || usersLoading}
                       aria-label="Previous page"
                     >
                       ← Previous
-                    </button>
+                    </Button>
                     <div className="pagination-info">
                       <span className="pagination-text">
                         Page {currentPage} of {pagination.totalPages}
@@ -298,14 +313,15 @@ const Dashboard: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <button
-                      className="pagination-button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleNextPage}
                       disabled={currentPage >= pagination.totalPages || usersLoading}
                       aria-label="Next page"
                     >
                       Next →
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -359,18 +375,20 @@ const Dashboard: React.FC = () => {
                 <span className="detail-label">Email:</span>
                 <span className="detail-value">
                   {selectedUser.email}
-                  <button
+                  <Button
                     type="button"
-                    className="copy-email-btn"
+                    variant="secondary"
+                    size="sm"
                     onClick={(e) => handleCopyEmail(selectedUser.email, e)}
                     title="Copy email"
                     aria-label="Copy email"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
+                    icon={
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    }
+                  />
                 </span>
               </div>
               <div className="user-detail-item">

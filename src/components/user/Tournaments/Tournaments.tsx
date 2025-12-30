@@ -9,6 +9,7 @@ import Loading from '@components/common/Loading';
 import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
+import { Button } from '@components/common/Button';
 import { useTournamentSocket } from '@hooks/useTournamentSocket';
 import { useSidebarSync } from '@hooks/useSidebarSync';
 import './Tournaments.scss';
@@ -478,77 +479,79 @@ const UserTournaments: React.FC = () => {
                               // If user is assigned host, show Update Room button
                               if (isUserAssignedHost) {
                                 return (
-                                  <button
-                                    className="tournament-join-button"
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
                                     type="button"
                                     onClick={() => handleUpdateRoom(tournament)}
                                   >
                                     Update Room
-                                  </button>
+                                  </Button>
                                 );
                               }
 
                               // If another host is assigned, show disabled button
                               if (isAnyHostAssigned) {
                                 return (
-                                  <button className="tournament-join-button tournament-joined-button" disabled>
+                                  <Button variant="secondary" size="sm" disabled>
                                     Host already assigned
-                                  </button>
+                                  </Button>
                                 );
                               }
 
                               // If application is pending, show Applied button
                               if (isApplicationPending) {
                                 return (
-                                  <button className="tournament-join-button tournament-pending-button" disabled>
+                                  <Button variant="secondary" size="sm" disabled>
                                     Applied
-                                  </button>
+                                  </Button>
                                 );
                               }
 
                               // Otherwise, show Apply for Host button
                               return (
-                                <button
-                                  className="tournament-join-button"
+                                <Button
+                                  variant="primary"
+                                  size="sm"
                                   type="button"
                                   onClick={() => handleApplyForHost(tournamentId)}
                                   disabled={
                                     applyingHostTournamentId === tournamentId || applyForHostMutation.isPending
                                   }
+                                  loading={applyingHostTournamentId === tournamentId && applyForHostMutation.isPending}
                                 >
-                                  {applyingHostTournamentId === tournamentId && applyForHostMutation.isPending
-                                    ? 'Applying...'
-                                    : 'Apply for Host'}
-                                </button>
+                                  Apply for Host
+                                </Button>
                               );
                             })()
                           ) : (
                             isJoined(tournament._id || tournament.id || '') ? (
-                              <button className="tournament-join-button tournament-joined-button" disabled>
+                              <Button variant="secondary" size="sm" disabled>
                                 Joined
-                              </button>
+                              </Button>
                             ) : (
-                              <button
-                                className="tournament-join-button"
+                              <Button
+                                variant="primary"
+                                size="sm"
                                 onClick={() => openJoinModal(tournament as Tournament)}
                                 disabled={isJoining(tournament._id || tournament.id || '') || joinTournamentMutation.isPending}
+                                loading={isJoining(tournament._id || tournament.id || '') && joinTournamentMutation.isPending}
                               >
-                                {isJoining(tournament._id || tournament.id || '') && joinTournamentMutation.isPending
-                                  ? 'Joining...'
-                                  : 'Join'}
-                              </button>
+                                Join
+                              </Button>
                             )
                           )}
                         </>
                       )}
                       {/* View Rules button should always be available */}
-                      <button
-                        className="tournament-join-button tournament-rules-button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         type="button"
                         onClick={() => handleOpenRulesModal(tournament as Tournament)}
                       >
                         View Rules
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -622,28 +625,29 @@ const UserTournaments: React.FC = () => {
             </div>
 
             {joinFormError && (
-              <p className="lobby-rules-text" style={{ color: 'var(--error-color, #f44336)' }}>
+              <p className="lobby-rules-text text-error-color">
                 {joinFormError}
               </p>
             )}
 
-            <div className="tournament-actions" style={{ marginTop: '1rem' }}>
-              <button
-                className="tournament-join-button"
+            <div className="tournament-actions mt-1rem">
+              <Button
+                variant="primary"
                 type="button"
                 onClick={handleSubmitJoin}
                 disabled={joinTournamentMutation.isPending}
+                loading={joinTournamentMutation.isPending}
               >
-                {joinTournamentMutation.isPending ? 'Joining...' : 'Confirm Join'}
-              </button>
-              <button
-                className="tournament-join-button tournament-joined-button"
+                Confirm Join
+              </Button>
+              <Button
+                variant="secondary"
                 type="button"
                 onClick={closeJoinModal}
                 disabled={joinTournamentMutation.isPending}
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>

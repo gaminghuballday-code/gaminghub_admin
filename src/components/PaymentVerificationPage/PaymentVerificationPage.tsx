@@ -3,6 +3,8 @@ import AdminLayout from '@components/common/AdminLayout';
 import Loading from '@components/common/Loading';
 import ConfirmationModal from '@components/common/ConfirmationModal';
 import Modal from '@components/common/Modal/Modal';
+import { Button } from '@components/common/Button';
+import { Badge } from '@components/common/Badge';
 import { usePendingPayments, useUpdatePaymentStatus } from '@services/api/hooks/usePaymentQueries';
 import { getSocket } from '@services/websocket/socket';
 import type { PendingPayment } from '@services/api/payment.api';
@@ -102,24 +104,28 @@ const PaymentVerificationPage: React.FC = () => {
         <div className="payment-verification-card">
           <div className="card-header">
             <h2 className="card-title">Pending Payment Verifications</h2>
-            <button
-              className="refresh-button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
+              loading={isLoading}
               title="Refresh"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                </svg>
+              }
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className={isLoading ? 'spinning' : ''}
-              >
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-              </svg>
-            </button>
+              Refresh
+            </Button>
           </div>
 
           {isLoading ? (
@@ -187,13 +193,18 @@ const PaymentVerificationPage: React.FC = () => {
                           </div>
                         </td>
                         <td className="status-cell">
-                          <span className={`status-badge status-${payment.status?.toLowerCase() || 'pending'}`}>
+                          <Badge
+                            type="status"
+                            variant={payment.status?.toLowerCase() || 'pending'}
+                          >
                             {payment.status === 'fail' ? 'Failed' : 
                              payment.status === 'pending' ? 'Pending' :
                              payment.status?.charAt(0).toUpperCase() + payment.status?.slice(1) || 'Pending'}
-                          </span>
+                          </Badge>
                           {payment.paymentVerified && (
-                            <span className="verified-badge">Verified</span>
+                            <Badge type="status" variant="completed" className="verified-badge">
+                              Verified
+                            </Badge>
                           )}
                         </td>
                         <td className="utr-cell">
@@ -213,29 +224,35 @@ const PaymentVerificationPage: React.FC = () => {
                         <td className="date-cell">{formatDate(payment.createdAt)}</td>
                         <td className="actions-cell">
                           <div className="action-buttons">
-                            <button
-                              className="action-button approve-button"
+                            <Button
+                              variant="success"
+                              size="sm"
                               onClick={() => handleApproveClick(payment)}
                               disabled={updatePaymentStatusMutation.isPending}
                               title="Approve Payment"
+                              icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              }
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
                               Approve
-                            </button>
-                            <button
-                              className="action-button reject-button"
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleRejectClick(payment)}
                               disabled={updatePaymentStatusMutation.isPending}
                               title="Reject Payment"
+                              icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                              }
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                              </svg>
                               Reject
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -261,7 +278,7 @@ const PaymentVerificationPage: React.FC = () => {
           selectedPayment ? (
             <div>
               <p>Are you sure you want to approve this payment?</p>
-              <div style={{ marginTop: '12px', padding: '12px', background: 'var(--background-color-light)', borderRadius: '8px' }}>
+              <div className="detail-box">
                 <p><strong>User:</strong> {
                   typeof selectedPayment.userId === 'object'
                     ? selectedPayment.userId.name || selectedPayment.userId.email
@@ -355,24 +372,25 @@ const PaymentVerificationPage: React.FC = () => {
             />
           </div>
           <div className="modal-actions">
-            <button
-              className="cancel-button"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setShowRejectModal(false);
                 setSelectedPayment(null);
                 setRejectReason('');
               }}
-                disabled={updatePaymentStatusMutation.isPending}
+              disabled={updatePaymentStatusMutation.isPending}
             >
               Cancel
-            </button>
-            <button
-              className="reject-confirm-button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={handleRejectConfirm}
-                disabled={updatePaymentStatusMutation.isPending}
+              disabled={updatePaymentStatusMutation.isPending}
+              loading={updatePaymentStatusMutation.isPending}
             >
-              {updatePaymentStatusMutation.isPending ? 'Rejecting...' : 'Reject Payment'}
-            </button>
+              Reject Payment
+            </Button>
           </div>
         </div>
       </Modal>

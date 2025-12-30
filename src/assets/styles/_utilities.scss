@@ -1,0 +1,254 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+// ============================================
+// Status Badge Utilities
+// ============================================
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: $border-radius-sm;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+
+  &.status-completed,
+  &.status-success,
+  &.status-paid {
+    background: rgba(34, 197, 94, 0.1);
+    color: rgb(34, 197, 94);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  &.status-pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: rgb(251, 191, 36);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  &.status-failed,
+  &.status-fail {
+    background: rgba(239, 68, 68, 0.1);
+    color: rgb(239, 68, 68);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  &.status-cancelled {
+    background: rgba(156, 163, 175, 0.1);
+    color: rgb(156, 163, 175);
+    border: 1px solid rgba(156, 163, 175, 0.3);
+  }
+
+  &.status-live {
+    background: rgba(59, 130, 246, 0.1);
+    color: rgb(59, 130, 246);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+}
+
+// ============================================
+// Type Badge Utilities
+// ============================================
+.type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: $border-radius-sm;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+
+  &.type-topup {
+    background: rgba(34, 197, 94, 0.1);
+    color: rgb(34, 197, 94);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  &.type-deduction {
+    background: rgba(239, 68, 68, 0.1);
+    color: rgb(239, 68, 68);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  &.type-refund {
+    background: rgba(59, 130, 246, 0.1);
+    color: rgb(59, 130, 246);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+}
+
+// ============================================
+// Form Button Utilities
+// ============================================
+.form-button-primary {
+  @include button-primary;
+  flex: 1;
+  min-width: 100px;
+  padding: $spacing-md $spacing-lg;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.form-button-secondary {
+  @include button-secondary;
+  flex: 1;
+  min-width: 100px;
+  padding: $spacing-md $spacing-lg;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// ============================================
+// Form Error Utilities
+// ============================================
+.form-error-text {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.form-error-container {
+  padding: $spacing-sm $spacing-md;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: $border-radius-md;
+  color: #ef4444;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+// ============================================
+// Spacing Utilities (extend existing)
+// ============================================
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+
+.ml-xs { margin-left: $spacing-xs; }
+.ml-sm { margin-left: $spacing-sm; }
+.ml-md { margin-left: $spacing-md; }
+.ml-lg { margin-left: $spacing-lg; }
+
+.mr-xs { margin-right: $spacing-xs; }
+.mr-sm { margin-right: $spacing-sm; }
+.mr-md { margin-right: $spacing-md; }
+.mr-lg { margin-right: $spacing-lg; }
+
+// ============================================
+// Display Utilities
+// ============================================
+.d-block { display: block; }
+.d-inline-block { display: inline-block; }
+.d-flex { display: flex; }
+.d-none { display: none; }
+
+// ============================================
+// Text Utilities
+// ============================================
+.text-error {
+  color: #ef4444;
+}
+
+.text-success {
+  color: rgb(34, 197, 94);
+}
+
+.text-warning {
+  color: rgb(251, 191, 36);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+// ============================================
+// Detail Box Utility
+// ============================================
+.detail-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--background-color-light);
+  border-radius: 8px;
+}
+
+// ============================================
+// Text Formatting Utilities
+// ============================================
+.text-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.text-error-color {
+  color: var(--error-color, #f44336);
+}
+
+// ============================================
+// Layout Utilities
+// ============================================
+.mt-1rem {
+  margin-top: 1rem;
+}
+
+.mt-1-5rem {
+  margin-top: 1.5rem;
+}
+
+.mt-4px {
+  margin-top: 4px;
+}
+
+.mt-8px {
+  margin-top: 8px;
+}
+
+.mb-8px {
+  margin-bottom: 8px;
+}
+
+.margin-0 {
+  margin: 0;
+}
+
+.font-size-0-8rem {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-default {
+  cursor: default;
+}
+
+.reply-info-box {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(var(--primary-color-rgb), 0.1);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--primary-color);
+  }
+}

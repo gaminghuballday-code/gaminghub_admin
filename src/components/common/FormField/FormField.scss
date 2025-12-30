@@ -1,0 +1,21 @@
+@use '../../../assets/styles/variables' as *;
+@use '../../../assets/styles/mixins' as *;
+@use '../../../assets/styles/utilities' as *;
+
+.form-textarea {
+  @include input-base;
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+
+  &.form-input-error {
+    border-color: #ef4444;
+    
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}

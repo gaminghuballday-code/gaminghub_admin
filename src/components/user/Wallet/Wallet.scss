@@ -1,26 +1,15 @@
 @use '../../../assets/styles/variables' as *;
 @use '../../../assets/styles/mixins' as *;
+@use '../../../assets/styles/utilities' as *;
 @use '../common/UserLayout' as *;
 
-.user-wallet-container {
-  @include flex-between;
-  min-height: 100vh;
-  background: linear-gradient(135deg, 
-    var(--background-color-dark) 0%,
-    var(--background-color) 100%
-  );
-  padding-bottom: 120px; // Space for footer
-}
-
-.user-content {
+// Wallet page specific styles
+// Layout is handled by UserLayout component
+.wallet-page-content {
   display: flex;
   flex-direction: column;
   gap: $spacing-xl;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: $spacing-lg;
-  padding-bottom: calc(#{$spacing-lg} + 120px); // Extra padding for footer
 }
 
 .wallet-card {
@@ -236,6 +225,11 @@
   color: var(--text-secondary);
   margin-top: $spacing-xs;
   line-height: 1.4;
+
+  &.form-hint-block {
+    margin-top: 8px;
+    display: block;
+  }
 }
 
 .form-actions {
@@ -245,24 +239,7 @@
   flex-wrap: wrap;
 }
 
-.cancel-button {
-  @include button-secondary;
-  flex: 1;
-  min-width: 100px;
-  padding: $spacing-md $spacing-lg;
-}
-
-.submit-button {
-  @include button-primary;
-  flex: 1;
-  min-width: 100px;
-  padding: $spacing-md $spacing-lg;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
+// Button styles removed - using Button component now
 
 .history-loading {
   display: flex;
@@ -338,33 +315,7 @@
   white-space: nowrap;
 }
 
-.type-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: $border-radius-sm;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.type-topup {
-    background: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-  }
-
-  &.type-deduction {
-    background: rgba(239, 68, 68, 0.1);
-    color: rgb(239, 68, 68);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-  }
-
-  &.type-refund {
-    background: rgba(59, 130, 246, 0.1);
-    color: rgb(59, 130, 246);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-  }
-}
+// Type badge styles are now in utilities.scss
 
 .amount-cell {
   font-weight: 600;
@@ -383,34 +334,7 @@
   white-space: nowrap;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: $border-radius-sm;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.status-completed {
-    background: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-  }
-
-  &.status-pending {
-    background: rgba(251, 191, 36, 0.1);
-    color: rgb(251, 191, 36);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-  }
-
-  &.status-failed,
-  &.status-fail {
-    background: rgba(239, 68, 68, 0.1);
-    color: rgb(239, 68, 68);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-  }
-}
+// Status badge styles are now in utilities.scss
 
 .payment-id-cell {
   white-space: nowrap;
@@ -1150,30 +1074,7 @@
   padding: $spacing-lg;
   border-top: 1px solid var(--border-color);
 
-  .pagination-button {
-    @include button-secondary;
-    display: flex;
-    align-items: center;
-    gap: $spacing-xs;
-    padding: $spacing-sm $spacing-md;
-    font-size: 0.9rem;
-    font-weight: 500;
-    min-width: 100px;
-    justify-content: center;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    &:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    svg {
-      flex-shrink: 0;
-    }
-  }
+  // Pagination button styles removed - using Button component now
 
   .pagination-info {
     display: flex;
@@ -1256,9 +1157,7 @@
     flex-direction: column;
     gap: $spacing-md;
 
-    .pagination-button {
-      width: 100%;
-    }
+    // Pagination button styles removed - using Button component now
 
     .pagination-info {
       order: -1;

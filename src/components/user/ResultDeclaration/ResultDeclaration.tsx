@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { type Tournament, type TournamentRules } from "@services/api";
 import { Modal } from "@components/common/Modal";
+import { Button } from "@components/common/Button";
 import "./ResultDeclaration.scss";
 
 interface ResultDeclarationProps {
@@ -516,21 +517,22 @@ const ResultDeclaration: React.FC<ResultDeclarationProps> = ({
         </div>
 
         <div className="result-declaration-footer">
-          <button
+          <Button
             type="button"
-            className="form-button form-button-secondary"
+            variant="secondary"
             onClick={onClose}
             disabled={isSubmitting}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="form-button form-button-primary"
+            variant="primary"
             disabled={isSubmitting}
+            loading={isSubmitting}
           >
-            {isSubmitting ? "Publishing Results..." : "📢 Publish Results"}
-          </button>
+            📢 Publish Results
+          </Button>
         </div>
       </form>
     </Modal>
