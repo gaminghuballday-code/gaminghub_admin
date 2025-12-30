@@ -91,12 +91,15 @@ export const useWalletLogic = () => {
   // Refs to avoid stale closures in callbacks
   const qrPaymentStateRef = useRef(qrPaymentState);
   const resetQRCodePaymentRef = useRef<(() => void) | undefined>(undefined);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => {
     qrPaymentStateRef.current = qrPaymentState;
-    
-    // Auto-open modal when QR code data is ready and modal is not already open
+  }, [qrPaymentState]);
+
+  // Auto-open modal when QR code data is ready and modal is not already open
+  useEffect(() => {
     if (
       qrPaymentState.qrCodeId &&
       qrPaymentState.qrCodeImage &&
@@ -105,7 +108,7 @@ export const useWalletLogic = () => {
     ) {
       setShowQRPaymentModal(true);
     }
-  }, [qrPaymentState, showQRPaymentModal]);
+  }, [qrPaymentState.qrCodeId, qrPaymentState.qrCodeImage, qrPaymentState.paymentStep, showQRPaymentModal]);
 
   // Mutations
   const createQRCodeMutation = useCreateQRCode();
@@ -160,24 +163,26 @@ export const useWalletLogic = () => {
     },
     onTransactionUpdate: (data: TransactionData) => {
       // Handle QR payment status updates from admin approval/rejection
+      // Use ref to get current values (fixes stale closure bug)
+      const currentState = qrPaymentStateRef.current;
       if (
-        qrPaymentState.qrCodeId &&
-        qrPaymentState.paymentStep === 'submitted'
+        currentState.qrCodeId &&
+        currentState.paymentStep === 'submitted'
       ) {
         const description = data.description || '';
-        const matchesByQRCode = description.includes(qrPaymentState.qrCodeId);
+        const matchesByQRCode = description.includes(currentState.qrCodeId);
           const matchesByPaymentId =
-          qrPaymentState.currentPaymentId &&
-          (data.transactionId === qrPaymentState.currentPaymentId ||
-            data.paymentId === qrPaymentState.currentPaymentId);
+          currentState.currentPaymentId &&
+          (data.transactionId === currentState.currentPaymentId ||
+            data.paymentId === currentState.currentPaymentId);
         const matchesByAmount =
           data.type === 'topup' &&
           data.amountINR !== undefined &&
-          Math.abs(data.amountINR - qrPaymentState.qrAmount) < 0.01;
+          Math.abs(data.amountINR - currentState.qrAmount) < 0.01;
 
         if (matchesByQRCode || matchesByPaymentId || matchesByAmount) {
           // Update currentPaymentId if we got it from the event
-          if (data.transactionId && !qrPaymentState.currentPaymentId) {
+          if (data.transactionId && !currentState.currentPaymentId) {
             updateQrPaymentState({ currentPaymentId: data.transactionId });
           }
 
@@ -192,17 +197,17 @@ export const useWalletLogic = () => {
                 ? 'Payment verification failed'
                 : 'Payment verification pending',
             data: {
-              qrCodeId: qrPaymentState.qrCodeId,
+              qrCodeId: currentState.qrCodeId,
               status:
                 data.status === 'success'
                   ? 'paid'
                   : data.status === 'fail'
                   ? 'failed'
                   : 'pending',
-              amountINR: data.amountINR ?? qrPaymentState.qrAmount,
+              amountINR: data.amountINR ?? currentState.qrAmount,
               amountGC: data.amountGC ?? 0,
               paymentId:
-                qrPaymentState.currentPaymentId ||
+                currentState.currentPaymentId ||
                 data.paymentId ||
                 data.transactionId ||
                 undefined,
@@ -215,7 +220,7 @@ export const useWalletLogic = () => {
 
           // Update React Query cache and local state
           queryClient.setQueryData<QRCodeStatusResponse>(
-            paymentKeys.qrStatus(qrPaymentState.qrCodeId),
+            paymentKeys.qrStatus(currentState.qrCodeId),
             newStatus
           );
           updateQrPaymentState({ qrStatusFromSocket: newStatus.data || null });
@@ -227,19 +232,38 @@ export const useWalletLogic = () => {
     },
   });
 
+  // Reset timeRemaining to 0 when there's no expiration or payment is submitted
+  // Use ref to check current value without causing re-renders
+  useEffect(() => {
+    const currentState = qrPaymentStateRef.current;
+    const shouldBeZero = !currentState.qrExpiresAt || currentState.paymentStep === 'submitted';
+    if (shouldBeZero && currentState.timeRemaining !== 0) {
+      updateQrPaymentState({ timeRemaining: 0 });
+    }
+  }, [qrPaymentState.qrExpiresAt, qrPaymentState.paymentStep]);
+
   // Calculate expiration countdown
   useEffect(() => {
+    // Clear any existing interval first
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    // Don't start timer if there's no expiration time or payment is already submitted
     if (!qrPaymentState.qrExpiresAt || qrPaymentState.paymentStep === 'submitted') {
-      updateQrPaymentState({ timeRemaining: 0 });
       return;
     }
 
-    const interval = setInterval(() => {
+    timerIntervalRef.current = setInterval(() => {
       // Use ref to get current values (fixes stale closure bug)
       const currentState = qrPaymentStateRef.current;
       
       if (!currentState.qrExpiresAt || currentState.paymentStep === 'submitted') {
-        clearInterval(interval);
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
         return;
       }
 
@@ -247,9 +271,16 @@ export const useWalletLogic = () => {
       const expires = currentState.qrExpiresAt.getTime();
       const remaining = Math.max(0, Math.floor((expires - now) / 1000));
 
-      updateQrPaymentState({ timeRemaining: remaining });
+      // Only update if the value actually changed to avoid unnecessary re-renders
+      if (currentState.timeRemaining !== remaining) {
+        updateQrPaymentState({ timeRemaining: remaining });
+      }
 
       if (remaining === 0) {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
         // QR expired - use current values from ref
         if (currentState.qrCodeId) {
           closeQRCodeMutation.mutate(currentState.qrCodeId);
@@ -268,9 +299,12 @@ export const useWalletLogic = () => {
     }, 1000);
 
     return () => {
-      clearInterval(interval);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
     };
-  }, [qrPaymentState.qrExpiresAt, qrPaymentState.paymentStep, qrPaymentState.qrCodeId, closeQRCodeMutation, dispatch, resetQRCodePayment]);
+  }, [qrPaymentState.qrExpiresAt, qrPaymentState.paymentStep, qrPaymentState.qrCodeId, closeQRCodeMutation, dispatch]);
 
   // WebSocket listener for QR code status updates
   useEffect(() => {
@@ -323,10 +357,13 @@ export const useWalletLogic = () => {
 
   // Store paymentId from QR status for WebSocket matching
   useEffect(() => {
-    if (qrStatus?.paymentId && !qrPaymentState.currentPaymentId) {
-      updateQrPaymentState({ currentPaymentId: qrStatus.paymentId });
+    const paymentId = qrStatus?.paymentId;
+    // Use ref to get current value to avoid stale closure
+    const currentState = qrPaymentStateRef.current;
+    if (paymentId && !currentState.currentPaymentId) {
+      updateQrPaymentState({ currentPaymentId: paymentId });
     }
-  }, [qrStatus?.paymentId, qrPaymentState.currentPaymentId]);
+  }, [qrStatus?.paymentId]);
 
   // Handle QR status changes - refresh balance when payment is verified
   useEffect(() => {
