@@ -54,6 +54,12 @@ export const useSupportTicketSocket = ({
 }: UseSupportTicketSocketOptions) => {
   const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
   const subscribedRef = useRef(false);
+  const callbacksRef = useRef({ onReplyAdded, onStatusUpdate, onTicketClosed });
+
+  // Update callbacks ref when they change
+  useEffect(() => {
+    callbacksRef.current = { onReplyAdded, onStatusUpdate, onTicketClosed };
+  }, [onReplyAdded, onStatusUpdate, onTicketClosed]);
 
   useEffect(() => {
     if (!enabled || !ticketId) {
@@ -93,7 +99,7 @@ export const useSupportTicketSocket = ({
       if (data.ticketId !== ticketId) {
         return;
       }
-      onReplyAdded?.(data);
+      callbacksRef.current.onReplyAdded?.(data);
     };
 
     // Handle ticket status updates (backend event: ticket:status-updated)
@@ -102,7 +108,7 @@ export const useSupportTicketSocket = ({
       if (data.ticketId !== ticketId) {
         return;
       }
-      onStatusUpdate?.(data);
+      callbacksRef.current.onStatusUpdate?.(data);
     };
 
     // Handle ticket closed (backend event: ticket:closed)
@@ -112,7 +118,7 @@ export const useSupportTicketSocket = ({
       if (data.ticketId !== ticketId) {
         return;
       }
-      onTicketClosed?.(data);
+      callbacksRef.current.onTicketClosed?.(data);
       
       // Unsubscribe when ticket is closed (backend will also disconnect)
       if (subscribedRef.current) {
@@ -138,7 +144,7 @@ export const useSupportTicketSocket = ({
         subscribedRef.current = false;
       }
     };
-  }, [enabled, ticketId, onReplyAdded, onStatusUpdate, onTicketClosed]);
+  }, [enabled, ticketId]);
 
   return {
     socket: socketRef.current,

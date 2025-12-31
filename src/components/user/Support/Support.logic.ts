@@ -236,7 +236,7 @@ export const useSupportPageLogic = (activeTab: 'tickets' | 'faqs' = 'tickets') =
       handleCloseCreateModal();
       refetchTickets();
     } catch (error) {
-      console.error('Error creating ticket:', error);
+      // Error handling is done by the mutation hook's onError handler
     }
   };
 
@@ -273,7 +273,7 @@ export const useSupportPageLogic = (activeTab: 'tickets' | 'faqs' = 'tickets') =
       handleCloseUpdateModal();
       refetchTickets();
     } catch (error) {
-      console.error('Error updating ticket:', error);
+      // Error handling is done by the mutation hook's onError handler
     }
   };
 

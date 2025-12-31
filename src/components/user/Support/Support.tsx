@@ -69,8 +69,10 @@ const Support: React.FC = () => {
     setSidebarOpen((prev) => !prev);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = React.useCallback((dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -78,7 +80,7 @@ const Support: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
+  }, []);
 
   // Removed getStatusColor - using Badge component instead
 
@@ -480,7 +482,7 @@ const Support: React.FC = () => {
                 </div>
                 <div className="chat-messages">
                   {chatMessages.map((message, index) => (
-                    <div key={index} className={`chat-message ${message.sender === 'support' ? 'message-support' : 'message-user'}`}>
+                    <div key={`${message.timestamp}-${index}-${message.content.slice(0, 20)}`} className={`chat-message ${message.sender === 'support' ? 'message-support' : 'message-user'}`}>
                       <div className="message-header">
                         <span className="message-sender">
                           {message.sender === 'support' ? 'Support' : (user?.name || user?.email || 'You')}
