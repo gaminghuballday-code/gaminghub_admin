@@ -8,7 +8,6 @@ import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import Modal from '@components/common/Modal/Modal';
-import Toaster from '@components/common/Toaster';
 import ResultDeclaration from '@components/user/ResultDeclaration/ResultDeclaration';
 import type { ResultDeclarationData } from '@components/user/ResultDeclaration/ResultDeclaration';
 import TournamentResults from '@components/user/TournamentResults/TournamentResults';
@@ -335,8 +334,6 @@ const UserLobby: React.FC = () => {
   return (
     <div className="user-lobby-container">
       <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      <Toaster />
-
       <main className="user-main">
         <header className="user-header">
           <h1>Lobby</h1>

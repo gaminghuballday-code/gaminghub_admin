@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
-import { selectToasts, removeToast } from '@store/slices/toastSlice';
+import { selectToasts, removeToast, clearToasts } from '@store/slices/toastSlice';
 import type { Toast as ToastType } from '@store/slices/toastSlice';
 import Toast from './Toast';
 import './Toaster.scss';
@@ -9,10 +10,26 @@ const DEBOUNCE_DURATION = 3000; // 3 seconds
 
 const Toaster: React.FC = () => {
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const toasts = useAppSelector(selectToasts);
   const [displayedToast, setDisplayedToast] = useState<ToastType | null>(null);
   const [canShowNext, setCanShowNext] = useState(true);
   const debounceTimerRef = useRef<number | null>(null);
+  const prevLocationRef = useRef<string>(location.pathname);
+
+  // Clear all toasts when route changes
+  useEffect(() => {
+    if (prevLocationRef.current !== location.pathname) {
+      dispatch(clearToasts());
+      setDisplayedToast(null);
+      setCanShowNext(true);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      prevLocationRef.current = location.pathname;
+    }
+  }, [location.pathname, dispatch]);
 
   useEffect(() => {
     // Clear any existing timer

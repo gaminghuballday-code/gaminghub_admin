@@ -6,7 +6,6 @@ import type { Tournament, TournamentRules, UpdateRoomRequest } from '@services/a
 import UserSidebar from '@components/user/common/UserSidebar';
 import AppHeaderActions from '@components/common/AppHeaderActions';
 import Loading from '@components/common/Loading';
-import Toaster from '@components/common/Toaster';
 import Modal from '@components/common/Modal/Modal';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import { Button } from '@components/common/Button';
@@ -262,7 +261,6 @@ const UserTournaments: React.FC = () => {
   return (
     <div className="user-tournaments-container">
       <UserSidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      <Toaster />
 
       <main className="user-main">
         <header className="user-header">
