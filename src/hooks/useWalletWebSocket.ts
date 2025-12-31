@@ -53,6 +53,12 @@ export const useWalletWebSocket = ({
   const user = useAppSelector(selectUser);
   const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
   const subscribedRef = useRef(false);
+  const callbacksRef = useRef({ onBalanceUpdate, onTransactionUpdate, onHistoryUpdate });
+
+  // Update callbacks ref when they change
+  useEffect(() => {
+    callbacksRef.current = { onBalanceUpdate, onTransactionUpdate, onHistoryUpdate };
+  }, [onBalanceUpdate, onTransactionUpdate, onHistoryUpdate]);
 
   const invalidateWalletQueries = useCallback(() => {
     // Invalidate wallet balance and history queries to refetch updated data
@@ -116,7 +122,7 @@ export const useWalletWebSocket = ({
         }));
       }
 
-      onBalanceUpdate?.(data);
+      callbacksRef.current.onBalanceUpdate?.(data);
     };
 
     // Handle transaction status updates (payment approve/reject)
@@ -144,7 +150,7 @@ export const useWalletWebSocket = ({
         }));
       }
 
-      onTransactionUpdate?.(data);
+      callbacksRef.current.onTransactionUpdate?.(data);
     };
 
     // Handle new transaction in history
@@ -156,7 +162,7 @@ export const useWalletWebSocket = ({
       }
 
       invalidateWalletQueries();
-      onHistoryUpdate?.(data);
+      callbacksRef.current.onHistoryUpdate?.(data);
     };
 
     // Register event listeners
@@ -179,7 +185,7 @@ export const useWalletWebSocket = ({
         subscribedRef.current = false;
       }
     };
-  }, [enabled, user?._id, user?.userId, invalidateWalletQueries, dispatch, onBalanceUpdate, onTransactionUpdate, onHistoryUpdate]);
+  }, [enabled, user?._id, user?.userId, invalidateWalletQueries, dispatch]);
 
   return {
     socket: socketRef.current,
