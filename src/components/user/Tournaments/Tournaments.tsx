@@ -423,7 +423,7 @@ const UserTournaments: React.FC = () => {
                           <span className="detail-value">
                             {tournament.joinedCount !== undefined 
                               ? tournament.joinedCount 
-                              : tournament.participants.length}/{tournament.maxPlayers}
+                              : tournament.participants?.length ?? 0}/{tournament.maxPlayers}
                             {tournament.availableSlots !== undefined && (
                               <span className="available-slots"> ({tournament.availableSlots} available)</span>
                             )}
