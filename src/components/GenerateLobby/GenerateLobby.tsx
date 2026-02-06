@@ -24,6 +24,7 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     handleSubmit,
     closeModal,
     handleDateChange,
+    isTimePassed,
   } = useGenerateLobbyLogic();
 
   const handleClose = () => {
@@ -53,14 +54,21 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
   }, [success]); // Only depend on success, not onSuccess to prevent loops
 
   const [selectedHour, setSelectedHour] = useState('12');
+  const [selectedMinute, setSelectedMinute] = useState('00');
   const [isAM, setIsAM] = useState(true);
 
   const handleAddTimeSlot = () => {
-    const timeSlot = `${selectedHour}:00 ${isAM ? 'AM' : 'PM'}`;
+    const hour = selectedHour.trim();
+    const minute = selectedMinute.trim();
+    if (!hour || !minute) {
+      return;
+    }
+    const timeSlot = `${hour}:${minute} ${isAM ? 'AM' : 'PM'}`;
     handleTimeSlotAdd(timeSlot);
   };
 
   const handleStandardTimeClick = (timeSlot: string) => {
+    // Directly add the quick time slot without touching inputs
     handleTimeSlotAdd(timeSlot);
   };
 
@@ -76,6 +84,23 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     : allSubModes;
   const regions = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
   const timeHours = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  const timeMinutes = ['00', '15', '30', '45'];
+
+  const handleHourChange = (rawValue: string) => {
+    const numeric = rawValue.replace(/\D/g, '');
+    if (numeric === '') {
+      setSelectedHour('');
+      return;
+    }
+    let value = parseInt(numeric, 10);
+    if (Number.isNaN(value)) {
+      return;
+    }
+    if (value < 1) value = 1;
+    if (value > 12) value = 12;
+    setSelectedHour(value.toString());
+  };
+
   const standardTimes = [
     { label: '12pm', value: '12:00 PM' },
     { label: '3pm', value: '3:00 PM' },
@@ -121,15 +146,28 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
               <label className="form-label">Time Slots</label>
               <div className="time-slots-container">
                 <div className="time-slots-input-group">
-                  <select
-                    className="form-select time-hour-select"
+                  <input
+                    type="number"
+                    className={`form-input time-hour-select ${
+                      getFieldError('timeSlots').length > 0 ? 'form-input-error' : ''
+                    }`}
                     value={selectedHour}
-                    onChange={(e) => setSelectedHour(e.target.value)}
+                    onChange={(e) => handleHourChange(e.target.value)}
+                    min={1}
+                    max={12}
+                    disabled={isSubmitting}
+                  />
+                  <select
+                    className={`form-select time-minute-select ${
+                      getFieldError('timeSlots').length > 0 ? 'form-input-error' : ''
+                    }`}
+                    value={selectedMinute}
+                    onChange={(e) => setSelectedMinute(e.target.value)}
                     disabled={isSubmitting}
                   >
-                    {timeHours.map((hour) => (
-                      <option key={hour} value={hour}>
-                        {hour}
+                    {timeMinutes.map((minute) => (
+                      <option key={minute} value={minute}>
+                        {minute}
                       </option>
                     ))}
                   </select>
@@ -169,7 +207,18 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
                         type="button"
                         className="standard-time-button"
                         onClick={() => handleStandardTimeClick(stdTime.value)}
-                        disabled={isSubmitting}
+                        disabled={
+                          isSubmitting ||
+                          !formData.dateType ||
+                          isTimePassed(formData.dateType, stdTime.value)
+                        }
+                        title={
+                          !formData.dateType
+                            ? 'Select a date first'
+                            : isTimePassed(formData.dateType, stdTime.value)
+                            ? `Cannot select ${stdTime.value} — this time has already passed for the selected date`
+                            : undefined
+                        }
                       >
                         {stdTime.label}
                       </button>

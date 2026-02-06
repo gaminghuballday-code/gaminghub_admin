@@ -89,22 +89,16 @@ const HostApplications: React.FC<HostApplicationsProps> = ({
   const loading = viewMode === 'applications' ? applicationsLoading : hostsLoading;
   const error = hostsError ? (hostsError as Error).message : null;
 
-  // Filter and deduplicate applications - show only applications for this tournament
+  // Filter and deduplicate applications
   const uniqueApplications = useMemo(() => {
     if (!applications || applications.length === 0) return [];
     
-    // First, filter by tournamentId to ensure we only show applications for this specific tournament
-    const tournamentApplications = applications.filter((app) => {
-      // Normalize tournamentId for comparison
-      const appTournamentId = typeof app.tournamentId === 'string' 
-        ? app.tournamentId.trim() 
-        : (app.tournamentId as any)?._id || (app.tournamentId as any)?.id || '';
-      const normalizedTournamentId = tournamentId.trim();
-      return appTournamentId === normalizedTournamentId;
-    });
-    
     // Only show pending applications (approved/rejected should not be shown in applications tab)
-    const pendingApplications = tournamentApplications.filter((app) => app.status === 'pending');
+    // NOTE: The backend endpoint `/api/admin/host-applications` is already
+    // filtered by `tournamentId`, so we should trust that and NOT re-filter
+    // on the frontend. Re-filtering here can hide valid applications when
+    // the backend returns a populated tournament object instead of a raw ID.
+    const pendingApplications = applications.filter((app) => app.status === 'pending');
     
     if (pendingApplications.length === 0) return [];
     
