@@ -148,15 +148,16 @@
   }
 }
 
-.time-hour-select {
+.time-hour-select,
+.time-minute-select {
   flex: 0 0 auto;
   width: 120px;
   min-width: 120px;
   max-width: 120px;
   padding: $spacing-md $spacing-lg;
   font-size: 0.95rem;
-  display: block; // Ensure visibility
-  visibility: visible; // Ensure visibility
+  display: block;
+  visibility: visible;
 }
 
 .am-pm-toggle {

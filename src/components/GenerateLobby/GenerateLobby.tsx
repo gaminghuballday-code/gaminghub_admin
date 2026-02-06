@@ -36,22 +36,17 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     await handleSubmit(e);
   };
 
-  // Close modal after successful submission and toast is shown
+  // Close modal immediately on success (toast shows API message)
   useEffect(() => {
     if (success) {
-      // Refresh tournaments list when lobby is generated successfully
       if (onSuccess) {
         onSuccess();
       }
-      // Wait for toast to be displayed (toast duration is 5000ms, but we wait a bit longer to ensure it's visible)
-      const timer = setTimeout(() => {
-        closeModal();
-        onClose();
-      }, 5500); // 5000ms toast duration + 500ms buffer
-      return () => clearTimeout(timer);
+      closeModal();
+      onClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [success]); // Only depend on success, not onSuccess to prevent loops
+  }, [success]);
 
   const [selectedHour, setSelectedHour] = useState('12');
   const [selectedMinute, setSelectedMinute] = useState('00');
@@ -85,21 +80,6 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
   const regions = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
   const timeHours = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
   const timeMinutes = ['00', '15', '30', '45'];
-
-  const handleHourChange = (rawValue: string) => {
-    const numeric = rawValue.replace(/\D/g, '');
-    if (numeric === '') {
-      setSelectedHour('');
-      return;
-    }
-    let value = parseInt(numeric, 10);
-    if (Number.isNaN(value)) {
-      return;
-    }
-    if (value < 1) value = 1;
-    if (value > 12) value = 12;
-    setSelectedHour(value.toString());
-  };
 
   const standardTimes = [
     { label: '12pm', value: '12:00 PM' },
@@ -146,17 +126,20 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
               <label className="form-label">Time Slots</label>
               <div className="time-slots-container">
                 <div className="time-slots-input-group">
-                  <input
-                    type="number"
-                    className={`form-input time-hour-select ${
+                  <select
+                    className={`form-select time-hour-select ${
                       getFieldError('timeSlots').length > 0 ? 'form-input-error' : ''
                     }`}
                     value={selectedHour}
-                    onChange={(e) => handleHourChange(e.target.value)}
-                    min={1}
-                    max={12}
+                    onChange={(e) => setSelectedHour(e.target.value)}
                     disabled={isSubmitting}
-                  />
+                  >
+                    {timeHours.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
                   <select
                     className={`form-select time-minute-select ${
                       getFieldError('timeSlots').length > 0 ? 'form-input-error' : ''
@@ -380,14 +363,6 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
               <div className="form-message form-error">
                 <span className="message-icon">⚠️</span>
                 <span>{error}</span>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="form-message form-success">
-                <span className="message-icon">✅</span>
-                <span>{success}</span>
               </div>
             )}
           </div>
