@@ -174,7 +174,7 @@ const UserLobby: React.FC = () => {
       try {
         await endRoomMutation.mutateAsync(tournamentId);
         if (isHostUser) {
-          await refetchHostApplications();
+          await refetchHostTournaments();
         } else {
           await refetchJoined();
         }
@@ -228,7 +228,7 @@ const UserLobby: React.FC = () => {
       });
       
       if (isHostUser) {
-        await refetchHostApplications();
+        await refetchHostTournaments();
       } else {
         await refetchJoined();
       }
@@ -254,7 +254,7 @@ const UserLobby: React.FC = () => {
             password: data.password,
           },
         });
-        await refetchHostApplications();
+        await refetchHostTournaments();
       } else {
         await updateRoomForUserMutation.mutateAsync(data);
         await refetchJoined();
