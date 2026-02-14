@@ -137,12 +137,13 @@ export const useJoinedTournaments = (enabled = true) => {
 };
 
 /**
- * Hook for fetching tournaments assigned to the current host (Host only)
+ * Hook for fetching host's assigned lobbies (Host only)
+ * Uses GET /api/host/my-lobbies - lobbies grouped by status (upcoming, live, resultPending, completed)
  */
 export const useHostTournaments = (enabled = true) => {
   return useQuery({
     queryKey: tournamentsKeys.hostLists(),
-    queryFn: () => hostApi.getHostTournaments(),
+    queryFn: () => hostApi.getHostMyLobbies(),
     enabled,
   });
 };

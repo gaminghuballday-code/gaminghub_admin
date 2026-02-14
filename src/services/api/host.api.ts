@@ -19,9 +19,52 @@ export interface ApplyHostResponse {
   data?: unknown;
 }
 
+/** Response shape for GET /api/host/my-lobbies - lobbies grouped by status */
+export interface HostMyLobbiesResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: {
+    lobbies?: {
+      upcoming?: Tournament[];
+      live?: Tournament[];
+      resultPending?: Tournament[];
+      pendingResult?: Tournament[];
+      completed?: Tournament[];
+    };
+  };
+}
+
 export const hostApi = {
   /**
-   * Get tournaments assigned to the current host (Host only)
+   * Get host's assigned lobbies grouped by status (upcoming, live, resultPending, completed)
+   * For lobby section - shows all tournaments assigned to this host
+   */
+  getHostMyLobbies: async (): Promise<Tournament[]> => {
+    const response = await apiClient.get<HostMyLobbiesResponse>('/api/host/my-lobbies');
+
+    const lobbies = response.data?.data?.lobbies;
+    if (!lobbies) return [];
+
+    const flatten = (arr: Tournament[] | undefined): Tournament[] =>
+      Array.isArray(arr) ? arr : [];
+
+    const all = [
+      ...flatten(lobbies.upcoming),
+      ...flatten(lobbies.live),
+      ...flatten(lobbies.resultPending ?? lobbies.pendingResult),
+      ...flatten(lobbies.completed),
+    ];
+
+    return all.map((t) => ({
+      ...t,
+      _id: t._id,
+      id: t._id || t.id,
+    }));
+  },
+
+  /**
+   * Get tournaments assigned to the current host (Host only) - legacy
    */
   getHostTournaments: async (): Promise<Tournament[]> => {
     const response = await apiClient.get<HostTournamentsResponse>('/api/host/tournaments');

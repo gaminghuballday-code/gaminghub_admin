@@ -8,6 +8,7 @@ export * from './useLobbyQueries';
 export * from './useHealthQueries';
 export * from './useWalletQueries';
 export * from './usePaymentQueries';
+export * from './useWithdrawalsQueries';
 export * from './useEnquiriesQueries';
 export * from './useSupportQueries';
 

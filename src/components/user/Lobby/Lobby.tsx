@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useJoinedTournaments, useHostApplicationsForUser, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate, useEndRoom, useDeclareResults } from '@services/api/hooks';
+import { useJoinedTournaments, useHostTournaments, useUpdateRoomForUser, useUpdateHostRoom, useApplyRoomUpdate, useEndRoom, useDeclareResults } from '@services/api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
 import type { Tournament, TournamentRules, UpdateRoomRequest } from '@services/api';
@@ -36,27 +36,13 @@ const UserLobby: React.FC = () => {
   } = useJoinedTournaments(!isHostUser);
 
   const {
-    data: hostApplications = [],
-    isLoading: hostApplicationsLoading,
-    refetch: refetchHostApplications,
-  } = useHostApplicationsForUser(isHostUser);
-
-  // For hosts, derive assigned lobbies from approved applications' tournamentId data
-  const hostAssignedTournaments: Tournament[] = isHostUser
-    ? (hostApplications || [])
-        .filter((app) => app.status === 'approved' && (app as any).tournamentId)
-        .map((app) => {
-          const t = (app as any).tournamentId;
-          return {
-            ...(t as Tournament),
-            _id: t._id,
-            id: t._id || t.id,
-          } as Tournament;
-        })
-    : [];
+    data: hostAssignedTournaments = [],
+    isLoading: hostTournamentsLoading,
+    refetch: refetchHostTournaments,
+  } = useHostTournaments(isHostUser);
 
   const allJoinedTournaments = (isHostUser ? hostAssignedTournaments : joinedTournamentsData) || [];
-  const isLoading = isHostUser ? hostApplicationsLoading : joinedLoading;
+  const isLoading = isHostUser ? hostTournamentsLoading : joinedLoading;
   const error = isHostUser ? undefined : joinedError;
 
   // Filter tournaments by selected date
@@ -78,14 +64,14 @@ const UserLobby: React.FC = () => {
     userId: currentUserId,
     onStatusUpdate: () => {
       if (isHostUser) {
-        refetchHostApplications();
+        refetchHostTournaments();
       } else {
         refetchJoined();
       }
     },
     onRoomUpdate: () => {
       if (isHostUser) {
-        refetchHostApplications();
+        refetchHostTournaments();
       } else {
         refetchJoined();
       }

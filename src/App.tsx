@@ -15,6 +15,7 @@ const Profile = lazy(() => import('@components/Profile/Profile'));
 const GenerateLobbyPage = lazy(() => import('@components/GenerateLobbyPage/GenerateLobbyPage'));
 const TopUpPage = lazy(() => import('@components/TopUpPage/TopUpPage'));
 const PaymentVerificationPage = lazy(() => import('@components/PaymentVerificationPage/PaymentVerificationPage'));
+const WithdrawalsPage = lazy(() => import('@components/WithdrawalsPage/WithdrawalsPage'));
 const HostCreationPage = lazy(() => import('@components/HostCreationPage/HostCreationPage'));
 const UserHistoryPage = lazy(() => import('@components/UserHistoryPage/UserHistoryPage'));
 const EnquiriesPage = lazy(() => import('@components/EnquiriesPage/EnquiriesPage'));
@@ -81,6 +82,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PaymentVerificationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.WITHDRAWALS}
+            element={
+              <ProtectedRoute>
+                <WithdrawalsPage />
               </ProtectedRoute>
             }
           />

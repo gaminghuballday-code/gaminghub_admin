@@ -1,0 +1,253 @@
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+@use '../../assets/styles/utilities' as *;
+
+.withdrawals-content-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+}
+
+.withdrawals-card {
+  @include card;
+  width: 100%;
+}
+
+.card-header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-xxl;
+}
+
+.error-message {
+  padding: $spacing-xl;
+  text-align: center;
+  color: rgb(239, 68, 68);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: $border-radius-md;
+  font-weight: 500;
+}
+
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xxl;
+  text-align: center;
+  color: var(--text-secondary);
+
+  svg {
+    margin-bottom: $spacing-md;
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  p {
+    margin: $spacing-xs 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  .empty-subtext {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+}
+
+.withdrawals-count {
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: $border-radius-md;
+  color: rgb(251, 191, 36);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.withdrawals-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  margin-top: $spacing-md;
+}
+
+.withdrawals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: var(--background-color-light);
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: var(--background-color-light);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+
+  td {
+    padding: $spacing-md;
+    color: var(--text-color);
+    vertical-align: middle;
+  }
+}
+
+.user-cell {
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  .user-name {
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .user-email {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+}
+
+.amount-cell {
+  .amount-gc {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+  }
+}
+
+.upi-cell {
+  .upi-code {
+    display: inline-block;
+    padding: $spacing-xs $spacing-sm;
+    background: var(--background-color-light);
+    border: 1px solid var(--border-color);
+    border-radius: $border-radius-sm;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    word-break: break-all;
+  }
+
+  .no-upi {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+}
+
+.status-cell {
+  white-space: nowrap;
+}
+
+.date-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.actions-cell {
+  .action-buttons {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+  }
+
+  .no-actions {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+.detail-box {
+  padding: $spacing-md;
+  background: var(--background-color-light);
+  border-radius: $border-radius-md;
+  margin-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-color);
+  }
+}
+
+@media (max-width: 768px) {
+  .withdrawals-content-wrapper {
+    padding: $spacing-md;
+  }
+
+  .withdrawals-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .withdrawals-table {
+    font-size: 0.8rem;
+    min-width: 700px;
+
+    th,
+    td {
+      padding: $spacing-sm $spacing-md;
+    }
+
+    th {
+      font-size: 0.75rem;
+    }
+  }
+
+  .actions-cell {
+    .action-buttons {
+      flex-direction: column;
+      gap: $spacing-xs;
+    }
+  }
+}
