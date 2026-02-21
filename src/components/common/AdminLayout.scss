@@ -34,12 +34,24 @@
 
   &.open {
     width: 250px;
+    
+    @media (max-width: 768px) {
+      width: 100%;
+      height: 100vh;
+      box-shadow: none;
+    }
   }
 
   &.closed {
     width: 70px;
+    
+    @media (max-width: 768px) {
+      width: 0;
+      border-right: none;
+    }
   }
 }
+
 
 .sidebar-header {
   @include flex-between;
@@ -72,7 +84,18 @@
   padding: $spacing-xs $spacing-sm;
   min-width: 32px;
   font-size: 1.2rem;
+  
+  @media (max-width: 768px) {
+    background: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    z-index: 1100;
+  }
 }
+
 
 .sidebar-nav {
   @include flex-column;
@@ -176,10 +199,11 @@
   overflow: hidden;
   
   @media (max-width: 768px) {
-    margin-left: 70px;
-    width: calc(100% - 70px);
+    margin-left: 0;
+    width: 100%;
   }
 }
+
 
 // Header
 .admin-header {
@@ -209,9 +233,14 @@
       background-clip: text;
       margin: 0;
       letter-spacing: -0.5px;
+      
+      @media (max-width: 480px) {
+        font-size: 1.25rem;
+      }
     }
   }
 }
+
 
 // Content Area with Scroll
 .admin-content {

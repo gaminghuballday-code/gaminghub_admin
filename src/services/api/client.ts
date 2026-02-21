@@ -4,12 +4,13 @@ import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, selectRefreshToken, logout, updateTokens } from '../../store/slices/authSlice';
 import { addToast } from '../../store/slices/toastSlice';
-import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
+import { getStorageKey, isAdminDomain } from '../../utils/constants';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
-// This avoids CORS issues by making requests from the same origin
-// Override with VITE_API_BASE_URL if you need direct API calls
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+// This avoids CORS/CSRF issues by making requests from the same origin
+// In development, we always use relative URLs to ensure we go through the Vite proxy
+// In production, we can use the environment variable if defined
+const API_BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || '');
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000;
 
 // Request deduplication - prevent duplicate requests
@@ -44,8 +45,8 @@ apiClient.interceptors.request.use(
     // Add CSRF token for state-changing requests (POST, PUT, DELETE, PATCH)
     const method = config.method?.toUpperCase();
     if (method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-      // Try to get CSRF token from localStorage first
-      let csrfToken = localStorage.getItem(STORAGE_KEYS.CSRF_TOKEN);
+      // Try to get CSRF token from namespaced localStorage first
+      let csrfToken = localStorage.getItem(getStorageKey('CSRF_TOKEN'));
       
       // If not in localStorage, try to get from XSRF-TOKEN cookie (set by backend)
       if (!csrfToken) {
@@ -53,9 +54,9 @@ apiClient.interceptors.request.use(
         const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
         if (xsrfCookie) {
           csrfToken = decodeURIComponent(xsrfCookie.split('=')[1]);
-          // Store in localStorage for future use
+          // Store in namespaced localStorage for future use
           if (csrfToken) {
-            localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
+            localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfToken);
           }
         }
       }
@@ -103,7 +104,7 @@ apiClient.interceptors.response.use(
     // Update CSRF token from response header or cookie if present
     const csrfTokenFromHeader = response.headers['x-csrf-token'];
     if (csrfTokenFromHeader) {
-      localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfTokenFromHeader);
+      localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfTokenFromHeader);
     } else {
       // Also check for XSRF-TOKEN cookie (backend sets this)
       const cookies = document.cookie.split(';');
@@ -111,7 +112,7 @@ apiClient.interceptors.response.use(
       if (xsrfCookie) {
         const csrfTokenFromCookie = decodeURIComponent(xsrfCookie.split('=')[1]);
         if (csrfTokenFromCookie) {
-          localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfTokenFromCookie);
+          localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfTokenFromCookie);
         }
       }
     }
@@ -136,7 +137,8 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     // Clean up pending request
     if (error.config) {
-      const requestKey = `${error.config.method?.toUpperCase()}_${error.config.url}`;
+      const paramsString = error.config.params ? JSON.stringify(error.config.params) : '';
+      const requestKey = `${error.config.method?.toUpperCase()}_${error.config.url}_${paramsString}`;
       pendingRequests.delete(requestKey);
     }
 
@@ -179,6 +181,8 @@ apiClient.interceptors.response.use(
       const refreshToken = selectRefreshToken(state as any);
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+      console.log(`[API] 401 Error on ${originalRequest.url}. Refresh token exists: ${!!refreshToken}, isRefreshing: ${isRefreshing}`);
+
       // Skip refresh if this is already a retry after refresh, or if we're on login page
       const isOnLoginPage = window.location.pathname.includes('/login');
       if (originalRequest?._retry || isOnLoginPage) {
@@ -192,6 +196,7 @@ apiClient.interceptors.response.use(
         }
         
         if (!isOnLoginPage) {
+          console.log('[API] Logout triggered: Refresh retry failed or on login page');
           store.dispatch(logout());
           window.location.href = '/login';
         }
@@ -208,7 +213,7 @@ apiClient.interceptors.response.use(
         const refreshEndpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
         
         // Get CSRF token for the request (if available)
-        let csrfToken = localStorage.getItem(STORAGE_KEYS.CSRF_TOKEN);
+        let csrfToken = localStorage.getItem(getStorageKey('CSRF_TOKEN'));
         if (!csrfToken) {
           const cookies = document.cookie.split(';');
           const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
@@ -239,6 +244,21 @@ apiClient.interceptors.response.use(
             }
           )
           .then((response) => {
+            // Update CSRF token from refresh response if present
+            const csrfTokenFromHeader = response.headers['x-csrf-token'];
+            if (csrfTokenFromHeader) {
+              localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfTokenFromHeader);
+            } else {
+              const cookies = document.cookie.split(';');
+              const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='));
+              if (xsrfCookie) {
+                const csrfTokenFromCookie = decodeURIComponent(xsrfCookie.split('=')[1]);
+                if (csrfTokenFromCookie) {
+                  localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfTokenFromCookie);
+                }
+              }
+            }
+
             // Handle response format: { data: { accessToken, refreshToken } }
             const responseData = response.data?.data || response.data;
             const { accessToken, refreshToken: newRefreshToken } = responseData;
@@ -248,7 +268,6 @@ apiClient.interceptors.response.use(
             }
             
             // Update tokens in store and localStorage
-            // Only update refreshToken if a new one is provided
             store.dispatch(updateTokens({
               accessToken,
               ...(newRefreshToken && { refreshToken: newRefreshToken }),
@@ -273,8 +292,14 @@ apiClient.interceptors.response.use(
             failedQueue.forEach((prom) => prom.reject(refreshError));
             failedQueue = [];
 
+            console.error('[API] Token refresh failed:', refreshError);
+
             if (!isOnLoginPage) {
+              console.log('[API] Logout triggered: Refresh failed');
               store.dispatch(logout());
+              // Force clear storage just in case
+              localStorage.removeItem(getStorageKey('AUTH_TOKEN'));
+              localStorage.removeItem(getStorageKey('REFRESH_TOKEN'));
               window.location.href = '/login';
             }
             return Promise.reject(refreshError);
@@ -307,6 +332,7 @@ apiClient.interceptors.response.use(
         }
 
         if (!isOnLoginPage) {
+          console.log('[API] Logout triggered: No refresh token available');
           store.dispatch(logout());
           window.location.href = '/login';
         }

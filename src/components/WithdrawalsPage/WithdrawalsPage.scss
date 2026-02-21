@@ -15,12 +15,12 @@
 }
 
 .card-header {
-  @include flex-between;
+  @include flex-stack;
   margin-bottom: $spacing-lg;
   align-items: center;
-  flex-wrap: wrap;
   gap: $spacing-md;
 }
+
 
 .card-title {
   margin: 0;
@@ -87,10 +87,10 @@
 }
 
 .withdrawals-table-wrapper {
-  overflow-x: auto;
-  width: 100%;
+  @include responsive-table;
   margin-top: $spacing-md;
 }
+
 
 .withdrawals-table {
   width: 100%;
@@ -225,14 +225,8 @@
     padding: $spacing-md;
   }
 
-  .withdrawals-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .withdrawals-table {
     font-size: 0.8rem;
-    min-width: 700px;
 
     th,
     td {
@@ -251,3 +245,4 @@
     }
   }
 }
+

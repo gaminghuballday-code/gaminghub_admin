@@ -248,9 +248,8 @@
 
 .filters-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  @include flex-stack;
   gap: $spacing-md;
-  align-items: end;
 }
 
 .filter-group {
@@ -342,11 +341,10 @@
 }
 
 .enquiry-header {
-  @include flex-between;
+  @include flex-stack;
+  gap: $spacing-md;
   align-items: flex-start;
   margin-bottom: $spacing-md;
-  gap: $spacing-lg;
-  flex-wrap: wrap;
 }
 
 .enquiry-info {

@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
+    "dev:development": "vite --mode development",
+    "dev:production": "vite --mode production",
     "dev:user": "vite --mode development --port 3001",
     "dev:admin": "vite --mode development --port 3002",
     "dev:both": "npm-run-all --parallel dev:user dev:admin",

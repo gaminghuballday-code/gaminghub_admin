@@ -2,7 +2,7 @@ import apiClient from './client';
 import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, VerifyOtpRequest, AuthResponse, CsrfTokenResponse, RefreshTokenRequest, RefreshTokenResponse } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
-import { STORAGE_KEYS, isAdminDomain } from '../../utils/constants';
+import { getStorageKey, isAdminDomain } from '../../utils/constants';
 
 export const authApi = {
   /**
@@ -22,7 +22,7 @@ export const authApi = {
       }
       
       // Store CSRF token in localStorage
-        localStorage.setItem(STORAGE_KEYS.CSRF_TOKEN, csrfToken);
+      localStorage.setItem(getStorageKey('CSRF_TOKEN'), csrfToken);
       
       return csrfToken;
     } catch (error: any) {
@@ -111,16 +111,20 @@ export const authApi = {
    * Note: Redux state will be updated by the component calling this
    */
   logout: async (): Promise<void> => {
+    // Use admin endpoint for admin side, auth endpoint for user side
+    const isAdmin = isAdminDomain();
+    const endpoint = isAdmin ? '/api/admin/logout' : '/api/auth/logout';
+    
     // Get refresh token from Redux store
     const state = store.getState();
-    const refreshToken:any = selectRefreshToken(state as any);
+    const refreshToken: any = selectRefreshToken(state as any);
     
     try {
       // Send refresh token in request body if available
       if (refreshToken) {
-        await apiClient.post('/api/auth/logout', { refreshToken });
+        await apiClient.post(endpoint, { refreshToken });
       } else {
-        await apiClient.post('/api/auth/logout');
+        await apiClient.post(endpoint);
       }
     } catch (error: any) {
       // Silently ignore 404 or route not found errors
@@ -137,7 +141,10 @@ export const authApi = {
    * Get current user profile
    */
   getProfile: async (): Promise<AuthResponse['user']> => {
-    const response = await apiClient.get<{ data: AuthResponse['user'] }>('/api/profile');
+    // Use admin endpoint for admin side, auth/profile endpoint for user side
+    const isAdmin = isAdminDomain();
+    const endpoint = isAdmin ? '/api/admin/profile' : '/api/profile';
+    const response = await apiClient.get<{ data: AuthResponse['user'] }>(endpoint);
     return response.data.data;
   },
 

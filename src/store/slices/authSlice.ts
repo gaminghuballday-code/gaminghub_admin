@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { User } from '@services/types/api.types';
+import { getStorageKey } from '@utils/constants';
 
 interface AuthState {
   accessToken: string | null;
@@ -10,9 +11,13 @@ interface AuthState {
 
 // Load initial state from localStorage (for persistence)
 const getInitialState = (): AuthState => {
-  const accessToken = localStorage.getItem('auth_token');
-  const refreshToken = localStorage.getItem('refresh_token');
-  const userStr = localStorage.getItem('user');
+  const accessTokenKey = getStorageKey('AUTH_TOKEN');
+  const refreshTokenKey = getStorageKey('REFRESH_TOKEN');
+  const userKey = getStorageKey('USER');
+
+  const accessToken = localStorage.getItem(accessTokenKey);
+  const refreshToken = localStorage.getItem(refreshTokenKey);
+  const userStr = localStorage.getItem(userKey);
   
   return {
     accessToken,
@@ -42,12 +47,12 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.isAuthenticated = true;
       
-      // Persist to localStorage
-      localStorage.setItem('auth_token', action.payload.accessToken);
+      // Persist to localStorage with namespaced keys
+      localStorage.setItem(getStorageKey('AUTH_TOKEN'), action.payload.accessToken);
       if (action.payload.refreshToken) {
-        localStorage.setItem('refresh_token', action.payload.refreshToken);
+        localStorage.setItem(getStorageKey('REFRESH_TOKEN'), action.payload.refreshToken);
       }
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
+      localStorage.setItem(getStorageKey('USER'), JSON.stringify(action.payload.user));
     },
     setUser: (state, action: PayloadAction<User>) => {
       // Profile API might not include role anymore.
@@ -61,7 +66,7 @@ const authSlice = createSlice({
       };
 
       state.user = mergedUser;
-      localStorage.setItem('user', JSON.stringify(mergedUser));
+      localStorage.setItem(getStorageKey('USER'), JSON.stringify(mergedUser));
     },
     logout: (state) => {
       state.accessToken = null;
@@ -69,21 +74,22 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       
-      // Clear localStorage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+      // Clear namespaced localStorage items
+      localStorage.removeItem(getStorageKey('AUTH_TOKEN'));
+      localStorage.removeItem(getStorageKey('REFRESH_TOKEN'));
+      localStorage.removeItem(getStorageKey('USER'));
     },
     updateToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
-      localStorage.setItem('auth_token', action.payload);
+      localStorage.setItem(getStorageKey('AUTH_TOKEN'), action.payload);
     },
     updateTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken?: string }>) => {
       state.accessToken = action.payload.accessToken;
-      localStorage.setItem('auth_token', action.payload.accessToken);
+      state.isAuthenticated = !!action.payload.accessToken;
+      localStorage.setItem(getStorageKey('AUTH_TOKEN'), action.payload.accessToken);
       if (action.payload.refreshToken) {
         state.refreshToken = action.payload.refreshToken;
-        localStorage.setItem('refresh_token', action.payload.refreshToken);
+        localStorage.setItem(getStorageKey('REFRESH_TOKEN'), action.payload.refreshToken);
       }
     },
   },

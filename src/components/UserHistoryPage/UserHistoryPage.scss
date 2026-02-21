@@ -238,7 +238,7 @@
 }
 
 .search-input-group {
-  display: flex;
+  @include flex-stack;
   gap: $spacing-md;
   width: 100%;
 }
@@ -433,6 +433,8 @@
 
 // Transactions Table
 .transactions-table-wrapper {
+  @include responsive-table;
+  margin: $spacing-lg 0;
   width: 100%;
   overflow-x: auto;
   border-radius: $border-radius-md;
