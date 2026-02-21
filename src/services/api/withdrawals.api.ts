@@ -23,6 +23,7 @@ export interface WithdrawalsListResponse {
   data?: {
     withdrawals?: WithdrawalRequest[];
     withdrawalRequests?: WithdrawalRequest[];
+    requests?: WithdrawalRequest[];
     total?: number;
     limit?: number;
     skip?: number;
@@ -30,7 +31,7 @@ export interface WithdrawalsListResponse {
 }
 
 export interface UpdateWithdrawalStatusRequest {
-  status: 'approved' | 'rejected';
+  status: 'success' | 'fail';
 }
 
 export interface UpdateWithdrawalStatusResponse {
@@ -79,7 +80,7 @@ export const withdrawalsApi = {
    * Update withdrawal status (Admin only)
    * PATCH /api/admin/withdrawals/{transactionId}/status
    * @param transactionId - Transaction ID of the withdrawal request
-   * @param data - Status update (approved | rejected)
+   * @param data - Status update (success | fail)
    */
   updateWithdrawalStatus: async (
     transactionId: string,

@@ -24,6 +24,8 @@ const WithdrawalsPage: React.FC = () => {
   const withdrawals =
     withdrawalsData?.data?.withdrawals ||
     withdrawalsData?.data?.withdrawalRequests ||
+    withdrawalsData?.data?.requests ||
+    (Array.isArray(withdrawalsData?.data) ? withdrawalsData.data : []) ||
     [];
 
   const formatDate = (dateString: string) => {
@@ -74,7 +76,7 @@ const WithdrawalsPage: React.FC = () => {
     try {
       await updateStatusMutation.mutateAsync({
         transactionId: selectedWithdrawal._id,
-        status: 'approved',
+        status: 'success',
       });
       setShowApproveModal(false);
       setSelectedWithdrawal(null);
@@ -90,7 +92,7 @@ const WithdrawalsPage: React.FC = () => {
     try {
       await updateStatusMutation.mutateAsync({
         transactionId: selectedWithdrawal._id,
-        status: 'rejected',
+        status: 'fail',
       });
       setShowRejectModal(false);
       setSelectedWithdrawal(null);
@@ -104,13 +106,14 @@ const WithdrawalsPage: React.FC = () => {
     status: string
   ): 'pending' | 'completed' | 'warning' | 'error' => {
     const s = status?.toLowerCase();
-    if (s === 'approved' || s === 'completed') return 'completed';
-    if (s === 'rejected' || s === 'failed') return 'error';
+    if (s === 'approved' || s === 'completed' || s === 'success')
+      return 'completed';
+    if (s === 'rejected' || s === 'failed' || s === 'fail') return 'error';
     return 'pending';
   };
 
   const pendingWithdrawals = withdrawals.filter(
-    (w) => w.status?.toLowerCase() === 'pending'
+    (w: WithdrawalRequest) => w.status?.toLowerCase() === 'pending'
   );
 
   return (
@@ -193,7 +196,7 @@ const WithdrawalsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {withdrawals.map((withdrawal) => (
+                    {withdrawals.map((withdrawal: WithdrawalRequest) => (
                       <tr key={withdrawal._id} className="withdrawal-row">
                         <td className="user-cell">
                           <div className="user-info">
@@ -226,8 +229,10 @@ const WithdrawalsPage: React.FC = () => {
                               withdrawal.status
                             )}
                           >
-                            {withdrawal.status === 'fail'
-                              ? 'Failed'
+                            {withdrawal.status === 'success'
+                              ? 'Approved'
+                              : withdrawal.status === 'fail'
+                              ? 'Rejected'
                               : withdrawal.status?.charAt(0).toUpperCase() +
                                 withdrawal.status?.slice(1) || 'Pending'}
                           </Badge>

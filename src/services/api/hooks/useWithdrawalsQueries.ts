@@ -24,8 +24,6 @@ export const useWithdrawalsList = (
     queryKey: withdrawalKeys.list(JSON.stringify(params || {})),
     queryFn: () => withdrawalsApi.getWithdrawals(params),
     enabled,
-    refetchOnWindowFocus: true,
-    refetchInterval: 10000,
   });
 };
 
@@ -47,10 +45,8 @@ export const useUpdateWithdrawalStatus = () => {
     onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: withdrawalKeys.all });
 
-      const action =
-        variables.status === 'approved' ? 'approved' : 'rejected';
-      const message =
-        response.message || `Withdrawal ${action} successfully.`;
+      const action = variables.status === 'success' ? 'approved' : 'rejected';
+      const message = response.message || `Withdrawal ${action} successfully.`;
       dispatch(
         addToast({
           message,
@@ -60,11 +56,9 @@ export const useUpdateWithdrawalStatus = () => {
       );
     },
     onError: (error: Error, variables) => {
-      const action =
-        variables.status === 'approved' ? 'approve' : 'reject';
+      const action = variables.status === 'success' ? 'approve' : 'reject';
       const errorMessage =
-        error?.message ||
-        `Failed to ${action} withdrawal. Please try again.`;
+        error?.message || `Failed to ${action} withdrawal. Please try again.`;
       dispatch(
         addToast({
           message: errorMessage,
