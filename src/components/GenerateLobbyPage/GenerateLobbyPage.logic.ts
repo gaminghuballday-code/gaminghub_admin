@@ -91,7 +91,7 @@ export const useGenerateLobbyPageLogic = () => {
   const filteredTournaments = useMemo(() => {
     let filtered = [...tournaments];
     
-    console.log(`Filtering tournaments: ${tournaments.length} total, subMode filter: ${subModeFilter}`);
+    (`Filtering tournaments: ${tournaments.length} total, subMode filter: ${subModeFilter}`);
     
     // Filter by subMode
     if (subModeFilter !== 'all') {

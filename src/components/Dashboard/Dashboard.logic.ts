@@ -302,7 +302,6 @@ export const useDashboardLogic = () => {
     try {
       await navigator.clipboard.writeText(email);
       // You could add a toast notification here if needed
-      console.log('Email copied:', email);
     } catch (error) {
       console.error('Failed to copy email:', error);
       // setUsersError('Failed to copy email');
