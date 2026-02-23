@@ -16,6 +16,7 @@ export const ADMIN_ROUTES = {
   USER_HISTORY: '/user-history',
   ENQUIRIES: '/enquiries',
   SUPPORT_TICKETS: '/support-tickets',
+  NOTIFICATIONS: '/notifications',
 } as const;
 
 // User Routes

@@ -33,6 +33,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     { path: ROUTES.USER_HISTORY, icon: '📜', label: 'User History' },
     { path: ROUTES.ENQUIRIES, icon: '📧', label: 'Enquiries' },
     { path: ROUTES.SUPPORT_TICKETS, icon: '🎫', label: 'Support Tickets' },
+    { path: ROUTES.NOTIFICATIONS, icon: '🔔', label: 'Notifications' },
   ];
 
   return (

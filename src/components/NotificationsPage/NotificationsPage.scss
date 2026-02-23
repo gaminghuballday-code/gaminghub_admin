@@ -1,0 +1,112 @@
+@use '../../assets/styles/variables' as *;
+
+.notifications-content-wrapper {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+
+  .notifications-card {
+    background: var(--background-color-light);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    .card-title {
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+      color: var(--text-color);
+      font-weight: 600;
+    }
+
+    .notifications-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .form-label {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .form-input,
+        .form-textarea {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          padding: 12px;
+          color: var(--text-color);
+          font-size: 1rem;
+          transition: all 0.3s ease;
+
+          &:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.08);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .form-textarea {
+          min-height: 120px;
+          resize: vertical;
+        }
+      }
+
+      .notifications-error {
+        background: rgba(var(--error-color-rgb), 0.1);
+        color: var(--error-color);
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(var(--error-color-rgb), 0.2);
+      }
+
+      .notifications-success {
+        background: rgba(var(--success-color-rgb), 0.1);
+        color: var(--success-color);
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(var(--success-color-rgb), 0.2);
+      }
+
+      .send-button {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+        }
+
+        &:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
