@@ -11,4 +11,5 @@ export * from './usePaymentQueries';
 export * from './useWithdrawalsQueries';
 export * from './useEnquiriesQueries';
 export * from './useSupportQueries';
+export * from './useAdminQueries';
 

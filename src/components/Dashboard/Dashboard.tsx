@@ -1,6 +1,8 @@
 import { useDashboardLogic } from './Dashboard.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import HostStatistics from './HostStatistics';
+import StatCard from './StatCard';
+import AnalyticsChart from './AnalyticsChart';
 import { Button } from '@components/common/Button';
 import { Badge } from '@components/common/Badge';
 import './Dashboard.scss';
@@ -46,22 +48,80 @@ const Dashboard: React.FC = () => {
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
-    // loadHostStatistics,
+    // Platform Statistics
+    platformStats,
+    platformStatsLoading,
+    platformStatsError,
+    // Analytics
+    analyticsData,
+    analyticsLoading,
+    analyticsError,
+    analyticsPeriod,
+    handleAnalyticsPeriodChange,
   } = useDashboardLogic();
 
   return (
     <AdminLayout title="Dashboard">
       <div className="dashboard-content-wrapper">
-          {/* Welcome Card */}
-          <div className="dashboard-card">
-            <h2 className="card-title">Welcome</h2>
-            <p className="card-content">
-              {user ? `Welcome back, ${user.name || user.email}!` : 'Welcome to BooyahX Admin Dashboard'}
-            </p>
-            <p className="card-content-secondary">
-              Manage your application from this centralized dashboard.
-            </p>
+          <div className="dashboard-card welcome-card">
+            <div className="welcome-content">
+              <h2 className="card-title">Welcome</h2>
+              <p className="card-content">
+                {user ? `Welcome back, ${user.name || user.email}!` : 'Welcome to BooyahX Admin Dashboard'}
+              </p>
+              <p className="card-content-secondary">
+                Manage your application from this centralized dashboard.
+              </p>
+              {(platformStatsError || analyticsError) && (
+                <div className="dashboard-error-banner">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  <span>Failed to load some statistics. Using local data instead.</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Stats Overview Section */}
+          <div className="stats-grid">
+            <StatCard
+              title="Total Users"
+              value={platformStats?.totalUsers?.toLocaleString() ?? '0'}
+              loading={platformStatsLoading}
+              color="primary"
+              trend={{ value: platformStats?.userGrowth || 0, isPositive: true }}
+              icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
+            />
+            <StatCard
+              title="Total Deposits"
+              value={`₹${platformStats?.totalIncome?.toLocaleString() ?? '0'}`}
+              loading={platformStatsLoading}
+              color="success"
+              trend={{ value: platformStats?.incomeGrowth || 0, isPositive: true }}
+              icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>}
+            />
+            <StatCard
+              title="Total Rewards"
+              value={`₹${platformStats?.totalRewards?.toLocaleString() ?? '0'}`}
+              loading={platformStatsLoading}
+              color="danger"
+              icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>}
+            />
+            <StatCard
+              title="Net Profit"
+              value={`₹${platformStats?.totalProfit?.toLocaleString() ?? '0'}`}
+              loading={platformStatsLoading}
+              color="info"
+              icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>}
+            />
+          </div>
+
+          {/* Analytics Chart Section */}
+          <AnalyticsChart
+            data={analyticsData || []}
+            loading={analyticsLoading}
+            period={analyticsPeriod}
+            onPeriodChange={handleAnalyticsPeriodChange}
+          />
 
           {/* Tabs */}
           <div className="dashboard-tabs">

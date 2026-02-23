@@ -11,6 +11,7 @@ export * from './payment.api';
 export * from './withdrawals.api';
 export * from './inquiry.api';
 export * from './support.api';
+export * from './admin.api';
 export * from '../types/api.types';
 export * from './hooks';
 

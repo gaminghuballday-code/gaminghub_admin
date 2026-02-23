@@ -9,6 +9,8 @@ import {
   useBlockUsers,
   useUnblockUsers,
   useHostStatistics,
+  usePlatformStats,
+  useAnalytics,
 } from '@services/api/hooks';
 
 export const useDashboardLogic = () => {
@@ -40,6 +42,9 @@ export const useDashboardLogic = () => {
     toDate?: string;
     hostEmail?: string;
   }>({});
+
+  // Platform Analytics states
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   // Track if search has been clicked to enable API calls
   const [hasSearched, setHasSearched] = useState(false);
@@ -127,6 +132,20 @@ export const useDashboardLogic = () => {
   const totalHosts = hostStatsData?.totalHosts || 0;
   const totalLobbies = hostStatsData?.totalLobbies || 0;
   const hostStatsError = hostStatsQueryError ? (hostStatsQueryError as Error).message : null;
+
+  // Platform Statistics query
+  const {
+    data: platformStats,
+    isLoading: platformStatsLoading,
+    error: platformStatsError
+  } = usePlatformStats(isAuthenticated);
+
+  // Analytics query
+  const {
+    data: analyticsData,
+    isLoading: analyticsLoading,
+    error: analyticsError
+  } = useAnalytics(analyticsPeriod, isAuthenticated);
 
   useEffect(() => {
     // Check authentication from Redux
@@ -369,6 +388,16 @@ export const useDashboardLogic = () => {
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
+    // Platform Statistics
+    platformStats,
+    platformStatsLoading,
+    platformStatsError,
+    // Analytics
+    analyticsData,
+    analyticsLoading,
+    analyticsError,
+    analyticsPeriod,
+    handleAnalyticsPeriodChange: setAnalyticsPeriod,
   };
 };
 

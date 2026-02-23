@@ -281,5 +281,37 @@ export interface FAQsListResponse {
     faqs?: FAQ[];
     total?: number;
   };
+}// Dashboard & Analytics Types
+export interface PlatformStats {
+  totalUsers: number;
+  totalIncome: number; // Total money in
+  totalRewards: number; // Total money out (rewards/withdrawals)
+  totalProfit: number;
+  userGrowth: number; // Percentage
+  incomeGrowth: number; // Percentage
+}
+
+export interface AnalyticsDataPoint {
+  date: string;
+  income: number;
+  rewards: number;
+  profit: number;
+}
+
+export interface AnalyticsResponse {
+  period: 'daily' | 'weekly' | 'monthly';
+  data: AnalyticsDataPoint[];
+  summary: {
+    totalIncome: number;
+    totalRewards: number;
+    totalProfit: number;
+  };
+}
+
+export interface PlatformStatsResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data: PlatformStats;
 }
 
