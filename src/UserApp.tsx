@@ -20,6 +20,7 @@ const UserWallet = lazy(() => import('@components/user/Wallet/Wallet'));
 const UserSupport = lazy(() => import('@components/user/Support/Support'));
 
 // Static pages (public - no authentication required)
+const Downloads = lazy(() => import('@components/common/StaticPages/Downloads'));
 const CancellationRefunds = lazy(() => import('@components/common/StaticPages/CancellationRefunds'));
 const TermsConditions = lazy(() => import('@components/common/StaticPages/TermsConditions'));
 const Shipping = lazy(() => import('@components/common/StaticPages/Shipping'));
@@ -34,9 +35,13 @@ function UserApp() {
       <Layout>
         <Suspense fallback={<Loading />}>
           <Routes>
+          {/* Public routes */}
+          <Route path={STATIC_ROUTES.DOWNLOADS} element={<Downloads />} />
+          <Route path="/" element={<Navigate to={STATIC_ROUTES.DOWNLOADS} replace />} />
           <Route path={USER_ROUTES.LOGIN} element={<UserLogin />} />
           <Route path={USER_ROUTES.REGISTER} element={<UserRegister />} />
           <Route path={USER_ROUTES.FORGOT_PASSWORD} element={<UserForgotPassword />} />
+          {/* Authenticated user routes */}
           <Route
             path={USER_ROUTES.HOME}
             element={
@@ -99,7 +104,7 @@ function UserApp() {
           <Route path={STATIC_ROUTES.SHIPPING} element={<Shipping />} />
           <Route path={STATIC_ROUTES.PRIVACY} element={<Privacy />} />
           <Route path={STATIC_ROUTES.CONTACT_US} element={<ContactUs />} />
-          <Route path="*" element={<Navigate to={USER_ROUTES.HOME} replace />} />
+          <Route path="*" element={<Navigate to={STATIC_ROUTES.DOWNLOADS} replace />} />
           </Routes>
         </Suspense>
       </Layout>

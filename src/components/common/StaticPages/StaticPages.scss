@@ -274,3 +274,312 @@
     margin-bottom: 0;
   }
 }
+
+// Downloads page specific styles (two full-width blocks + footer)
+.downloads-page {
+  max-width: 1100px;
+  background: radial-gradient(circle at top left, rgba(var(--primary-color-rgb), 0.18), transparent 55%),
+              radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 1));
+  border-radius: 18px;
+  padding: $spacing-xxl;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.4);
+  color: #e5e7eb;
+
+  @media (max-width: 768px) {
+    padding: $spacing-xl $spacing-lg;
+  }
+
+  &__intro {
+    margin-bottom: $spacing-xl;
+  }
+
+  &__title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin-bottom: $spacing-sm;
+    color: #ffffff;
+  }
+
+  &__subtitle {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+    max-width: 640px;
+  }
+
+  &__blocks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-xl;
+    margin-bottom: $spacing-xl;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.downloads-block {
+  border-radius: 16px;
+  padding: $spacing-xl;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(30, 64, 175, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &--android {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.35), rgba(15, 23, 42, 0.95));
+    border-color: rgba(34, 197, 94, 0.6);
+    box-shadow: 0 24px 60px rgba(34, 197, 94, 0.55);
+  }
+
+  &--ios {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
+    border-color: rgba(148, 163, 184, 0.6);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.9);
+    font-size: 1.9rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  &__tagline {
+    font-size: 0.95rem;
+    color: var(--text-color-tertiary);
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-md;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  &__stat-label {
+    font-size: 0.9rem;
+    color: var(--text-color-tertiary);
+  }
+
+  &__description {
+    font-size: 0.98rem;
+    color: var(--text-color-secondary);
+  }
+
+  &__button {
+    margin-top: $spacing-sm;
+    padding: $spacing-md $spacing-xl;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-light));
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.98rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, opacity 0.2s ease-out;
+    box-shadow: 0 14px 36px rgba(var(--primary-color-rgb), 0.7);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 50px rgba(var(--primary-color-rgb), 0.9);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 30px rgba(var(--primary-color-rgb), 0.8);
+    }
+
+    &--disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+
+      &:hover,
+      &:active {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+
+    &--outline {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: none;
+      color: rgba(226, 232, 240, 0.9);
+
+      &:hover,
+      &:active {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+.downloads-info {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+
+  &__title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: $spacing-md;
+    color: #ffffff;
+  }
+
+  &__list {
+    list-style: disc;
+    padding-left: $spacing-xl;
+    color: var(--text-color-secondary);
+
+    li {
+      margin-bottom: $spacing-sm;
+    }
+
+    a {
+      color: var(--primary-color-light);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.downloads-social {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid rgba(31, 41, 55, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  &__subtitle {
+    font-size: 0.95rem;
+    color: var(--text-color-secondary);
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+    text-decoration: none;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(55, 65, 81, 0.9);
+    transition: background 0.12s ease-out, transform 0.12s ease-out, box-shadow 0.12s ease-out;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  &__icon {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(31, 41, 55, 0.9);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__link--instagram {
+    border-color: rgba(236, 72, 153, 0.8);
+  }
+
+  &__link--telegram {
+    border-color: rgba(59, 130, 246, 0.8);
+  }
+
+  &__link--discord {
+    border-color: rgba(129, 140, 248, 0.9);
+  }
+
+  &__link--whatsapp {
+    border-color: rgba(34, 197, 94, 0.9);
+  }
+
+  .downloads-social__icon--instagram {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 6px;
+    background: radial-gradient(circle at 30% 30%, #fdf497 0, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 4px;
+      border: 2px solid #ffffff;
+      box-sizing: border-box;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-sizing: border-box;
+    }
+  }
+}

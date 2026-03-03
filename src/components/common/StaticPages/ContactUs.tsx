@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { inquiryApi } from '../../../services/api';
-import BackButton from '../BackButton';
 import './StaticPages.scss';
 
 const ContactUs: React.FC = () => {
@@ -47,9 +46,6 @@ const ContactUs: React.FC = () => {
   return (
     <div className="static-page-container">
         <div className="static-page-content">
-        <div className="static-page-header">
-          <BackButton />
-        </div>
         <h1 className="static-page-title">Contact Us</h1>
         
         <section className="static-page-section">
@@ -65,6 +61,18 @@ const ContactUs: React.FC = () => {
             <div className="contact-item">
               <h3>Email</h3>
               <p>support@gaminghuballday.buzz</p>
+            </div>
+            <div className="contact-item">
+              <h3>Telegram Support</h3>
+              <p>
+                <a
+                  href="https://t.me/gethelpbooyahx"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  @gethelpbooyahx
+                </a>
+              </p>
             </div>
             <div className="contact-item">
               <h3>Business Hours</h3>

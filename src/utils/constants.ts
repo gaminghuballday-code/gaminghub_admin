@@ -1,6 +1,9 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.gaminghuballday.buzz';
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'booyahx-admin';
 
+// Public app download links
+export const ANDROID_APK_URL = import.meta.env.VITE_ANDROID_APK_URL || '';
+
 // Admin Routes
 export const ADMIN_ROUTES = {
   HOME: '/',
@@ -21,7 +24,7 @@ export const ADMIN_ROUTES = {
 
 // User Routes
 export const USER_ROUTES = {
-  HOME: '/',
+  HOME: '/home',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
@@ -36,6 +39,7 @@ export const USER_ROUTES = {
 
 // Static Pages (Public - accessible from both admin and user)
 export const STATIC_ROUTES = {
+  DOWNLOADS: '/downloads',
   CANCELLATION_REFUNDS: '/cancellation-refunds',
   TERMS_CONDITIONS: '/terms-conditions',
   SHIPPING: '/shipping',
