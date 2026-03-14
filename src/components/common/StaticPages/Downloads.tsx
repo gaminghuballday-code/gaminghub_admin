@@ -87,6 +87,28 @@ const Downloads: React.FC = () => {
       ].forEach((n) => nebulae.push({ ...n, al: Math.random() * 0.14 + 0.08, ph: Math.random() * Math.PI * 2 }));
     };
 
+    const drawStaticFrame = () => {
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
+      bg.addColorStop(0, 'rgba(0,4,20,.6)');
+      bg.addColorStop(1, 'rgba(0,0,10,.95)');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+      const core = ctx.createRadialGradient(W * 0.52, H * 0.48, 0, W * 0.52, H * 0.48, W * 0.3);
+      core.addColorStop(0, 'rgba(0,80,200,.08)');
+      core.addColorStop(0.4, 'rgba(0,40,120,.04)');
+      core.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = core;
+      ctx.fillRect(0, 0, W, H);
+      stars.forEach((s) => {
+        const a = s.a * 0.7;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = s.c + a + ')';
+        ctx.fill();
+      });
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       const now = performance.now();
       if (now - lastMouse < MOUSE_THROTTLE) return;
@@ -112,6 +134,11 @@ const Downloads: React.FC = () => {
     const draw = () => {
       if (document.hidden) {
         rafId = requestAnimationFrame(draw);
+        return;
+      }
+      if (isNarrow()) {
+        drawStaticFrame();
+        rafId = 0;
         return;
       }
       ctx.clearRect(0, 0, W, H);
@@ -199,19 +226,31 @@ const Downloads: React.FC = () => {
       rafId = requestAnimationFrame(draw);
     };
 
-    handleResize();
-    if (!isReducedMotion) {
-      draw();
-    } else {
-      ctx.fillStyle = 'rgba(0,4,20,.95)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    window.addEventListener('resize', handleResize);
+    const handleResizeAndMode = () => {
+      handleResize();
+      if (isNarrow()) {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+        if (!isReducedMotion) drawStaticFrame();
+        else {
+          ctx.fillStyle = 'rgba(0,4,20,.95)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      } else if (!rafId && !isReducedMotion) {
+        draw();
+      }
+    };
+
+    handleResizeAndMode();
+
+    window.addEventListener('resize', handleResizeAndMode);
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', handleResize);
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResizeAndMode);
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
