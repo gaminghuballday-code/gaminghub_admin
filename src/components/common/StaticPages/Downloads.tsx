@@ -567,7 +567,7 @@ const Downloads: React.FC = () => {
               <div className="dl-apk-em" aria-hidden>📱</div>
               <div className="dl-apk-info">
                 <div className="dl-apk-n">BooyahX.apk</div>
-                <div className="dl-apk-m">v1.0.0 &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; ~37 MB</div>
+                <div className="dl-apk-m">v1.0.0 &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; ~38 MB</div>
               </div>
             </div>
           </div>
