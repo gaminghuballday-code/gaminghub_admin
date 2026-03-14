@@ -387,10 +387,10 @@ const Downloads: React.FC = () => {
 
         <div className="dl-stats">
           <div className="dl-stat">
-            <div className="dl-stat-n" data-count="5000">
+            <div className="dl-stat-n" data-count="500">
               0
             </div>
-            <div className="dl-stat-l">Active Players</div>
+            <div className="dl-stat-l">Daily Active Players</div>
           </div>
           <div className="dl-stat">
             <div className="dl-stat-n" data-count="40">
