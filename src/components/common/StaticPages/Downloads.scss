@@ -497,7 +497,9 @@
     position: relative;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
+    min-width: 300px;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.82rem;
     font-weight: 700;
@@ -1212,17 +1214,91 @@
     pointer-events: none;
   }
 
+  // Tablet (iPad, small laptop)
+  @media (max-width: 1024px) {
+    .dl-wrap {
+      padding: 0 32px;
+    }
+
+    .dl-section {
+      padding: 80px 0;
+    }
+
+    .dl-hero {
+      padding: 60px 24px;
+    }
+
+    .dl-hero-burst {
+      width: min(900px, 100vw);
+      height: min(900px, 100vw);
+    }
+
+    .dl-hr1 {
+      width: min(760px, 95vw);
+      height: min(760px, 95vw);
+      margin: calc(min(760px, 95vw) / -2) 0 0 calc(min(760px, 95vw) / -2);
+    }
+
+    .dl-hr2 {
+      width: min(560px, 75vw);
+      height: min(560px, 75vw);
+      margin: calc(min(560px, 75vw) / -2) 0 0 calc(min(560px, 75vw) / -2);
+    }
+
+    .dl-hr3 {
+      width: min(360px, 55vw);
+      height: min(360px, 55vw);
+      margin: calc(min(360px, 55vw) / -2) 0 0 calc(min(360px, 55vw) / -2);
+    }
+  }
+
   @media (max-width: 900px) {
     .dl-nav {
-      padding: 0 24px;
+      padding: 0 20px;
     }
 
     .dl-nav-links {
       display: none;
     }
 
+    .dl-logo {
+      font-size: 1.25rem;
+    }
+
+    .dl-tk {
+      padding: 10px 0;
+      margin-top: 68px;
+    }
+
+    .dl-tk-item {
+      font-size: 0.7rem;
+      padding: 0 20px;
+    }
+
     .dl-wrap {
       padding: 0 24px;
+    }
+
+    .dl-hero {
+      padding: 56px 20px;
+    }
+
+    .dl-hero-badge {
+      padding: 6px 18px;
+      font-size: 0.7rem;
+      margin-bottom: 28px;
+    }
+
+    .dl-stats {
+      margin: 28px 0;
+    }
+
+    .dl-stat {
+      padding: 18px 24px;
+    }
+
+    .dl-stat-n {
+      font-size: 1.6rem;
     }
 
     .dl-bento {
@@ -1250,6 +1326,12 @@
       display: none;
     }
 
+    .dl-tl-node {
+      width: 56px;
+      height: 56px;
+      font-size: 1rem;
+    }
+
     .dl-stats {
       flex-direction: column;
     }
@@ -1265,35 +1347,321 @@
     }
 
     .dl-features {
+      padding: 60px 0 40px;
       padding-left: 20px;
       padding-right: 20px;
     }
+
+    .dl-how {
+      padding: 50px 0 70px;
+    }
+
+    .dl-section {
+      padding: 70px 0;
+    }
+
+    .dl-apk-hud {
+      padding: 22px 32px;
+    }
+
+    .dl-social {
+      padding: 40px 20px 36px;
+    }
+
+    .dl-social__link {
+      padding: 10px 18px;
+      font-size: 0.85rem;
+    }
+
+    .dl-footer {
+      padding: 36px 24px;
+    }
+
+    .dl-foot-links {
+      gap: 24px;
+    }
   }
 
+  // Mobile (phones, small tablets portrait)
   @media (max-width: 600px) {
+    .dl-nav {
+      padding: 0 16px;
+      height: 60px;
+    }
+
+    .dl-logo {
+      font-size: 1.15rem;
+      letter-spacing: 2px;
+    }
+
+    .dl-tk {
+      margin-top: 60px;
+      padding: 8px 0;
+    }
+
+    .dl-tk-item {
+      font-size: 0.65rem;
+      padding: 0 16px;
+    }
+
+    .dl-wrap {
+      padding: 0 16px;
+    }
+
+    .dl-hero {
+      padding: 40px 16px;
+      min-height: auto;
+    }
+
+    .dl-hero-badge {
+      padding: 6px 14px;
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+    }
+
+    .dl-headline {
+      font-size: clamp(2.2rem, 12vw, 4rem);
+    }
+
+    .dl-headline .l1 {
+      letter-spacing: 2px;
+    }
+
+    .dl-hero-sub {
+      font-size: 0.9rem;
+      padding: 0 8px;
+    }
+
+    .dl-stats {
+      margin: 24px 0;
+      border-radius: 8px;
+    }
+
+    .dl-stat {
+      padding: 16px 12px;
+    }
+
+    .dl-stat-n {
+      font-size: 1.4rem;
+    }
+
+    .dl-stat-l {
+      font-size: 0.6rem;
+    }
+
+    .dl-btn {
+      padding: 14px 28px;
+      font-size: 0.75rem;
+      width: 100%;
+      max-width: 320px;
+      min-width: 0;
+      justify-content: center;
+    }
+
+    .dl-hero-note {
+      font-size: 0.65rem;
+      padding: 0 8px;
+    }
+
     .dl-bento {
       grid-template-columns: 1fr;
     }
 
-    .dl-timeline {
-      grid-template-columns: 1fr;
+    .dl-bc {
+      padding: 24px 20px;
     }
 
-    .dl-headline {
-      font-size: clamp(2.6rem, 15vw, 5rem);
+    .dl-bc-icon {
+      font-size: 1.6rem;
+    }
+
+    .dl-bc h3 {
+      font-size: 0.8rem;
+    }
+
+    .dl-bc p {
+      font-size: 0.8rem;
+    }
+
+    .dl-timeline {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .dl-tl-step {
+      padding: 0 8px;
+    }
+
+    .dl-tl-step p {
+      font-size: 0.78rem;
+    }
+
+    .dl-section {
+      padding: 50px 0;
+    }
+
+    .dl-section h2 {
+      font-size: clamp(1.75rem, 8vw, 2.5rem);
+    }
+
+    .dl-sub {
+      font-size: 0.88rem;
+      margin-bottom: 32px;
+      padding: 0 8px;
     }
 
     .dl-apk-hud {
       flex-direction: column;
-      padding: 24px;
+      padding: 20px 20px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
     .dl-apk-info {
       text-align: center;
     }
 
+    .dl-apk-n {
+      font-size: 0.85rem;
+    }
+
+    .dl-apk-em {
+      font-size: 2.2rem;
+    }
+
     .dl-trust-row {
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .dl-tr {
+      font-size: 0.65rem;
+    }
+
+    .dl-install-note {
+      font-size: 0.65rem;
+      padding: 0 12px;
+    }
+
+    .dl-social {
+      padding: 32px 16px 28px;
+    }
+
+    .dl-social__title {
+      font-size: 1.15rem;
+    }
+
+    .dl-social__subtitle {
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      padding: 0 8px;
+    }
+
+    .dl-social__links {
+      gap: 12px;
+    }
+
+    .dl-social__link {
+      padding: 10px 16px;
+      font-size: 0.82rem;
+    }
+
+    .dl-social__link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .dl-footer {
+      padding: 28px 16px;
+    }
+
+    .dl-foot-logo {
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+
+    .dl-foot-links {
       gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .dl-foot-links a {
+      font-size: 0.65rem;
+    }
+
+    .dl-footer p {
+      font-size: 0.65rem;
+    }
+  }
+
+  // Small phones (320px–480px)
+  @media (max-width: 400px) {
+    .dl-nav {
+      padding: 0 12px;
+    }
+
+    .dl-logo {
+      font-size: 1rem;
+    }
+
+    .dl-hero {
+      padding: 32px 12px;
+    }
+
+    .dl-hero-badge {
+      font-size: 0.6rem;
+      padding: 5px 12px;
+    }
+
+    .dl-headline {
+      font-size: clamp(1.9rem, 11vw, 3.5rem);
+    }
+
+    .dl-stat-n {
+      font-size: 1.25rem;
+    }
+
+    .dl-btn {
+      padding: 12px 20px;
+      font-size: 0.7rem;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .dl-section h2 {
+      font-size: clamp(1.5rem, 7vw, 2.2rem);
+    }
+
+    .dl-social__links {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .dl-social__link {
+      width: 100%;
+      max-width: 260px;
+      justify-content: center;
+    }
+  }
+
+  // Large monitors (prevent over-stretch)
+  @media (min-width: 1400px) {
+    .dl-wrap {
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dl-hero {
+      padding: 100px 32px;
+    }
+
+    .dl-section .dl-inner {
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 }
