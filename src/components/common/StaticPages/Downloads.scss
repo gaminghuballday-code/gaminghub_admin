@@ -1032,6 +1032,99 @@
     color: rgba(255, 255, 255, 0.16);
   }
 
+  .dl-social {
+    position: relative;
+    z-index: 10;
+    padding: 52px 24px 48px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 200, 255, 0.15);
+    background: linear-gradient(180deg, rgba(0, 8, 20, 0.4) 0%, rgba(0, 4, 12, 0.6) 100%);
+  }
+
+  .dl-social__title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+  }
+
+  .dl-social__subtitle {
+    font-size: 0.95rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  .dl-social__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .dl-social__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    text-decoration: none;
+    background: rgba(0, 12, 28, 0.8);
+    border: 1px solid rgba(0, 200, 255, 0.25);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      border-color: rgba(0, 200, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 100, 200, 0.2);
+    }
+  }
+
+  .dl-social__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+      display: block;
+    }
+  }
+
+  .dl-social__link--instagram .dl-social__icon {
+    color: #e4405f;
+  }
+
+  .dl-social__link--telegram .dl-social__icon {
+    color: #26a5e4;
+  }
+
+  .dl-social__link--discord .dl-social__icon {
+    color: #5865f2;
+  }
+
+  .dl-social__link--whatsapp .dl-social__icon {
+    color: #25d366;
+  }
+
+  .dl-social__link--telegram {
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+
+  .dl-social__link--discord {
+    border-color: rgba(129, 140, 248, 0.4);
+  }
+
+  .dl-social__link--whatsapp {
+    border-color: rgba(34, 197, 94, 0.4);
+  }
+
   .dl-footer {
     position: relative;
     z-index: 10;
