@@ -4,7 +4,7 @@ import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
 import './Downloads.scss';
 
 const TICKER_ITEMS = [
-  '🏆 Win Real Money',
+  '🏆 Win Cash',
   'Free Fire Tournaments',
   'Instant UPI Withdrawal',
   '1v1 & Squad Battles',
@@ -324,7 +324,7 @@ const Downloads: React.FC = () => {
 
         <div className="dl-hero-badge">
           <span className="dot" aria-hidden />
-          India&apos;s #1 Real Money Tournament App — Now Live
+          India&apos;s #1 Real Cash Tournament App — Now Live
         </div>
 
         <div className="dl-hero-logo">
