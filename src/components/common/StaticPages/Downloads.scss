@@ -303,6 +303,36 @@
     to { transform: rotate(360deg); }
   }
 
+  .dl-hero-logo {
+    margin-bottom: 32px;
+    animation: dl-fadeDn 0.7s 0.05s ease both;
+
+    img {
+      display: block;
+      width: clamp(140px, 22vw, 220px);
+      height: auto;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+
+    .dl-hero-logo-name {
+      display: block;
+      margin-top: 12px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #fff;
+      text-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+
+      em {
+        font-style: normal;
+        color: var(--b0);
+        text-shadow: 0 0 20px var(--b0), 0 0 40px rgba(0, 200, 255, 0.4);
+      }
+    }
+  }
+
   .dl-hero-badge {
     display: inline-flex;
     align-items: center;
@@ -638,6 +668,8 @@
 
   .dl-features {
     padding: 100px 0 60px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
   }
 
   .dl-bento {
@@ -776,6 +808,8 @@
 
   .dl-how {
     padding: 80px 0 100px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
   }
 
   .dl-timeline {
@@ -1038,6 +1072,8 @@
     position: relative;
     z-index: 10;
     padding: 52px 24px 48px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 200px;
     text-align: center;
     border-top: 1px solid rgba(0, 200, 255, 0.15);
     background: linear-gradient(180deg, rgba(0, 8, 20, 0.4) 0%, rgba(0, 4, 12, 0.6) 100%);
@@ -1643,6 +1679,25 @@
       width: 100%;
       max-width: 260px;
       justify-content: center;
+    }
+  }
+
+  // Performance: reduce expensive effects on mobile/tablet to avoid lag
+  @media (max-width: 1024px) {
+    .dl-nav {
+      backdrop-filter: none;
+    }
+    .dl-stats {
+      backdrop-filter: none;
+    }
+    .dl-bc {
+      backdrop-filter: none;
+    }
+    .dl-tl-node {
+      backdrop-filter: none;
+    }
+    .dl-apk-hud {
+      backdrop-filter: none;
     }
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
+import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
 import './Downloads.scss';
 
 const TICKER_ITEMS = [
@@ -53,13 +54,19 @@ const Downloads: React.FC = () => {
     }> = [];
     let pmx = 0.5;
     let pmy = 0.5;
+    let rafId = 0;
+    let lastMouse = 0;
+    const MOUSE_THROTTLE = 64; // ~15fps for parallax
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isNarrow = () => window.innerWidth < 768;
 
     const handleResize = () => {
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
       stars = [];
       nebulae = [];
-      const n = Math.floor((W * H) / 1800);
+      const rawCount = Math.floor((W * H) / 1800);
+      const n = isNarrow() ? Math.min(rawCount, 180) : Math.min(rawCount, 520);
       for (let i = 0; i < n; i++) {
         const t = Math.random();
         stars.push({
@@ -81,12 +88,15 @@ const Downloads: React.FC = () => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      const now = performance.now();
+      if (now - lastMouse < MOUSE_THROTTLE) return;
+      lastMouse = now;
       pmx = e.clientX / window.innerWidth;
       pmy = e.clientY / window.innerHeight;
     };
 
     const spawnShooter = () => {
-      if (Math.random() > 0.007) return;
+      if (isNarrow() || Math.random() > 0.007) return;
       const s = Math.random() > 0.5;
       shooters.push({
         x: s ? 0 : W,
@@ -100,6 +110,10 @@ const Downloads: React.FC = () => {
     };
 
     const draw = () => {
+      if (document.hidden) {
+        rafId = requestAnimationFrame(draw);
+        return;
+      }
       ctx.clearRect(0, 0, W, H);
       const bg = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
       bg.addColorStop(0, 'rgba(0,4,20,.6)');
@@ -108,24 +122,27 @@ const Downloads: React.FC = () => {
       ctx.fillRect(0, 0, W, H);
 
       const t = Date.now() * 0.001;
+      const narrow = isNarrow();
 
-      nebulae.forEach((n) => {
-        const a = n.al * (0.7 + 0.3 * Math.sin(t * 0.3 + n.ph));
-        const px = n.cx * W + (pmx - 0.5) * -40;
-        const py = n.cy * H + (pmy - 0.5) * -30;
-        const mx2 = Math.max(n.rx, n.ry);
-        const grd = ctx.createRadialGradient(px, py, 0, px, py, mx2);
-        grd.addColorStop(0, n.h + a + ')');
-        grd.addColorStop(0.5, n.h + a * 0.4 + ')');
-        grd.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.save();
-        ctx.scale(n.rx / mx2, n.ry / mx2);
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.arc(px * (mx2 / n.rx), py * (mx2 / n.ry), mx2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
+      if (!narrow) {
+        nebulae.forEach((n) => {
+          const a = n.al * (0.7 + 0.3 * Math.sin(t * 0.3 + n.ph));
+          const px = n.cx * W + (pmx - 0.5) * -40;
+          const py = n.cy * H + (pmy - 0.5) * -30;
+          const mx2 = Math.max(n.rx, n.ry);
+          const grd = ctx.createRadialGradient(px, py, 0, px, py, mx2);
+          grd.addColorStop(0, n.h + a + ')');
+          grd.addColorStop(0.5, n.h + a * 0.4 + ')');
+          grd.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.save();
+          ctx.scale(n.rx / mx2, n.ry / mx2);
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.arc(px * (mx2 / n.rx), py * (mx2 / n.ry), mx2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
 
       const core = ctx.createRadialGradient(W * 0.52, H * 0.48, 0, W * 0.52, H * 0.48, W * 0.3);
       core.addColorStop(0, 'rgba(0,80,200,.08)');
@@ -138,13 +155,13 @@ const Downloads: React.FC = () => {
         s.tw += s.ts;
         const a = s.a * (0.4 + 0.6 * Math.sin(s.tw));
         const d = s.r / 2.4;
-        const px = s.x + (pmx - 0.5) * d * 35;
-        const py = s.y + (pmy - 0.5) * d * 25;
+        const px = narrow ? s.x : s.x + (pmx - 0.5) * d * 35;
+        const py = narrow ? s.y : s.y + (pmy - 0.5) * d * 25;
         ctx.beginPath();
         ctx.arc(px, py, s.r, 0, Math.PI * 2);
         ctx.fillStyle = s.c + a + ')';
         ctx.fill();
-        if (s.r > 0.8) {
+        if (!narrow && s.r > 0.8) {
           const g = ctx.createRadialGradient(px, py, 0, px, py, s.r * 6);
           g.addColorStop(0, `rgba(0,190,255,${a * 0.3})`);
           g.addColorStop(1, 'rgba(0,80,200,0)');
@@ -179,15 +196,21 @@ const Downloads: React.FC = () => {
         s.life -= s.decay;
       });
 
-      requestAnimationFrame(draw);
+      rafId = requestAnimationFrame(draw);
     };
 
     handleResize();
-    draw();
+    if (!isReducedMotion) {
+      draw();
+    } else {
+      ctx.fillStyle = 'rgba(0,4,20,.95)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
     window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
     };
@@ -301,6 +324,11 @@ const Downloads: React.FC = () => {
         <div className="dl-hero-badge">
           <span className="dot" aria-hidden />
           India&apos;s #1 Real Money Tournament App — Now Live
+        </div>
+
+        <div className="dl-hero-logo">
+          <img src={boyaahxfavi2Img} alt="" />
+          <span className="dl-hero-logo-name">Booyah<em>X</em></span>
         </div>
 
         <h1 className="dl-headline">
