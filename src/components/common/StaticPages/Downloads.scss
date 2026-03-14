@@ -66,6 +66,9 @@
   }
 
   .dl-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-family: 'Orbitron', sans-serif;
     font-size: 1.45rem;
     font-weight: 900;
@@ -78,6 +81,12 @@
     &:hover {
       transform: scale(1.03);
       text-shadow: 0 0 40px rgba(0, 200, 255, 0.7), 0 0 60px rgba(0, 150, 255, 0.3);
+    }
+
+    .dl-logo-icon {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
     }
 
     em {
@@ -1299,6 +1308,11 @@
 
     .dl-logo {
       font-size: 1.25rem;
+
+      .dl-logo-icon {
+        width: 28px;
+        height: 28px;
+      }
     }
 
     .dl-tk {
@@ -1428,6 +1442,11 @@
     .dl-logo {
       font-size: 1.15rem;
       letter-spacing: 2px;
+
+      .dl-logo-icon {
+        width: 26px;
+        height: 26px;
+      }
     }
 
     .dl-tk {
@@ -1640,6 +1659,11 @@
 
     .dl-logo {
       font-size: 1rem;
+
+      .dl-logo-icon {
+        width: 24px;
+        height: 24px;
+      }
     }
 
     .dl-hero {

@@ -282,6 +282,7 @@ const Downloads: React.FC = () => {
 
       <nav className="dl-nav">
         <a href={STATIC_ROUTES.DOWNLOADS} className="dl-logo">
+          <img src="/favicon.png" alt="" className="dl-logo-icon" aria-hidden />
           BOOYAH<em>X</em>
         </a>
         <div className="dl-nav-links">
@@ -527,7 +528,7 @@ const Downloads: React.FC = () => {
               <div className="dl-apk-em" aria-hidden>📱</div>
               <div className="dl-apk-info">
                 <div className="dl-apk-n">BooyahX.apk</div>
-                <div className="dl-apk-m">v1.0.0 &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; ~18 MB</div>
+                <div className="dl-apk-m">v1.0.0 &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; ~37 MB</div>
               </div>
             </div>
           </div>
