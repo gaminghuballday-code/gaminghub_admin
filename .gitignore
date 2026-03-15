@@ -2,7 +2,7 @@
 node_modules/
 .pnp
 .pnp.js
-
+*.apk
 # Build outputs
 dist/
 dist-ssr/

@@ -1,8 +1,10 @@
+import { getGoogleDriveDirectDownloadUrl } from './googleDrive';
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.gaminghuballday.buzz';
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'booyahx-admin';
 
-// Public app download links
-export const ANDROID_APK_URL = import.meta.env.VITE_ANDROID_APK_URL || '';
+// Public app download links — supports Google Drive share link (auto-converted to direct download)
+export const ANDROID_APK_URL = getGoogleDriveDirectDownloadUrl(import.meta.env.VITE_ANDROID_APK_URL || '');
 
 // Admin Routes
 export const ADMIN_ROUTES = {
