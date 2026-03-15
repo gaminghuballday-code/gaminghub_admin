@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
 import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
 import './Downloads.scss';
@@ -12,248 +12,23 @@ const TICKER_ITEMS = [
   'Play Daily — Earn Daily',
 ];
 
+// Lightweight static star positions (no canvas, no RAF) — % based for any viewport
+const STARFIELD_STARS: Array<{ x: number; y: number; size: number; delay: number }> = [
+  { x: 5, y: 12, size: 1, delay: 0 }, { x: 18, y: 8, size: 2, delay: 0.5 }, { x: 32, y: 22, size: 1, delay: 1 },
+  { x: 45, y: 5, size: 1, delay: 0.2 }, { x: 58, y: 18, size: 2, delay: 1.2 }, { x: 72, y: 10, size: 1, delay: 0.8 },
+  { x: 88, y: 25, size: 1, delay: 0.4 }, { x: 12, y: 35, size: 1, delay: 1 }, { x: 25, y: 42, size: 2, delay: 0.6 },
+  { x: 40, y: 38, size: 1, delay: 0.1 }, { x: 55, y: 48, size: 1, delay: 1.4 }, { x: 70, y: 35, size: 2, delay: 0.3 },
+  { x: 82, y: 45, size: 1, delay: 0.9 }, { x: 8, y: 58, size: 1, delay: 0.7 }, { x: 22, y: 65, size: 2, delay: 0.2 },
+  { x: 38, y: 72, size: 1, delay: 1.1 }, { x: 52, y: 62, size: 1, delay: 0.5 }, { x: 65, y: 78, size: 2, delay: 0.9 },
+  { x: 78, y: 68, size: 1, delay: 0.3 }, { x: 92, y: 55, size: 1, delay: 1.3 }, { x: 15, y: 82, size: 1, delay: 0.4 },
+  { x: 48, y: 15, size: 2, delay: 0.6 }, { x: 62, y: 52, size: 1, delay: 1 }, { x: 28, y: 28, size: 1, delay: 0.8 },
+  { x: 75, y: 42, size: 1, delay: 0.2 }, { x: 10, y: 48, size: 2, delay: 1.2 }, { x: 85, y: 18, size: 1, delay: 0.5 },
+  { x: 35, y: 55, size: 1, delay: 0.7 }, { x: 50, y: 88, size: 2, delay: 0.1 }, { x: 95, y: 72, size: 1, delay: 0.9 },
+];
+
 const Downloads: React.FC = () => {
   const hasAndroidLink = ANDROID_APK_URL.trim().length > 0;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let W = 0;
-    let H = 0;
-    let stars: Array<{
-      x: number;
-      y: number;
-      r: number;
-      a: number;
-      tw: number;
-      ts: number;
-      c: string;
-    }> = [];
-    let nebulae: Array<{
-      cx: number;
-      cy: number;
-      rx: number;
-      ry: number;
-      h: string;
-      al: number;
-      ph: number;
-    }> = [];
-    let shooters: Array<{
-      x: number;
-      y: number;
-      dx: number;
-      dy: number;
-      life: number;
-      decay: number;
-      len: number;
-    }> = [];
-    let pmx = 0.5;
-    let pmy = 0.5;
-    let rafId = 0;
-    let lastMouse = 0;
-    const MOUSE_THROTTLE = 64; // ~15fps for parallax
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isNarrow = () => window.innerWidth < 768;
-
-    const handleResize = () => {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-      stars = [];
-      nebulae = [];
-      const rawCount = Math.floor((W * H) / 1800);
-      const n = isNarrow() ? Math.min(rawCount, 180) : Math.min(rawCount, 520);
-      for (let i = 0; i < n; i++) {
-        const t = Math.random();
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: t > 0.97 ? Math.random() * 1.6 + 0.8 : t > 0.86 ? Math.random() * 0.8 + 0.35 : Math.random() * 0.35 + 0.1,
-          a: Math.random() * 0.65 + 0.25,
-          tw: Math.random() * Math.PI * 2,
-          ts: Math.random() * 0.006 + 0.002,
-          c: Math.random() > 0.65 ? 'rgba(180,215,255,' : 'rgba(230,242,255,',
-        });
-      }
-      [
-        { cx: 0.15, cy: 0.2, rx: 600, ry: 400, h: 'rgba(0,60,180,' },
-        { cx: 0.85, cy: 0.7, rx: 500, ry: 380, h: 'rgba(0,40,140,' },
-        { cx: 0.5, cy: 0.5, rx: 400, ry: 500, h: 'rgba(0,30,120,' },
-        { cx: 0.3, cy: 0.8, rx: 450, ry: 300, h: 'rgba(0,50,160,' },
-      ].forEach((n) => nebulae.push({ ...n, al: Math.random() * 0.14 + 0.08, ph: Math.random() * Math.PI * 2 }));
-    };
-
-    const drawStaticFrame = () => {
-      ctx.clearRect(0, 0, W, H);
-      const bg = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
-      bg.addColorStop(0, 'rgba(0,4,20,.6)');
-      bg.addColorStop(1, 'rgba(0,0,10,.95)');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
-      const core = ctx.createRadialGradient(W * 0.52, H * 0.48, 0, W * 0.52, H * 0.48, W * 0.3);
-      core.addColorStop(0, 'rgba(0,80,200,.08)');
-      core.addColorStop(0.4, 'rgba(0,40,120,.04)');
-      core.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = core;
-      ctx.fillRect(0, 0, W, H);
-      stars.forEach((s) => {
-        const a = s.a * 0.7;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = s.c + a + ')';
-        ctx.fill();
-      });
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const now = performance.now();
-      if (now - lastMouse < MOUSE_THROTTLE) return;
-      lastMouse = now;
-      pmx = e.clientX / window.innerWidth;
-      pmy = e.clientY / window.innerHeight;
-    };
-
-    const spawnShooter = () => {
-      if (isNarrow() || Math.random() > 0.007) return;
-      const s = Math.random() > 0.5;
-      shooters.push({
-        x: s ? 0 : W,
-        y: Math.random() * H * 0.6,
-        dx: (s ? 1 : -1) * (Math.random() * 4 + 3),
-        dy: Math.random() * 2 + 1,
-        life: 1,
-        decay: Math.random() * 0.014 + 0.008,
-        len: Math.random() * 120 + 60,
-      });
-    };
-
-    const draw = () => {
-      if (document.hidden) {
-        rafId = requestAnimationFrame(draw);
-        return;
-      }
-      if (isNarrow()) {
-        drawStaticFrame();
-        rafId = 0;
-        return;
-      }
-      ctx.clearRect(0, 0, W, H);
-      const bg = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
-      bg.addColorStop(0, 'rgba(0,4,20,.6)');
-      bg.addColorStop(1, 'rgba(0,0,10,.95)');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
-
-      const t = Date.now() * 0.001;
-      const narrow = isNarrow();
-
-      if (!narrow) {
-        nebulae.forEach((n) => {
-          const a = n.al * (0.7 + 0.3 * Math.sin(t * 0.3 + n.ph));
-          const px = n.cx * W + (pmx - 0.5) * -40;
-          const py = n.cy * H + (pmy - 0.5) * -30;
-          const mx2 = Math.max(n.rx, n.ry);
-          const grd = ctx.createRadialGradient(px, py, 0, px, py, mx2);
-          grd.addColorStop(0, n.h + a + ')');
-          grd.addColorStop(0.5, n.h + a * 0.4 + ')');
-          grd.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.save();
-          ctx.scale(n.rx / mx2, n.ry / mx2);
-          ctx.fillStyle = grd;
-          ctx.beginPath();
-          ctx.arc(px * (mx2 / n.rx), py * (mx2 / n.ry), mx2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        });
-      }
-
-      const core = ctx.createRadialGradient(W * 0.52, H * 0.48, 0, W * 0.52, H * 0.48, W * 0.3);
-      core.addColorStop(0, 'rgba(0,80,200,.08)');
-      core.addColorStop(0.4, 'rgba(0,40,120,.04)');
-      core.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = core;
-      ctx.fillRect(0, 0, W, H);
-
-      stars.forEach((s) => {
-        s.tw += s.ts;
-        const a = s.a * (0.4 + 0.6 * Math.sin(s.tw));
-        const d = s.r / 2.4;
-        const px = narrow ? s.x : s.x + (pmx - 0.5) * d * 35;
-        const py = narrow ? s.y : s.y + (pmy - 0.5) * d * 25;
-        ctx.beginPath();
-        ctx.arc(px, py, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = s.c + a + ')';
-        ctx.fill();
-        if (!narrow && s.r > 0.8) {
-          const g = ctx.createRadialGradient(px, py, 0, px, py, s.r * 6);
-          g.addColorStop(0, `rgba(0,190,255,${a * 0.3})`);
-          g.addColorStop(1, 'rgba(0,80,200,0)');
-          ctx.beginPath();
-          ctx.arc(px, py, s.r * 6, 0, Math.PI * 2);
-          ctx.fillStyle = g;
-          ctx.fill();
-        }
-      });
-
-      spawnShooter();
-      shooters = shooters.filter((s) => s.life > 0);
-      shooters.forEach((s) => {
-        const spd = Math.sqrt(s.dx * s.dx + s.dy * s.dy);
-        const tail = ctx.createLinearGradient(
-          s.x,
-          s.y,
-          s.x - s.dx * (s.len / spd),
-          s.y - s.dy * (s.len / spd)
-        );
-        tail.addColorStop(0, `rgba(180,230,255,${s.life})`);
-        tail.addColorStop(0.4, `rgba(0,200,255,${s.life * 0.5})`);
-        tail.addColorStop(1, 'rgba(0,100,200,0)');
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x - s.dx * (s.len / spd), s.y - s.dy * (s.len / spd));
-        ctx.strokeStyle = tail;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        s.x += s.dx;
-        s.y += s.dy;
-        s.life -= s.decay;
-      });
-
-      rafId = requestAnimationFrame(draw);
-    };
-
-    const handleResizeAndMode = () => {
-      handleResize();
-      if (isNarrow()) {
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = 0;
-        }
-        if (!isReducedMotion) drawStaticFrame();
-        else {
-          ctx.fillStyle = 'rgba(0,4,20,.95)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-      } else if (!rafId && !isReducedMotion) {
-        draw();
-      }
-    };
-
-    handleResizeAndMode();
-
-    window.addEventListener('resize', handleResizeAndMode);
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', handleResizeAndMode);
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
+  const stars = useMemo(() => STARFIELD_STARS, []);
 
   useEffect(() => {
     const count = (el: Element) => {
@@ -314,10 +89,32 @@ const Downloads: React.FC = () => {
     if (!hasAndroidLink) e.preventDefault();
   };
 
+  // Use your own image you have rights to (e.g. royalty-free, or official press kit). Place at public/images/freefire-bg.jpg
+  const freefireBgUrl = '/images/freefire-bg.jpg';
+
   return (
     <div className="downloads-landing">
       <div className="dl-grain" aria-hidden />
-      <canvas ref={canvasRef} className="dl-gc" aria-hidden />
+      <div className="dl-bg" aria-hidden>
+        <div className="dl-bg-image" style={{ backgroundImage: `url(${freefireBgUrl})` }} />
+        <div className="dl-bg-gradient" />
+        <div className="dl-bg-core" />
+        <div className="dl-bg-stars">
+          {stars.map((s, i) => (
+            <span
+              key={i}
+              className="dl-bg-star"
+              style={{
+                left: `${s.x}%`,
+                top: `${s.y}%`,
+                width: s.size * 4,
+                height: s.size * 4,
+                animationDelay: `${s.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
 
       <nav className="dl-nav">
         <a href={STATIC_ROUTES.DOWNLOADS} className="dl-logo">
