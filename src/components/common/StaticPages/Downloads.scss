@@ -205,7 +205,8 @@
 
   .dl-tk-track {
     display: inline-flex;
-    animation: none;
+    animation: dl-ticker 20s linear infinite;
+    will-change: transform;
   }
 
   .dl-tk-item {
