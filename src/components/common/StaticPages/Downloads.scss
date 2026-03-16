@@ -37,10 +37,11 @@
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.035'/%3E%3C/svg%3E");
     background-size: 256px 256px;
-    opacity: 0.5;
+    opacity: 0.25;
+    contain: strict;
 
     @media (max-width: 768px) {
-      opacity: 0.2;
+      opacity: 0.12;
     }
   }
 
@@ -203,7 +204,7 @@
 
   .dl-tk-track {
     display: inline-flex;
-    animation: dl-ticker 24s linear infinite;
+    animation: none;
   }
 
   .dl-tk-item {
@@ -251,12 +252,8 @@
       radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0, 100, 220, 0.22) 0%, transparent 60%),
       radial-gradient(ellipse 70% 60% at 50% 52%, rgba(0, 50, 150, 0.14) 0%, transparent 65%);
     pointer-events: none;
-    animation: dl-burst-breathe 6s ease-in-out infinite alternate;
-
-    @media (max-width: 768px) {
-      animation: none;
-      opacity: 0.9;
-    }
+    animation: none;
+    opacity: 0.9;
   }
 
   @keyframes dl-burst-breathe {
@@ -460,7 +457,7 @@
     border-radius: 50%;
     background: var(--b0);
     box-shadow: 0 0 12px var(--b0), 0 0 24px rgba(0, 200, 255, 0.5);
-    animation: dl-dot-pulse 2.5s ease-in-out infinite;
+    animation: none;
   }
 
   @keyframes dl-dot-pulse {
@@ -483,8 +480,7 @@
     margin: 40px 0;
     border: 1px solid var(--edge);
     border-radius: 10px;
-    background: linear-gradient(135deg, rgba(0, 200, 255, 0.06), rgba(0, 50, 150, 0.04));
-    backdrop-filter: blur(12px);
+    background: linear-gradient(135deg, rgba(0, 200, 255, 0.08), rgba(0, 50, 150, 0.06));
     overflow: hidden;
     animation: dl-fadeUp 0.9s 0.3s ease both;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 100, 200, 0.15);
@@ -699,13 +695,12 @@
   }
 
   .dl-bc {
-    background: var(--card);
     border: 1px solid rgba(0, 160, 255, 0.1);
     border-radius: 10px;
     padding: 36px 30px;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(16px);
+    background: rgba(0, 6, 22, 0.82);
     transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s, box-shadow 0.3s;
 
     &::before {
@@ -890,19 +885,7 @@
     position: relative;
     z-index: 1;
     box-shadow: 0 0 20px rgba(0, 150, 255, 0.2), inset 0 0 20px rgba(0, 80, 180, 0.1);
-    backdrop-filter: blur(8px);
     transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
-    animation: dl-node-idle 4s ease-in-out infinite;
-  }
-
-  .dl-tl-step:nth-child(2) .dl-tl-node { animation-delay: 0s; }
-  .dl-tl-step:nth-child(3) .dl-tl-node { animation-delay: 0.5s; }
-  .dl-tl-step:nth-child(4) .dl-tl-node { animation-delay: 1s; }
-  .dl-tl-step:nth-child(5) .dl-tl-node { animation-delay: 1.5s; }
-
-  @keyframes dl-node-idle {
-    0%, 100% { box-shadow: 0 0 20px rgba(0, 150, 255, 0.2), inset 0 0 20px rgba(0, 80, 180, 0.1); }
-    50% { box-shadow: 0 0 28px rgba(0, 200, 255, 0.35), inset 0 0 24px rgba(0, 100, 200, 0.15); }
   }
 
   .dl-tl-step:hover .dl-tl-node {
@@ -935,6 +918,8 @@
     padding: 120px 0;
     text-align: center;
     overflow: hidden;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
 
     &::before {
       content: '';
@@ -995,8 +980,7 @@
     gap: 28px;
     border: 1px solid rgba(0, 200, 255, 0.25);
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(0, 12, 32, 0.85), rgba(0, 8, 24, 0.9));
-    backdrop-filter: blur(14px);
+    background: linear-gradient(135deg, rgba(0, 12, 32, 0.92), rgba(0, 8, 24, 0.95));
     padding: 28px 44px;
     margin-bottom: 28px;
     position: relative;
@@ -1310,20 +1294,8 @@
     border-radius: 50%;
     background: rgba(200, 230, 255, 0.7);
     transform: translate(-50%, -50%);
-    animation: dl-star-twinkle 3s ease-in-out infinite;
-    will-change: opacity;
-  }
-
-  @keyframes dl-star-twinkle {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 0.9; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .dl-bg-star {
-      animation: none;
-      opacity: 0.6;
-    }
+    animation: none;
+    opacity: 0.6;
   }
 
   // Tablet (iPad, small laptop)

@@ -89,6 +89,18 @@ const Downloads: React.FC = () => {
     if (!hasAndroidLink) e.preventDefault();
   };
 
+  const handleNavAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.getAttribute('href') ?? '';
+    if (href.startsWith('#')) {
+      const id = href.slice(1);
+      const el = id ? document.getElementById(id) : null;
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   // Use your own image you have rights to (e.g. royalty-free, or official press kit). Place at public/images/freefire-bg.jpg
   const freefireBgUrl = '/images/freefire-bg.jpg';
 
@@ -122,13 +134,13 @@ const Downloads: React.FC = () => {
           BOOYAH<em>X</em>
         </a>
         <div className="dl-nav-links">
-          <a href="#features" className="dl-nl">
+          <a href="#features" className="dl-nl" onClick={handleNavAnchorClick}>
             Features
           </a>
-          <a href="#how" className="dl-nl">
+          <a href="#how" className="dl-nl" onClick={handleNavAnchorClick}>
             How It Works
           </a>
-          <a href="#download" className="dl-nl">
+          <a href="#download" className="dl-nl" onClick={handleNavAnchorClick}>
             Download
           </a>
           <a
