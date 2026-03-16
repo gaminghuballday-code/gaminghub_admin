@@ -31,7 +31,7 @@
 
   .dl-grain::before {
     content: '';
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 1;
     pointer-events: none;
@@ -56,6 +56,7 @@
     justify-content: space-between;
     padding: 0 56px;
     height: 68px;
+    will-change: transform;
     background: linear-gradient(180deg, rgba(0, 0, 12, 0.98) 0%, rgba(0, 0, 12, 0.92) 100%);
 
     @media (max-width: 768px) {
@@ -410,20 +411,12 @@
     .l2 {
       display: block;
       background: linear-gradient(110deg, var(--b2) 0%, var(--b0) 35%, #00a8ff 55%, #0050ff 100%);
-      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 0 40px rgba(0, 200, 255, 0.9)) drop-shadow(0 0 80px rgba(0, 150, 255, 0.4));
       letter-spacing: 2px;
       margin-top: 8px;
-      animation: dl-headline-shine 6s ease-in-out infinite;
     }
-  }
-
-  @keyframes dl-headline-shine {
-    0%, 100% { background-position: 0% center; }
-    50% { background-position: 100% center; }
   }
 
   @keyframes dl-fadeUp {
@@ -677,7 +670,6 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.6));
     }
   }
 
@@ -953,7 +945,6 @@
     font-size: clamp(2.2rem, 5.5vw, 4.2rem);
     font-weight: 900;
     margin-bottom: 20px;
-    text-shadow: 0 0 80px rgba(0, 100, 200, 0.4);
 
     em {
       font-style: normal;
@@ -961,7 +952,6 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 0 30px rgba(0, 200, 255, 1));
     }
   }
 
@@ -1247,11 +1237,12 @@
   }
 
   .dl-bg {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     contain: paint;
+    will-change: transform;
   }
 
   .dl-bg-image {
@@ -1284,19 +1275,6 @@
     );
   }
 
-  .dl-bg-stars {
-    position: absolute;
-    inset: 0;
-  }
-
-  .dl-bg-star {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(200, 230, 255, 0.7);
-    transform: translate(-50%, -50%);
-    animation: none;
-    opacity: 0.6;
-  }
 
   // Tablet (iPad, small laptop)
   @media (max-width: 1024px) {

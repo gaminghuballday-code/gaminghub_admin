@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
 import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
 import './Downloads.scss';
@@ -12,23 +12,9 @@ const TICKER_ITEMS = [
   'Play Daily — Earn Daily',
 ];
 
-// Lightweight static star positions (no canvas, no RAF) — % based for any viewport
-const STARFIELD_STARS: Array<{ x: number; y: number; size: number; delay: number }> = [
-  { x: 5, y: 12, size: 1, delay: 0 }, { x: 18, y: 8, size: 2, delay: 0.5 }, { x: 32, y: 22, size: 1, delay: 1 },
-  { x: 45, y: 5, size: 1, delay: 0.2 }, { x: 58, y: 18, size: 2, delay: 1.2 }, { x: 72, y: 10, size: 1, delay: 0.8 },
-  { x: 88, y: 25, size: 1, delay: 0.4 }, { x: 12, y: 35, size: 1, delay: 1 }, { x: 25, y: 42, size: 2, delay: 0.6 },
-  { x: 40, y: 38, size: 1, delay: 0.1 }, { x: 55, y: 48, size: 1, delay: 1.4 }, { x: 70, y: 35, size: 2, delay: 0.3 },
-  { x: 82, y: 45, size: 1, delay: 0.9 }, { x: 8, y: 58, size: 1, delay: 0.7 }, { x: 22, y: 65, size: 2, delay: 0.2 },
-  { x: 38, y: 72, size: 1, delay: 1.1 }, { x: 52, y: 62, size: 1, delay: 0.5 }, { x: 65, y: 78, size: 2, delay: 0.9 },
-  { x: 78, y: 68, size: 1, delay: 0.3 }, { x: 92, y: 55, size: 1, delay: 1.3 }, { x: 15, y: 82, size: 1, delay: 0.4 },
-  { x: 48, y: 15, size: 2, delay: 0.6 }, { x: 62, y: 52, size: 1, delay: 1 }, { x: 28, y: 28, size: 1, delay: 0.8 },
-  { x: 75, y: 42, size: 1, delay: 0.2 }, { x: 10, y: 48, size: 2, delay: 1.2 }, { x: 85, y: 18, size: 1, delay: 0.5 },
-  { x: 35, y: 55, size: 1, delay: 0.7 }, { x: 50, y: 88, size: 2, delay: 0.1 }, { x: 95, y: 72, size: 1, delay: 0.9 },
-];
 
 const Downloads: React.FC = () => {
   const hasAndroidLink = ANDROID_APK_URL.trim().length > 0;
-  const stars = useMemo(() => STARFIELD_STARS, []);
 
   useEffect(() => {
     const count = (el: Element) => {
@@ -111,21 +97,6 @@ const Downloads: React.FC = () => {
         <div className="dl-bg-image" style={{ backgroundImage: `url(${freefireBgUrl})` }} />
         <div className="dl-bg-gradient" />
         <div className="dl-bg-core" />
-        <div className="dl-bg-stars">
-          {stars.map((s, i) => (
-            <span
-              key={i}
-              className="dl-bg-star"
-              style={{
-                left: `${s.x}%`,
-                top: `${s.y}%`,
-                width: s.size * 4,
-                height: s.size * 4,
-                animationDelay: `${s.delay}s`,
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       <nav className="dl-nav">
