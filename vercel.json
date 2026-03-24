@@ -7,6 +7,10 @@
       "destination": "https://api.gaminghuballday.buzz/api/:path*"
     },
     {
+      "source": "/apk/:path*",
+      "destination": "/apk/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
