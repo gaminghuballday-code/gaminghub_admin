@@ -30,13 +30,6 @@ const Downloads: React.FC = () => {
         window.setTimeout(() => {
           const link = document.querySelector<HTMLAnchorElement>('a[data-apk-download="1"]');
           link?.click();
-
-          // Fallback for browsers that ignore programmatic clicks for downloads.
-          // This will navigate to the APK URL which typically triggers a download response.
-          window.setTimeout(() => {
-            if (!document.hasFocus()) return;
-            window.location.assign(ANDROID_APK_URL);
-          }, 800);
         }, 700);
       }
     }

@@ -27,6 +27,17 @@
       0 0 42px rgba(0, 110, 255, 0.1),
       0 0 0 1px rgba(0, 0, 0, 0.06) inset;
     animation: apk-qr-breathe 3.4s ease-in-out infinite alternate;
+
+    > div {
+      line-height: 0;
+    }
+
+    svg,
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
   }
 
   &__brand {
@@ -55,7 +66,7 @@
 
   &__action-btn {
     appearance: none;
-    border: 1px solid rgba(0, 229, 255, 0.35);
+    border: 0;
     background: rgba(0, 16, 24, 0.35);
     color: rgba(255, 255, 255, 0.9);
     padding: 10px 12px;
@@ -70,7 +81,6 @@
     &:hover {
       transform: translateY(-1px);
       background: rgba(0, 16, 24, 0.5);
-      border-color: rgba(0, 229, 255, 0.55);
     }
 
     &:active {

@@ -32,7 +32,8 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
     const qr = new QRCodeStyling({
       width: size,
       height: size,
-      type: 'canvas',
+      // SVG keeps the QR crisp at any zoom level (canvas will pixelate).
+      type: 'svg',
       data: qrValue,
       margin: 0,
       image: '/favicon.png',
@@ -83,7 +84,8 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
   const handleDownloadQr = async () => {
     try {
       if (!qrRef.current) return;
-      await qrRef.current.download({ extension: 'png' });
+      // SVG download stays sharp in chat apps / when re-shared.
+      await qrRef.current.download({ extension: 'svg' });
       dispatch(
         addToast({
           message: 'QR downloaded',
