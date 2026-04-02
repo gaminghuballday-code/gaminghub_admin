@@ -25,8 +25,27 @@ const Downloads: React.FC = () => {
         el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
 
-      // Best-effort auto-download: some browsers require a user gesture.
-      if (hasAndroidLink) {
+      // Best-effort auto-download ONLY for mobile/Android (QR/scanner flow).
+      // On desktop or non-Android devices, never force a download.
+      const ua = navigator.userAgent || '';
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) || navigator.maxTouchPoints > 0;
+      const navType = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+      const isReload = navType?.type === 'reload';
+      const sessionKey = `apk_auto_downloaded:${window.location.pathname}`;
+      const alreadyAutoDownloaded = sessionStorage.getItem(sessionKey) === '1';
+
+      // Never auto-download on refresh/reload, or more than once per tab session.
+      const allowAutoDownload =
+        hasAndroidLink &&
+        isAndroid &&
+        isMobile &&
+        document.visibilityState === 'visible' &&
+        !isReload &&
+        !alreadyAutoDownloaded;
+
+      if (allowAutoDownload) {
+        sessionStorage.setItem(sessionKey, '1');
         window.setTimeout(() => {
           const link = document.querySelector<HTMLAnchorElement>('a[data-apk-download="1"]');
           link?.click();
