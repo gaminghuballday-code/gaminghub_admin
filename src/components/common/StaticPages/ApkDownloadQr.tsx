@@ -22,6 +22,47 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
 
   if (!qrValue) return null;
 
+  const getQrConfig = (px: number, type: 'svg' | 'canvas') => ({
+    width: px,
+    height: px,
+    type,
+    data: qrValue,
+    margin: 0,
+    image: '/favicon.png',
+    qrOptions: {
+      errorCorrectionLevel: 'M' as const,
+    },
+    imageOptions: {
+      hideBackgroundDots: true,
+      imageSize: 0.32,
+      margin: 6,
+    },
+    dotsOptions: {
+      type: 'rounded' as const,
+      color: '#001018',
+      gradient: {
+        type: 'radial' as const,
+        rotation: 0,
+        colorStops: [
+          { offset: 0, color: '#00e5ff' },
+          { offset: 0.55, color: '#00c8ff' },
+          { offset: 1, color: '#006eff' },
+        ],
+      },
+    },
+    cornersSquareOptions: {
+      type: 'extra-rounded' as const,
+      color: '#006eff',
+    },
+    cornersDotOptions: {
+      type: 'dot' as const,
+      color: '#00c8ff',
+    },
+    backgroundOptions: {
+      color: '#ffffff',
+    },
+  });
+
   const rootClass = ['apk-download-qr', className].filter(Boolean).join(' ');
   const mountRef = useRef<HTMLDivElement | null>(null);
   const qrRef = useRef<QRCodeStyling | null>(null);
@@ -29,47 +70,8 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
   useEffect(() => {
     if (!mountRef.current) return;
 
-    const qr = new QRCodeStyling({
-      width: size,
-      height: size,
-      // SVG keeps the QR crisp at any zoom level (canvas will pixelate).
-      type: 'svg',
-      data: qrValue,
-      margin: 0,
-      image: '/favicon.png',
-      qrOptions: {
-        errorCorrectionLevel: 'M',
-      },
-      imageOptions: {
-        hideBackgroundDots: true,
-        imageSize: 0.32,
-        margin: 6,
-      },
-      dotsOptions: {
-        type: 'rounded',
-        color: '#001018',
-        gradient: {
-          type: 'radial',
-          rotation: 0,
-          colorStops: [
-            { offset: 0, color: '#00e5ff' },
-            { offset: 0.55, color: '#00c8ff' },
-            { offset: 1, color: '#006eff' },
-          ],
-        },
-      },
-      cornersSquareOptions: {
-        type: 'extra-rounded',
-        color: '#006eff',
-      },
-      cornersDotOptions: {
-        type: 'dot',
-        color: '#00c8ff',
-      },
-      backgroundOptions: {
-        color: '#ffffff',
-      },
-    });
+    // SVG keeps the QR crisp at any zoom level (canvas will pixelate).
+    const qr = new QRCodeStyling(getQrConfig(size, 'svg'));
 
     mountRef.current.innerHTML = '';
     qr.append(mountRef.current);
@@ -83,10 +85,11 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
 
   const handleDownloadQr = async () => {
     try {
-      if (!qrRef.current) return;
-      // Force a real download (no navigation / opening a new tab).
-      // Use high-res PNG to avoid some browsers auto-opening SVG files.
-      const blob = await qrRef.current.getRawData('png');
+      // Generate a dedicated high-res QR for scanner-friendly downloads.
+      // (On-screen QR remains small and SVG-based.)
+      const downloadSize = Math.max(1024, size * 6);
+      const downloadQr = new QRCodeStyling(getQrConfig(downloadSize, 'canvas'));
+      const blob = await downloadQr.getRawData('png');
       if (!blob) {
         dispatch(
           addToast({
@@ -101,18 +104,11 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'BooyahX-QR.png';
+      a.download = 'BooyahX-QR-1024.png';
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      dispatch(
-        addToast({
-          message: 'QR downloaded',
-          type: 'success',
-          duration: 3500,
-        })
-      );
     } catch {
       dispatch(
         addToast({
@@ -138,13 +134,6 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
 
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        dispatch(
-          addToast({
-            message: 'Link copied to clipboard',
-            type: 'success',
-            duration: 3500,
-          })
-        );
         return;
       }
 
