@@ -84,8 +84,28 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
   const handleDownloadQr = async () => {
     try {
       if (!qrRef.current) return;
-      // SVG download stays sharp in chat apps / when re-shared.
-      await qrRef.current.download({ extension: 'svg' });
+      // Force a real download (no navigation / opening a new tab).
+      // Use high-res PNG to avoid some browsers auto-opening SVG files.
+      const blob = await qrRef.current.getRawData('png');
+      if (!blob) {
+        dispatch(
+          addToast({
+            message: 'Failed to generate QR. Please try again.',
+            type: 'error',
+            duration: 4500,
+          })
+        );
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'BooyahX-QR.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
       dispatch(
         addToast({
           message: 'QR downloaded',
