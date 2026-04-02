@@ -23,8 +23,10 @@
     background: #ffffff;
     border: 1px solid rgba(0, 200, 255, 0.45);
     box-shadow:
-      0 0 40px rgba(0, 100, 200, 0.2),
+      0 0 22px rgba(0, 229, 255, 0.12),
+      0 0 42px rgba(0, 110, 255, 0.1),
       0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+    animation: apk-qr-breathe 3.4s ease-in-out infinite alternate;
   }
 
   &__brand {
@@ -65,7 +67,21 @@
       border-color: rgba(0, 229, 255, 0.5);
       box-shadow:
         0 12px 40px rgba(0, 40, 100, 0.35),
-        0 0 48px rgba(0, 180, 255, 0.15);
+        0 0 20px rgba(0, 229, 255, 0.11),
+        0 0 44px rgba(0, 110, 255, 0.09);
+      animation: apk-qr-breathe 3.8s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes apk-qr-breathe {
+    0% { transform: translateZ(0) scale(1); }
+    100% { transform: translateZ(0) scale(1.01); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__frame {
+      animation: none;
+      transform: none;
     }
   }
 }

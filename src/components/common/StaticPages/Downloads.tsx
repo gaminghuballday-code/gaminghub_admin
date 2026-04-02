@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
-import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
 import { ApkDownloadQr } from './ApkDownloadQr';
 import './Downloads.scss';
 
@@ -114,6 +113,7 @@ const Downloads: React.FC = () => {
 
   // Use your own image you have rights to (e.g. royalty-free, or official press kit). Place at public/images/freefire-bg.jpg
   const freefireBgUrl = '/images/freefire-bg.jpg';
+  const brandIconUrl = '/backbooyah.png';
 
   return (
     <div className="downloads-landing">
@@ -126,7 +126,7 @@ const Downloads: React.FC = () => {
 
       <nav className="dl-nav">
         <a href={STATIC_ROUTES.DOWNLOADS} className="dl-logo">
-          <img src="/favicon.png" alt="" className="dl-logo-icon" aria-hidden />
+          <img src={brandIconUrl} alt="" className="dl-logo-icon" aria-hidden />
           BOOYAH<em>X</em>
         </a>
         <div className="dl-nav-links">
@@ -172,7 +172,7 @@ const Downloads: React.FC = () => {
         </div>
 
         <div className="dl-hero-logo">
-          <img src={boyaahxfavi2Img} alt="" />
+          <img src={brandIconUrl} alt="" />
           <span className="dl-hero-logo-name">Booyah<em>X</em></span>
         </div>
 

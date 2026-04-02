@@ -97,6 +97,10 @@
       width: 32px;
       height: 32px;
       object-fit: contain;
+      filter:
+        drop-shadow(0 0 7px rgba(0, 229, 255, 0.4))
+        drop-shadow(0 0 16px rgba(0, 110, 255, 0.16));
+      animation: dl-icon-breathe 2.8s ease-in-out infinite alternate;
     }
 
     em {
@@ -230,6 +234,21 @@
     100% { transform: translateX(-50%); }
   }
 
+  @keyframes dl-icon-breathe {
+    0% {
+      filter:
+        drop-shadow(0 0 6px rgba(0, 229, 255, 0.28))
+        drop-shadow(0 0 14px rgba(0, 110, 255, 0.12));
+      transform: translateZ(0) scale(1);
+    }
+    100% {
+      filter:
+        drop-shadow(0 0 9px rgba(0, 229, 255, 0.38))
+        drop-shadow(0 0 20px rgba(0, 110, 255, 0.16));
+      transform: translateZ(0) scale(1.01);
+    }
+  }
+
   .dl-hero {
     position: relative;
     z-index: 10;
@@ -331,6 +350,10 @@
       height: auto;
       margin: 0 auto;
       object-fit: contain;
+      filter:
+        drop-shadow(0 0 12px rgba(0, 229, 255, 0.34))
+        drop-shadow(0 0 34px rgba(0, 110, 255, 0.16));
+      animation: dl-icon-breathe 3.6s ease-in-out infinite alternate;
     }
 
     .dl-hero-logo-name {
@@ -1954,6 +1977,14 @@
 
     .dl-download-panel {
       backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dl-logo .dl-logo-icon,
+    .dl-hero-logo img {
+      animation: none;
+      transform: none;
     }
   }
 
