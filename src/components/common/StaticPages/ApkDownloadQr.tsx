@@ -1,0 +1,88 @@
+import { type FC, useEffect, useMemo, useRef } from 'react';
+import QRCodeStyling from 'qr-code-styling';
+import { getDownloadsAbsoluteUrl } from '@utils/constants';
+import './ApkDownloadQr.scss';
+
+interface ApkDownloadQrProps {
+  /** Pixel size of the QR square (default 176) */
+  size?: number;
+  className?: string;
+}
+
+export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className }) => {
+  const qrValue = useMemo(() => {
+    const base = getDownloadsAbsoluteUrl();
+    if (!base) return '';
+    const hasQuery = base.includes('?');
+    return `${base}${hasQuery ? '&' : '?'}apk=1#download`;
+  }, []);
+
+  if (!qrValue) return null;
+
+  const rootClass = ['apk-download-qr', className].filter(Boolean).join(' ');
+  const mountRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!mountRef.current) return;
+
+    const qr = new QRCodeStyling({
+      width: size,
+      height: size,
+      type: 'canvas',
+      data: qrValue,
+      margin: 0,
+      image: '/favicon.png',
+      qrOptions: {
+        errorCorrectionLevel: 'M',
+      },
+      imageOptions: {
+        hideBackgroundDots: true,
+        imageSize: 0.32,
+        margin: 6,
+      },
+      dotsOptions: {
+        type: 'rounded',
+        color: '#001018',
+        gradient: {
+          type: 'radial',
+          rotation: 0,
+          colorStops: [
+            { offset: 0, color: '#00e5ff' },
+            { offset: 0.55, color: '#00c8ff' },
+            { offset: 1, color: '#006eff' },
+          ],
+        },
+      },
+      cornersSquareOptions: {
+        type: 'extra-rounded',
+        color: '#006eff',
+      },
+      cornersDotOptions: {
+        type: 'dot',
+        color: '#00c8ff',
+      },
+      backgroundOptions: {
+        color: '#ffffff',
+      },
+    });
+
+    mountRef.current.innerHTML = '';
+    qr.append(mountRef.current);
+
+    return () => {
+      mountRef.current?.replaceChildren();
+    };
+  }, [qrValue, size]);
+
+  return (
+    <div className={rootClass}>
+      <p className="apk-download-qr__caption">Scan with your phone to download the APK</p>
+      <div className="apk-download-qr__frame">
+        <div ref={mountRef} role="img" aria-label="QR code linking to BooyahX downloads page" />
+      </div>
+      <div className="apk-download-qr__brand" aria-hidden>
+        Booyah <em>X</em>
+      </div>
+    </div>
+  );
+};

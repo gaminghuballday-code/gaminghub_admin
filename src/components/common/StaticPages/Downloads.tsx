@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
 import boyaahxfavi2Img from '@assets/boyaahxfavi2.png';
+import { ApkDownloadQr } from './ApkDownloadQr';
 import './Downloads.scss';
 
 const TICKER_ITEMS = [
@@ -17,6 +18,30 @@ const Downloads: React.FC = () => {
   const hasAndroidLink = ANDROID_APK_URL.trim().length > 0;
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldJumpToDownload = params.get('apk') === '1';
+    if (shouldJumpToDownload) {
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById('download');
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      // Best-effort auto-download: some browsers require a user gesture.
+      if (hasAndroidLink) {
+        window.setTimeout(() => {
+          const link = document.querySelector<HTMLAnchorElement>('a[data-apk-download="1"]');
+          link?.click();
+
+          // Fallback for browsers that ignore programmatic clicks for downloads.
+          // This will navigate to the APK URL which typically triggers a download response.
+          window.setTimeout(() => {
+            if (!document.hasFocus()) return;
+            window.location.assign(ANDROID_APK_URL);
+          }, 800);
+        }, 700);
+      }
+    }
+
     const count = (el: Element) => {
       const tar = +(el.getAttribute('data-count') ?? 0);
       const pre = el.getAttribute('data-prefix') ?? '';
@@ -191,6 +216,7 @@ const Downloads: React.FC = () => {
           className={`dl-btn ${!hasAndroidLink ? 'dl-btn--disabled' : ''}`}
           download={hasAndroidLink || undefined}
           onClick={preventDisabled}
+          data-apk-download="1"
         >
           <div className="dl-shine" aria-hidden />
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -198,6 +224,13 @@ const Downloads: React.FC = () => {
           </svg>
           {hasAndroidLink ? 'Download APK — Free' : 'Android download link coming soon'}
         </a>
+
+        {hasAndroidLink ? (
+          <div className="dl-hero-qr">
+            <ApkDownloadQr size={176} />
+          </div>
+        ) : null}
+
         <p className="dl-hero-note">
           Android 6.0+ &nbsp;·&nbsp; v1.0.0 &nbsp;·&nbsp; ~38 MB &nbsp;·&nbsp; Free to register
         </p>
@@ -342,30 +375,54 @@ const Downloads: React.FC = () => {
             Free to download. Free to register. Pay only the entry fee. One install, infinite
             tournaments.
           </p>
-          <div className="dl-r">
-            <div className="dl-apk-hud">
+
+          <div className="dl-download-panel dl-r">
+            <div className="dl-download-panel__glow" aria-hidden />
+
+            {hasAndroidLink ? (
+              <div className="dl-download-direct">
+                <div className="dl-download-direct__badge">
+                  <span className="dl-download-direct__pulse" aria-hidden />
+                  Direct · instant
+                </div>
+                <h3 className="dl-download-direct__title">Download the APK on this device</h3>
+                <p className="dl-download-direct__lead">
+                  One tap — <strong>BooyahX.apk</strong> saves straight to your downloads folder.
+                </p>
+                <a
+                  href={downloadHref}
+                  className="dl-btn dl-btn--download-hero"
+                  download
+                  onClick={preventDisabled}
+                >
+                  <div className="dl-shine" aria-hidden />
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z" />
+                  </svg>
+                  Download APK now
+                </a>
+                <div className="dl-download-direct__qr">
+                  <ApkDownloadQr className="apk-download-qr--in-panel" size={176} />
+                </div>
+              </div>
+            ) : (
+              <div className="dl-download-direct dl-download-direct--disabled">
+                <h3 className="dl-download-direct__title">Android APK</h3>
+                <p className="dl-download-direct__lead">Download link coming soon.</p>
+              </div>
+            )}
+
+            <div className="dl-apk-hud dl-apk-hud--panel">
               <div className="dl-apk-em" aria-hidden>📱</div>
               <div className="dl-apk-info">
                 <div className="dl-apk-n">BooyahX.apk</div>
                 <div className="dl-apk-m">v1.0.0 &nbsp;·&nbsp; Android 6.0+ &nbsp;·&nbsp; ~38 MB</div>
               </div>
             </div>
+
+            {/* QR also shown in hero and inside this panel */}
           </div>
-          <div className="dl-r">
-            <a
-              href={downloadHref}
-              className={`dl-btn ${!hasAndroidLink ? 'dl-btn--disabled' : ''}`}
-              download={hasAndroidLink || undefined}
-              onClick={preventDisabled}
-              style={{ animation: 'none' }}
-            >
-              <div className="dl-shine" aria-hidden />
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z" />
-              </svg>
-              {hasAndroidLink ? 'Download Free — Android APK' : 'Android download link coming soon'}
-            </a>
-          </div>
+
           <p className="dl-install-note dl-r">
             Enable &quot;Install from Unknown Sources&quot; in Android Settings before installing.
           </p>

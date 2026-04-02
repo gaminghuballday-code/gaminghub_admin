@@ -6,6 +6,9 @@ interface ImportMetaEnv {
   readonly VITE_APP_TITLE?: string
   readonly VITE_ADMIN_DOMAIN?: string
   readonly VITE_USER_DOMAIN?: string
+  readonly VITE_ANDROID_APK_URL?: string
+  /** Optional: public site origin for APK QR (e.g. https://gaminghuballday.buzz or http://192.168.1.5:3001) */
+  readonly VITE_PUBLIC_SITE_URL?: string
   readonly VITE_GOOGLE_CLIENT_ID?: string
 }
 

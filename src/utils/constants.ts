@@ -4,6 +4,49 @@ export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'booyahx-admin';
 // Public app download link (served from /public/apk/Booyahx.apk)
 export const ANDROID_APK_URL = import.meta.env.VITE_ANDROID_APK_URL || '/apk/Booyahx.apk';
 
+/**
+ * Absolute URL builder for public-facing links (QR codes, sharing).
+ * Relative paths use VITE_PUBLIC_SITE_URL when set (production domain or LAN IP),
+ * otherwise window.location.origin. On localhost, we prefer `VITE_USER_DOMAIN`
+ * because phones cannot open http://localhost.
+ */
+export const getPublicAbsoluteUrl = (urlOrPath: string): string => {
+  const raw = urlOrPath.trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  const path = raw.startsWith('/') ? raw : `/${raw}`;
+  const configuredBase = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (configuredBase) return `${configuredBase}${path}`;
+
+  if (typeof window !== 'undefined') {
+    const adminSubdomain = import.meta.env.VITE_ADMIN_DOMAIN || 'admin';
+    const userDomain = import.meta.env.VITE_USER_DOMAIN?.trim().replace(/\/$/, '');
+    const host = window.location.hostname;
+    const isLoopback = host === 'localhost' || host === '127.0.0.1';
+
+    // If we are on the admin domain/subdomain, generate links for the user site.
+    // This prevents QR codes from pointing to the admin origin.
+    const isAdminHost =
+      isAdminDomain() ||
+      (adminSubdomain ? host === adminSubdomain || host.startsWith(`${adminSubdomain}.`) : false);
+    if (isAdminHost && userDomain && !userDomain.includes('localhost')) {
+      return `https://${userDomain}${path}`;
+    }
+
+    if (isLoopback && userDomain && !userDomain.includes('localhost')) {
+      return `https://${userDomain}${path}`;
+    }
+    return `${window.location.origin}${path}`;
+  }
+
+  return path;
+};
+
+export const getAndroidApkAbsoluteUrl = (): string => getPublicAbsoluteUrl(ANDROID_APK_URL);
+
+export const getDownloadsAbsoluteUrl = (): string => getPublicAbsoluteUrl(STATIC_ROUTES.DOWNLOADS);
+
 // Admin Routes
 export const ADMIN_ROUTES = {
   HOME: '/',
