@@ -1,6 +1,8 @@
 import { type FC, useEffect, useMemo, useRef } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { getDownloadsAbsoluteUrl } from '@utils/constants';
+import { useAppDispatch } from '@store/hooks';
+import { addToast } from '@store/slices/toastSlice';
 import './ApkDownloadQr.scss';
 
 interface ApkDownloadQrProps {
@@ -10,6 +12,7 @@ interface ApkDownloadQrProps {
 }
 
 export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className }) => {
+  const dispatch = useAppDispatch();
   const qrValue = useMemo(() => {
     const base = getDownloadsAbsoluteUrl();
     if (!base) return '';
@@ -21,6 +24,7 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
 
   const rootClass = ['apk-download-qr', className].filter(Boolean).join(' ');
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const qrRef = useRef<QRCodeStyling | null>(null);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -68,17 +72,91 @@ export const ApkDownloadQr: FC<ApkDownloadQrProps> = ({ size = 200, className })
 
     mountRef.current.innerHTML = '';
     qr.append(mountRef.current);
+    qrRef.current = qr;
 
     return () => {
+      qrRef.current = null;
       mountRef.current?.replaceChildren();
     };
   }, [qrValue, size]);
+
+  const handleDownloadQr = async () => {
+    try {
+      if (!qrRef.current) return;
+      await qrRef.current.download({ extension: 'png' });
+      dispatch(
+        addToast({
+          message: 'QR downloaded',
+          type: 'success',
+          duration: 3500,
+        })
+      );
+    } catch {
+      dispatch(
+        addToast({
+          message: 'Failed to download QR. Please try again.',
+          type: 'error',
+          duration: 4500,
+        })
+      );
+    }
+  };
+
+  const handleShareLink = async () => {
+    const url = qrValue;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'BooyahX APK Download',
+          text: 'Download BooyahX APK',
+          url,
+        });
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        dispatch(
+          addToast({
+            message: 'Link copied to clipboard',
+            type: 'success',
+            duration: 3500,
+          })
+        );
+        return;
+      }
+
+      dispatch(
+        addToast({
+          message: 'Sharing not supported on this browser',
+          type: 'warning',
+          duration: 4500,
+        })
+      );
+    } catch {
+      dispatch(
+        addToast({
+          message: 'Failed to share link. Please try again.',
+          type: 'error',
+          duration: 4500,
+        })
+      );
+    }
+  };
 
   return (
     <div className={rootClass}>
       <p className="apk-download-qr__caption">Scan with your phone to download the APK</p>
       <div className="apk-download-qr__frame">
         <div ref={mountRef} role="img" aria-label="QR code linking to BooyahX downloads page" />
+      </div>
+      <div className="apk-download-qr__actions">
+        <button type="button" className="apk-download-qr__action-btn" onClick={handleDownloadQr}>
+          Download QR
+        </button>
+        <button type="button" className="apk-download-qr__action-btn" onClick={handleShareLink}>
+          Share link
+        </button>
       </div>
       <div className="apk-download-qr__brand" aria-hidden>
         Booyah <em>X</em>
