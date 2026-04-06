@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { store } from './store/store'
 import { selectTheme } from './store/slices/themeSlice'
 import { isAdminDomain } from './utils/constants'
+import { USER_APP_DEFAULT_DOCUMENT_TITLE } from './utils/seo'
 import App from './App.tsx'
 import UserApp from './UserApp.tsx'
 import './assets/styles/dashboard.scss'
@@ -57,7 +58,7 @@ const isAdmin = isAdminDomain();
 const AppComponent = isAdmin ? App : UserApp;
 
 // Set document title based on domain
-document.title = isAdmin ? 'Booyahx Admin' : 'Booyahx';
+document.title = isAdmin ? 'Booyahx Admin' : USER_APP_DEFAULT_DOCUMENT_TITLE;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

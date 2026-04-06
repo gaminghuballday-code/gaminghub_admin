@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { ANDROID_APK_URL, STATIC_ROUTES } from '@utils/constants';
+import { ANDROID_APK_URL, STATIC_ROUTES, getPublicAbsoluteUrl } from '@utils/constants';
+import { applyManagedPageSeo } from '@utils/seo';
 import { ApkDownloadQr } from './ApkDownloadQr';
 import './Downloads.scss';
 
@@ -15,6 +16,30 @@ const TICKER_ITEMS = [
 
 const Downloads: React.FC = () => {
   const hasAndroidLink = ANDROID_APK_URL.trim().length > 0;
+
+  useEffect(() => {
+    const pageUrl = getPublicAbsoluteUrl(STATIC_ROUTES.DOWNLOADS);
+    return applyManagedPageSeo({
+      title: 'Download BooyahX APK | Free Fire Tournaments & Real Cash Prizes',
+      description:
+        'Play Free Fire tournaments on BooyahX, compete across India, and withdraw winnings instantly via UPI. Free BooyahX APK download for Android.',
+      canonicalUrl: pageUrl,
+      ogImage: '/backbooyah.png',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'MobileApplication',
+        name: 'BooyahX',
+        operatingSystem: 'Android',
+        applicationCategory: 'GameApplication',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'INR',
+        },
+        url: pageUrl,
+      },
+    });
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

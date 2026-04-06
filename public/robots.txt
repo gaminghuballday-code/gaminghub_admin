@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Public user site (update host if your production domain changes)
+Sitemap: https://gaminghuballday.buzz/sitemap.xml
