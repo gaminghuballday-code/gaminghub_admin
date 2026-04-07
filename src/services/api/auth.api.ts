@@ -175,12 +175,10 @@ export const authApi = {
   /**
    * Refresh access token using refresh token
    * Get a new access token using a valid refresh token
-   * Uses /api/admin/refresh-token for admin side, /api/auth/refresh-token for user side
+   * Uses /api/auth/refresh-token endpoint
    */
   refreshToken: async (data: RefreshTokenRequest): Promise<RefreshTokenResponse> => {
-    // Use admin endpoint for admin side, auth endpoint for user side
-    const isAdmin = isAdminDomain();
-    const endpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
+    const endpoint = '/api/auth/refresh-token';
     const response = await apiClient.post<{ data: RefreshTokenResponse }>(endpoint, data);
     
     const tokenData = response.data.data;

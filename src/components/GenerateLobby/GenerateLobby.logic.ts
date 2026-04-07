@@ -11,12 +11,13 @@ interface FieldError {
 
 // Internal form state interface (uses dateType for UI)
 interface GenerateLobbyFormData {
+  lobbyName: string;
   dateType: string;
   timeSlots: string[];
   mode: string;
   subModes: string[];
   region: string;
-  price: number;
+  entryFee: number;
 }
 
 export const useGenerateLobbyLogic = () => {
@@ -87,12 +88,13 @@ export const useGenerateLobbyLogic = () => {
 
   // Form state (internal - uses dateType)
   const [formData, setFormData] = useState<GenerateLobbyFormData>({
+    lobbyName: '',
     dateType: getEmptyDate(),
     timeSlots: [],
     mode: 'BR',
     subModes: [],
     region: 'Asia',
-    price: 50,
+    entryFee: 50,
   });
 
   const closeModal = () => {
@@ -101,12 +103,13 @@ export const useGenerateLobbyLogic = () => {
     setSuccess(null);
     // Reset form
     setFormData({
+      lobbyName: '',
       dateType: getEmptyDate(),
       timeSlots: [],
       mode: 'BR',
       subModes: [],
       region: 'Asia',
-      price: 50,
+      entryFee: 50,
     });
   };
 
@@ -193,13 +196,16 @@ export const useGenerateLobbyLogic = () => {
     
     // Map API field names to form field names
     const fieldMap: Record<string, string> = {
+      'name': 'lobbyName',
+      'lobbyName': 'lobbyName',
       'date': 'dateType',
       'dateType': 'dateType',
       'timeSlots': 'timeSlots',
       'mode': 'mode',
       'subModes': 'subModes',
       'region': 'region',
-      'price': 'price',
+      'price': 'entryFee',
+      'entryFee': 'entryFee',
     };
     
     return fieldMap[apiField] || apiField;
@@ -244,12 +250,13 @@ export const useGenerateLobbyLogic = () => {
 
     // Transform payload: API expects "date" but we use "dateType" internally
     const apiPayload: GenerateLobbyRequest = {
+      lobbyName: formData.lobbyName,
       date: formData.dateType, // Map dateType to date for API
       timeSlots: formData.timeSlots,
       mode: formData.mode,
       subModes: formData.subModes,
       region: formData.region,
-      price: formData.price,
+      entryFee: formData.entryFee,
     };
     
     generateLobbiesMutation.mutate(apiPayload, {

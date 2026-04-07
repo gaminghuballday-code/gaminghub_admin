@@ -88,7 +88,7 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
     { label: '9pm', value: '9:00 PM' },
     { label: '12am', value: '12:00 AM' },
   ];
-  const priceOptions = [25, 50, 75, 100, 150, 200, 300];
+  const entryFeeOptions = [0, 25, 50, 75, 100, 150, 200, 300];
 
   return (
     <Modal
@@ -101,6 +101,26 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
           >
         <form className="generate-lobby-form" onSubmit={handleFormSubmit}>
           <div className="generate-lobby-modal-body">
+            {/* Lobby Name */}
+            <div className="form-group">
+              <label className="form-label">Lobby Name</label>
+              <input
+                type="text"
+                className={`form-input ${getFieldError('lobbyName').length > 0 ? 'form-input-error' : ''}`}
+                value={formData.lobbyName}
+                onChange={(e) => setFormData({ ...formData, lobbyName: e.target.value })}
+                disabled={isSubmitting}
+                placeholder="Enter lobby name"
+              />
+              {getFieldError('lobbyName').length > 0 && (
+                <div className="field-error">
+                  {getFieldError('lobbyName').map((err, idx) => (
+                    <div key={idx} className="field-error-message">{err}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Date Selection */}
             <div className="form-group">
               <label className="form-label">Select Date</label>
@@ -334,24 +354,24 @@ const GenerateLobby: React.FC<GenerateLobbyProps> = ({ isOpen, onClose, onSucces
               )}
             </div>
 
-            {/* Price */}
+            {/* Entry Fee */}
             <div className="form-group">
-              <label className="form-label">Price</label>
+              <label className="form-label">Entry Fee</label>
               <select
-                className={`form-select ${getFieldError('price').length > 0 ? 'form-input-error' : ''}`}
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                className={`form-select ${getFieldError('entryFee').length > 0 ? 'form-input-error' : ''}`}
+                value={formData.entryFee}
+                onChange={(e) => setFormData({ ...formData, entryFee: Number(e.target.value) })}
                 disabled={isSubmitting}
               >
-                {priceOptions.map((price) => (
-                  <option key={price} value={price}>
-                    ₹{price}
+                {entryFeeOptions.map((entryFee) => (
+                  <option key={entryFee} value={entryFee}>
+                    {entryFee === 0 ? 'Free (₹0)' : `₹${entryFee}`}
                   </option>
                 ))}
               </select>
-              {getFieldError('price').length > 0 && (
+              {getFieldError('entryFee').length > 0 && (
                 <div className="field-error">
-                  {getFieldError('price').map((err, idx) => (
+                  {getFieldError('entryFee').map((err, idx) => (
                     <div key={idx} className="field-error-message">{err}</div>
                   ))}
                 </div>

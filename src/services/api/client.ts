@@ -4,7 +4,7 @@ import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, selectRefreshToken, logout, updateTokens } from '../../store/slices/authSlice';
 import { addToast } from '../../store/slices/toastSlice';
-import { getStorageKey, isAdminDomain } from '../../utils/constants';
+import { getStorageKey } from '../../utils/constants';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
 // This avoids CORS/CSRF issues by making requests from the same origin
@@ -208,9 +208,8 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
         originalRequest._retry = true;
 
-        // Determine refresh endpoint based on domain (admin vs user)
-        const isAdmin = isAdminDomain();
-        const refreshEndpoint = isAdmin ? '/api/admin/refresh-token' : '/api/auth/refresh-token';
+        // Backend exposes refresh on auth route; avoid hitting missing admin route.
+        const refreshEndpoint = '/api/auth/refresh-token';
         
         // Get CSRF token for the request (if available)
         let csrfToken = localStorage.getItem(getStorageKey('CSRF_TOKEN'));
@@ -233,16 +232,20 @@ apiClient.interceptors.response.use(
         // Use axios directly to avoid circular dependency (apiClient uses interceptors)
         // Request body: { refreshToken: string }
         // Response format: { data: { accessToken: string, refreshToken?: string } }
-        return axios
-          .post<{ data: { accessToken: string; refreshToken?: string } }>(
+        const attemptRefresh = async () => {
+          const response = await axios.post<{ data: { accessToken: string; refreshToken?: string } }>(
             `${API_BASE_URL}${refreshEndpoint}`,
             { refreshToken } as { refreshToken: string },
-            { 
+            {
               withCredentials: true,
               timeout: API_TIMEOUT,
               headers,
             }
-          )
+          );
+          return response;
+        };
+
+        return attemptRefresh()
           .then((response) => {
             // Update CSRF token from refresh response if present
             const csrfTokenFromHeader = response.headers['x-csrf-token'];

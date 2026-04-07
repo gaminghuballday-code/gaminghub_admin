@@ -1,12 +1,13 @@
 import apiClient from './client';
 
 export interface GenerateLobbyRequest {
+  lobbyName: string;
   date: string; // Date string in ISO format (YYYY-MM-DD)
   timeSlots: string[];
   mode: string;
   subModes: string[];
   region: string;
-  price: number;
+  entryFee: number;
 }
 
 export interface GenerateLobbyResponse {

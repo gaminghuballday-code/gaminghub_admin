@@ -392,7 +392,9 @@ export const useDashboardLogic = () => {
     platformStatsLoading,
     platformStatsError,
     // Analytics
-    analyticsData,
+    analyticsData: analyticsData?.data || [],
+    analyticsTotals: analyticsData?.selectedPeriodTotals,
+    analyticsOverallTotals: analyticsData?.overallTotals,
     analyticsLoading,
     analyticsError,
     analyticsPeriod,

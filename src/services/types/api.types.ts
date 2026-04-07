@@ -292,20 +292,35 @@ export interface PlatformStats {
 }
 
 export interface AnalyticsDataPoint {
+  period: string;
+  platformFee: number;
+  casterFee: number;
+  totalIncome: number;
+  totalDeposit: number;
+  totalWithdraw: number;
+  // Backward-compatible keys for older UI code
   date: string;
+  deposits: number;
+  withdrawals: number;
+  profit: number;
+  // Legacy chart keys still used in parts of dashboard
   income: number;
   rewards: number;
-  profit: number;
+}
+
+export interface AnalyticsTotals {
+  platformFee: number;
+  casterFee: number;
+  totalIncome: number;
+  totalDeposit: number;
+  totalWithdraw: number;
 }
 
 export interface AnalyticsResponse {
   period: 'daily' | 'weekly' | 'monthly';
   data: AnalyticsDataPoint[];
-  summary: {
-    totalIncome: number;
-    totalRewards: number;
-    totalProfit: number;
-  };
+  selectedPeriodTotals: AnalyticsTotals;
+  overallTotals: AnalyticsTotals;
 }
 
 export interface PlatformStatsResponse {
