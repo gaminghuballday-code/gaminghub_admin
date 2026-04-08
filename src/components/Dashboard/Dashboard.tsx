@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
 import { useDashboardLogic } from './Dashboard.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import HostStatistics from './HostStatistics';
 import StatCard from './StatCard';
-import AnalyticsChart from './AnalyticsChart';
 import { Button } from '@components/common/Button';
 import { Badge } from '@components/common/Badge';
+import NoDataFound from '@components/common/NoDataFound';
 import './Dashboard.scss';
 
 const Dashboard: React.FC = () => {
@@ -34,6 +35,7 @@ const Dashboard: React.FC = () => {
     handleUserCardClick,
     handleCopyEmail,
     currentPage,
+    handlePageChange,
     handlePreviousPage,
     handleNextPage,
     // Host Statistics
@@ -45,24 +47,85 @@ const Dashboard: React.FC = () => {
     hostStatsFilters,
     totalHosts,
     totalLobbies,
+    totalHostFeeEarned,
+    allHostsLifetimeHostFeeEarned,
+    hostStatsCurrentPage,
+    hostStatsTotalPages,
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
+    handleHostStatsPageChange,
     // Platform Statistics
     platformStats,
     platformStatsLoading,
     platformStatsError,
-    // Analytics
-    analyticsData,
-    analyticsLoading,
-    analyticsError,
-    analyticsPeriod,
-    handleAnalyticsPeriodChange,
   } = useDashboardLogic();
+
+  useEffect(() => {
+    if (selectedUser) {
+      document.body.classList.add('dashboard-details-open');
+    } else {
+      document.body.classList.remove('dashboard-details-open');
+    }
+
+    return () => {
+      document.body.classList.remove('dashboard-details-open');
+    };
+  }, [selectedUser]);
+
+  const truncateEmail = (email: string): string => {
+    if (!email.includes('@')) {
+      return email;
+    }
+
+    const firstPart = email.slice(0, 4);
+    const lastPart = email.slice(-4);
+    return `${firstPart}....${lastPart}`;
+  };
+
+  const getVisiblePages = (current: number, total: number): Array<number | 'ellipsis'> => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, index) => index + 1);
+    }
+
+    // Always keep first 2 and last 2 pages visible,
+    // plus a small sliding window around current page.
+    const importantPages = new Set<number>([
+      1,
+      2,
+      total - 1,
+      total,
+      current - 1,
+      current,
+      current + 1,
+    ]);
+
+    const sortedPages = Array.from(importantPages)
+      .filter((page) => page >= 1 && page <= total)
+      .sort((a, b) => a - b);
+
+    const result: Array<number | 'ellipsis'> = [];
+    for (let i = 0; i < sortedPages.length; i += 1) {
+      const page = sortedPages[i];
+      const previous = sortedPages[i - 1];
+
+      if (i > 0 && previous !== undefined) {
+        if (page - previous === 2) {
+          result.push(previous + 1);
+        } else if (page - previous > 2) {
+          result.push('ellipsis');
+        }
+      }
+
+      result.push(page);
+    }
+
+    return result;
+  };
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="dashboard-content-wrapper">
+      <div className={`dashboard-content-wrapper ${selectedUser ? 'with-user-details' : ''}`}>
           <div className="dashboard-card welcome-card">
             <div className="welcome-content">
               <h2 className="card-title">Welcome</h2>
@@ -72,7 +135,7 @@ const Dashboard: React.FC = () => {
               <p className="card-content-secondary">
                 Manage your application from this centralized dashboard.
               </p>
-              {(platformStatsError || analyticsError) && (
+              {platformStatsError && (
                 <div className="dashboard-error-banner">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                   <span>Failed to load some statistics. Using local data instead.</span>
@@ -115,13 +178,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* Analytics Chart Section */}
-          <AnalyticsChart
-            data={analyticsData || []}
-            loading={analyticsLoading}
-            period={analyticsPeriod}
-            onPeriodChange={handleAnalyticsPeriodChange}
-          />
+          {/* Analytics Chart Section (temporarily removed) */}
 
           {/* Tabs */}
           <div className="dashboard-tabs">
@@ -129,7 +186,7 @@ const Dashboard: React.FC = () => {
               className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
               onClick={() => setActiveTab('users')}
             >
-              Users
+              General Details
             </button>
             <button
               className={`tab-button ${activeTab === 'hostStats' ? 'active' : ''}`}
@@ -137,13 +194,24 @@ const Dashboard: React.FC = () => {
             >
               Host Statistics
             </button>
+            <button
+              className={`tab-button ${activeTab === 'orgStats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('orgStats')}
+            >
+              Org Stats
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'subAdminStats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('subAdminStats')}
+            >
+              Sub-Admin Stats
+            </button>
           </div>
 
           {/* Users List Card */}
           {activeTab === 'users' && (
           <div className="dashboard-card">
             <div className="card-header-with-filters">
-              <h2 className="card-title">Users</h2>
               <div className="role-filters">
                 <button
                   className={`filter-button ${roleFilter === 'all' ? 'active' : ''}`}
@@ -285,7 +353,7 @@ const Dashboard: React.FC = () => {
                           <div className="user-email">
                             <span className="user-label">Email:</span>
                             <span className="user-value">
-                              {adminUser.email}
+                              <span title={adminUser.email}>{truncateEmail(adminUser.email)}</span>
                               <Button
                                 type="button"
                                 variant="secondary"
@@ -354,34 +422,69 @@ const Dashboard: React.FC = () => {
                 {/* Pagination Controls */}
                 {pagination && pagination.totalPages > 1 && (
                   <div className="pagination-controls">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handlePreviousPage}
-                      disabled={currentPage === 1 || usersLoading}
-                      aria-label="Previous page"
-                    >
-                      ← Previous
-                    </Button>
+                    <div className="pagination-nav">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="pagination-nav-button"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1 || usersLoading}
+                        aria-label="Previous page"
+                      >
+                        ← Prev
+                      </Button>
+                    </div>
                     <div className="pagination-info">
                       <span className="pagination-text">
                         Page {currentPage} of {pagination.totalPages}
                       </span>
                       {pagination.total > 0 && (
                         <span className="pagination-total">
-                          (Showing {((currentPage - 1) * 10) + 1}-{Math.min(currentPage * 10, pagination.total)} of {pagination.total})
+                          (Showing {((currentPage - 1) * 12) + 1}-{Math.min(currentPage * 12, pagination.total)} of {pagination.total})
                         </span>
                       )}
+                      <div className="pagination-pages">
+                        {getVisiblePages(currentPage, pagination.totalPages).map((item, index) => {
+                          if (item === 'ellipsis') {
+                            return (
+                              <span
+                                key={`ellipsis-${index}`}
+                                className="pagination-ellipsis"
+                                aria-hidden="true"
+                              >
+                                ...
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              className={`pagination-page-button ${item === currentPage ? 'active' : ''}`}
+                              onClick={() => handlePageChange(item)}
+                              disabled={usersLoading}
+                              aria-label={`Go to page ${item}`}
+                              aria-current={item === currentPage ? 'page' : undefined}
+                            >
+                              {item}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleNextPage}
-                      disabled={currentPage >= pagination.totalPages || usersLoading}
-                      aria-label="Next page"
-                    >
-                      Next →
-                    </Button>
+                    <div className="pagination-nav">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="pagination-nav-button"
+                        onClick={handleNextPage}
+                        disabled={currentPage >= pagination.totalPages || usersLoading}
+                        aria-label="Next page"
+                      >
+                        Next →
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -401,11 +504,25 @@ const Dashboard: React.FC = () => {
               hostStatsError={hostStatsError}
               totalHosts={totalHosts}
               totalLobbies={totalLobbies}
+              totalHostFeeEarned={totalHostFeeEarned}
+              allHostsLifetimeHostFeeEarned={allHostsLifetimeHostFeeEarned}
               hostStatsFilters={hostStatsFilters}
+              currentPage={hostStatsCurrentPage}
+              totalPages={hostStatsTotalPages}
               onFilterChange={handleHostStatsFilterChange}
               onClearFilters={handleClearHostStatsFilters}
               onSearch={handleSearchHostStats}
+              onPageChange={handleHostStatsPageChange}
             />
+          )}
+
+          {(activeTab === 'orgStats' || activeTab === 'subAdminStats') && (
+            <div className="dashboard-card no-data-card">
+              <h3 className="card-title">
+                {activeTab === 'orgStats' ? 'Org Stats' : 'Sub-Admin Stats'}
+              </h3>
+              <NoDataFound className="no-data-text" />
+            </div>
           )}
       </div>
 
@@ -434,7 +551,7 @@ const Dashboard: React.FC = () => {
               <div className="user-detail-item">
                 <span className="detail-label">Email:</span>
                 <span className="detail-value">
-                  {selectedUser.email}
+                  <span title={selectedUser.email}>{truncateEmail(selectedUser.email)}</span>
                   <Button
                     type="button"
                     variant="secondary"

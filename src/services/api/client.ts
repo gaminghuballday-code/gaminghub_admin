@@ -13,7 +13,9 @@ import { getStorageKey } from '../../utils/constants';
 const API_BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || '');
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000;
 
-// Request deduplication - prevent duplicate requests
+// Request deduplication - prevent duplicate requests (non-GET only)
+// NOTE: React Query already dedupes GETs by `queryKey`. Canceling GETs here
+// turns into "errors" for React Query and can cause retry/refetch loops.
 const pendingRequests = new Map<string, CancelTokenSource>();
 
 // Track refresh token request to prevent multiple simultaneous refresh attempts
@@ -66,26 +68,31 @@ apiClient.interceptors.request.use(
       }
     }
 
-    // Request deduplication - cancel duplicate requests within 200ms
-    // Include query params in key to differentiate requests with different params
-    const paramsString = config.params ? JSON.stringify(config.params) : '';
-    const requestKey = `${config.method?.toUpperCase()}_${config.url}_${paramsString}`;
-    const existingRequest = pendingRequests.get(requestKey);
+    // Request deduplication (non-GET only) - cancel duplicates within 200ms
+    const methodUpper = config.method?.toUpperCase();
+    const shouldDedup = Boolean(methodUpper && methodUpper !== 'GET');
 
-    if (existingRequest) {
-      // Cancel the previous request
-      existingRequest.cancel('Duplicate request cancelled');
+    if (shouldDedup) {
+      // Include query params in key to differentiate requests with different params
+      const paramsString = config.params ? JSON.stringify(config.params) : '';
+      const requestKey = `${methodUpper}_${config.url}_${paramsString}`;
+      const existingRequest = pendingRequests.get(requestKey);
+
+      if (existingRequest) {
+        // Cancel the previous request
+        existingRequest.cancel('Duplicate request cancelled');
+      }
+
+      // Create cancel token for this request
+      const cancelTokenSource = axios.CancelToken.source();
+      config.cancelToken = cancelTokenSource.token;
+      pendingRequests.set(requestKey, cancelTokenSource);
+
+      // Clean up after request completes (with delay to handle rapid duplicates)
+      setTimeout(() => {
+        pendingRequests.delete(requestKey);
+      }, 200);
     }
-
-    // Create cancel token for this request
-    const cancelTokenSource = axios.CancelToken.source();
-    config.cancelToken = cancelTokenSource.token;
-    pendingRequests.set(requestKey, cancelTokenSource);
-
-    // Clean up after request completes (with delay to handle rapid duplicates)
-    setTimeout(() => {
-      pendingRequests.delete(requestKey);
-    }, 200);
 
     return config;
   },
@@ -98,8 +105,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // Clean up pending request
-    const requestKey = `${response.config.method?.toUpperCase()}_${response.config.url}`;
-    pendingRequests.delete(requestKey);
+    const methodUpper = response.config.method?.toUpperCase();
+    if (methodUpper && methodUpper !== 'GET') {
+      const paramsString = response.config.params ? JSON.stringify(response.config.params) : '';
+      const requestKey = `${methodUpper}_${response.config.url}_${paramsString}`;
+      pendingRequests.delete(requestKey);
+    }
     
     // Update CSRF token from response header or cookie if present
     const csrfTokenFromHeader = response.headers['x-csrf-token'];
@@ -137,9 +148,12 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     // Clean up pending request
     if (error.config) {
-      const paramsString = error.config.params ? JSON.stringify(error.config.params) : '';
-      const requestKey = `${error.config.method?.toUpperCase()}_${error.config.url}_${paramsString}`;
-      pendingRequests.delete(requestKey);
+      const methodUpper = error.config.method?.toUpperCase();
+      if (methodUpper && methodUpper !== 'GET') {
+        const paramsString = error.config.params ? JSON.stringify(error.config.params) : '';
+        const requestKey = `${methodUpper}_${error.config.url}_${paramsString}`;
+        pendingRequests.delete(requestKey);
+      }
     }
 
     // Handle cancelled requests (deduplication)
@@ -181,8 +195,6 @@ apiClient.interceptors.response.use(
       const refreshToken = selectRefreshToken(state as any);
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-      console.log(`[API] 401 Error on ${originalRequest.url}. Refresh token exists: ${!!refreshToken}, isRefreshing: ${isRefreshing}`);
-
       // Skip refresh if this is already a retry after refresh, or if we're on login page
       const isOnLoginPage = window.location.pathname.includes('/login');
       if (originalRequest?._retry || isOnLoginPage) {
@@ -196,7 +208,6 @@ apiClient.interceptors.response.use(
         }
         
         if (!isOnLoginPage) {
-          console.log('[API] Logout triggered: Refresh retry failed or on login page');
           store.dispatch(logout());
           window.location.href = '/login';
         }
@@ -295,10 +306,7 @@ apiClient.interceptors.response.use(
             failedQueue.forEach((prom) => prom.reject(refreshError));
             failedQueue = [];
 
-            console.error('[API] Token refresh failed:', refreshError);
-
             if (!isOnLoginPage) {
-              console.log('[API] Logout triggered: Refresh failed');
               store.dispatch(logout());
               // Force clear storage just in case
               localStorage.removeItem(getStorageKey('AUTH_TOKEN'));
@@ -335,7 +343,6 @@ apiClient.interceptors.response.use(
         }
 
         if (!isOnLoginPage) {
-          console.log('[API] Logout triggered: No refresh token available');
           store.dispatch(logout());
           window.location.href = '/login';
         }

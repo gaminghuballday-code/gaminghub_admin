@@ -289,6 +289,15 @@ export interface PlatformStats {
   totalProfit: number;
   userGrowth: number; // Percentage
   incomeGrowth: number; // Percentage
+  // Backward/forward-compatible keys seen in dashboard payloads
+  totalDeposit?: number;
+  totalTopupGC?: number;
+  totalWithdraw?: number;
+  totalWinDraw?: number;
+  platformFeeCollected?: number;
+  casterFeeCollected?: number;
+  platformProfit?: number;
+  netProfit?: number;
 }
 
 export interface AnalyticsDataPoint {

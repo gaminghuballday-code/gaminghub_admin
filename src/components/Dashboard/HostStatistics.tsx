@@ -1,5 +1,8 @@
-import type { FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import type { HostStatistics as HostStatisticsType } from '@services/api';
+import { useHostStatistics } from '@services/api/hooks';
+import { Modal } from '@components/common/Modal';
+import NoDataFound from '@components/common/NoDataFound';
 import './HostStatistics.scss';
 
 interface HostStatisticsProps {
@@ -8,14 +11,19 @@ interface HostStatisticsProps {
   hostStatsError: string | null;
   totalHosts: number;
   totalLobbies: number;
+  totalHostFeeEarned: number;
+  allHostsLifetimeHostFeeEarned: number;
   hostStatsFilters: {
     fromDate?: string;
     toDate?: string;
     hostEmail?: string;
   };
+  currentPage: number;
+  totalPages: number;
   onFilterChange: (filterType: 'fromDate' | 'toDate' | 'hostEmail', value: string) => void;
   onClearFilters: () => void;
   onSearch: () => void;
+  onPageChange: (page: number) => void;
 }
 
 const HostStatistics: FC<HostStatisticsProps> = ({
@@ -24,11 +32,118 @@ const HostStatistics: FC<HostStatisticsProps> = ({
   hostStatsError,
   totalHosts,
   totalLobbies,
+  totalHostFeeEarned,
+  allHostsLifetimeHostFeeEarned,
   hostStatsFilters,
+  currentPage,
+  totalPages,
   onFilterChange,
   onClearFilters,
   onSearch,
+  onPageChange,
 }) => {
+  const [selectedHost, setSelectedHost] = useState<HostStatisticsType | null>(null);
+  const [isDailyRecordsModalOpen, setIsDailyRecordsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [queriedDate, setQueriedDate] = useState<string>('');
+  const [modalDailyRecords, setModalDailyRecords] = useState<HostStatisticsType['dailyRecords']>([]);
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleOpenDailyRecordsModal = (host: HostStatisticsType) => {
+    setSelectedHost(host);
+    setSelectedDate(getCurrentDate());
+    setQueriedDate('');
+    // Keep a stable snapshot to avoid UI flicker/disappearing data on background refetches.
+    setModalDailyRecords(Array.isArray(host.dailyRecords) ? host.dailyRecords : []);
+    setIsDailyRecordsModalOpen(true);
+  };
+
+  const handleCloseDailyRecordsModal = () => {
+    setIsDailyRecordsModalOpen(false);
+    setSelectedHost(null);
+    setSelectedDate('');
+    setQueriedDate('');
+    setModalDailyRecords([]);
+  };
+
+  const filteredDailyRecords = useMemo(() => {
+    if (!Array.isArray(modalDailyRecords) || modalDailyRecords.length === 0) {
+      return [];
+    }
+    if (!queriedDate) {
+      return modalDailyRecords;
+    }
+    return modalDailyRecords.filter((record) => record.date === queriedDate);
+  }, [modalDailyRecords, queriedDate]);
+
+  const {
+    data: selectedHostDateData,
+    isLoading: selectedHostDateLoading,
+    isFetched: selectedHostDateFetched,
+  } = useHostStatistics(
+    queriedDate && selectedHost?.email
+      ? {
+          date: queriedDate,
+          hostEmail: selectedHost.email,
+        }
+      : undefined,
+    Boolean(isDailyRecordsModalOpen && queriedDate && selectedHost?.email)
+  );
+
+  const selectedHostDateRecords = useMemo(() => {
+    const fallbackRecords = filteredDailyRecords;
+
+    if (!queriedDate) {
+      return fallbackRecords;
+    }
+
+    const apiHost = selectedHostDateData?.hosts?.find(
+      (host) => host.hostId === selectedHost?.hostId || host.email === selectedHost?.email
+    );
+
+    // Keep existing records visible while date query is loading to avoid flicker/disappearing UI.
+    if (selectedHostDateLoading && !selectedHostDateFetched) {
+      return fallbackRecords;
+    }
+
+    if (!apiHost || !Array.isArray(apiHost.dailyRecords)) {
+      return [];
+    }
+
+    return apiHost.dailyRecords;
+  }, [
+    filteredDailyRecords,
+    queriedDate,
+    selectedHost,
+    selectedHostDateData,
+    selectedHostDateFetched,
+    selectedHostDateLoading,
+  ]);
+
+  const formatCurrency = (value?: number) => {
+    const safeValue = Number.isFinite(value) ? Number(value) : 0;
+    return `₹${safeValue.toLocaleString('en-IN')}`;
+  };
+
+  const totalAllHostsEarned = allHostsLifetimeHostFeeEarned || totalHostFeeEarned;
+
+  const getDailyLobbyCount = (record: HostStatisticsType['dailyRecords'][number]) => {
+    if (typeof record.lobbies === 'number' && record.lobbies > 0) {
+      return record.lobbies;
+    }
+    if (Array.isArray(record.tournaments)) {
+      return record.tournaments.length;
+    }
+    return 0;
+  };
+
   return (
     <div className="dashboard-card">
       <div className="card-header-with-filters">
@@ -36,6 +151,7 @@ const HostStatistics: FC<HostStatisticsProps> = ({
         <div className="host-stats-summary">
           <span className="stat-item">Total Hosts: {totalHosts}</span>
           <span className="stat-item">Total Lobbies: {totalLobbies}</span>
+          <span className="stat-item">Total Host Earned: {formatCurrency(totalAllHostsEarned)}</span>
         </div>
       </div>
       
@@ -110,9 +226,8 @@ const HostStatistics: FC<HostStatisticsProps> = ({
               <tr>
                 <th>Host Name</th>
                 <th>Email</th>
-                <th>Host ID</th>
+                <th>Lifetime Host Earned</th>
                 <th>Total Lobbies</th>
-                <th>Time Slot Summary</th>
                 <th>Daily Records</th>
               </tr>
             </thead>
@@ -123,75 +238,31 @@ const HostStatistics: FC<HostStatisticsProps> = ({
                     <strong>{host.name}</strong>
                   </td>
                   <td className="host-stat-email-cell">{host.email}</td>
-                  <td className="host-stat-id-cell">
-                    <code>{host.hostId}</code>
+                  <td className="host-stat-earned-cell">
+                    <span className="earned-value">
+                      {formatCurrency(host.lifetimeHostFeeEarned || host.totalHostFeeEarned || 0)}
+                    </span>
                   </td>
                   <td className="host-stat-total-cell">
                     <span className="total-value">{host.totalLobbies}</span>
                   </td>
-                  <td className="host-stat-timeslots-cell">
-                    {Object.keys(host.timeSlotSummary || {}).length > 0 ? (
-                      <table className="timeslot-table">
-                        <thead>
-                          <tr>
-                            <th>Time</th>
-                            <th>Count</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Object.entries(host.timeSlotSummary).map(([timeSlot, count]) => (
-                            <tr key={timeSlot}>
-                              <td className="timeslot-time">{timeSlot}</td>
-                              <td className="timeslot-count">{count}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <span className="no-data">No time slots</span>
-                    )}
-                  </td>
                   <td className="host-stat-daily-cell">
                     {host.dailyRecords && host.dailyRecords.length > 0 ? (
-                      <table className="daily-records-table">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Lobbies</th>
-                            <th>Tournaments</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {host.dailyRecords.map((record, idx) => (
-                            <tr key={idx} className="daily-record-row">
-                              <td className="daily-date">{record.date}</td>
-                              <td className="daily-lobbies">{record.lobbies}</td>
-                              <td className="daily-tournaments-cell">
-                                {record.tournaments && record.tournaments.length > 0 ? (
-                                  <table className="tournament-table">
-                                    <thead>
-                                      <tr>
-                                        <th>Game</th>
-                                        <th>Time</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {record.tournaments.map((tournament, tIdx) => (
-                                        <tr key={tIdx}>
-                                          <td>{tournament.game || 'N/A'}</td>
-                                          <td>{tournament.startTime}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                ) : (
-                                  <span className="no-data">-</span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="daily-records-preview">
+                        <div className="daily-records-meta">
+                          <span className="daily-records-count">{host.dailyRecords.length} day records</span>
+                          <span className="daily-records-note">
+                            Latest: {host.dailyRecords[0]?.date || 'N/A'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="view-more-button"
+                          onClick={() => handleOpenDailyRecordsModal(host)}
+                        >
+                          View More
+                        </button>
+                      </div>
                     ) : (
                       <span className="no-data">No daily records</span>
                     )}
@@ -200,12 +271,115 @@ const HostStatistics: FC<HostStatisticsProps> = ({
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                type="button"
+                className="pagination-page-button"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1 || hostStatsLoading}
+              >
+                Prev
+              </button>
+              <span className="pagination-text">Page {currentPage} of {totalPages}</span>
+              <button
+                type="button"
+                className="pagination-page-button"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || hostStatsLoading}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="host-stats-empty">
-          <p>No host statistics found.</p>
-        </div>
+        <NoDataFound className="host-stats-empty" message="No host statistics found." />
       )}
+
+      <Modal
+        isOpen={isDailyRecordsModalOpen}
+        onClose={handleCloseDailyRecordsModal}
+        className="modal-large"
+        title={`Daily Records - ${selectedHost?.name || 'Host'}`}
+        showCloseButton={true}
+      >
+        <div className="daily-records-modal">
+          <div className="daily-records-modal__filters">
+            <label className="filter-label" htmlFor="daily-record-date-filter">
+              DATE FILTER
+            </label>
+            <input
+              id="daily-record-date-filter"
+              type="date"
+              className="filter-input"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+            <button
+              type="button"
+              className="search-filters-button"
+              onClick={() => setQueriedDate(selectedDate)}
+              disabled={!selectedDate}
+            >
+              Show Data
+            </button>
+            <button
+              type="button"
+              className="clear-filters-button"
+              onClick={() => {
+                setSelectedDate('');
+                setQueriedDate('');
+              }}
+            >
+              Show All Dates
+            </button>
+          </div>
+
+          {selectedHostDateRecords.length === 0 && queriedDate && !selectedHostDateLoading ? (
+            <NoDataFound className="host-stats-empty" message="No lobby for the day." />
+          ) : queriedDate && selectedHostDateLoading ? (
+            <div className="host-stats-loading">
+              <p>Checking selected date...</p>
+            </div>
+          ) : (
+            <div className="daily-records-modal__list">
+              {selectedHostDateRecords.map((record, idx) => (
+                <div key={`${record.date}-${idx}`} className="daily-record-card">
+                  <div className="daily-record-card__header">
+                    <span className="daily-date">{record.date || 'Unknown date'}</span>
+                    <span className="daily-lobbies">{getDailyLobbyCount(record)} lobbies</span>
+                  </div>
+                  <div className="daily-record-card__body">
+                    {record.tournaments && record.tournaments.length > 0 ? (
+                      <table className="tournament-table">
+                        <thead>
+                          <tr>
+                            <th>Game</th>
+                            <th>Mode</th>
+                            <th>Start Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {record.tournaments.map((tournament, tIdx) => (
+                            <tr key={`${record.date}-${tIdx}`}>
+                              <td>{tournament.game || 'N/A'}</td>
+                              <td>{tournament.mode || 'N/A'}</td>
+                              <td>{tournament.startTime || 'N/A'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <span className="no-data">No tournaments</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

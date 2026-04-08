@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, Link, matchPath } from 'react-router-dom';
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
@@ -12,10 +12,28 @@ interface AdminLayoutProps {
   title: string;
 }
 
+interface NavLinkItem {
+  type: 'link';
+  path: string;
+  icon: string;
+  label: string;
+}
+
+interface NavGroupItem {
+  type: 'group';
+  id: string;
+  icon: string;
+  label: string;
+  children: NavLinkItem[];
+}
+
+type NavItem = NavLinkItem | NavGroupItem;
+
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const location = useLocation();
   const user = useAppSelector(selectUser);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useSidebarSync(sidebarOpen);
 
@@ -23,18 +41,51 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     setSidebarOpen((prev) => !prev);
   };
 
-  const navItems = [
-    { path: ROUTES.DASHBOARD, icon: '📊', label: 'Dashboard' },
-    { path: ROUTES.GENERATE_LOBBY, icon: '🎮', label: 'Room Creator' },
-    { path: ROUTES.TOP_UP, icon: '💰', label: 'Top Up' },
-    { path: ROUTES.PAYMENT_VERIFICATION, icon: '✅', label: 'Payment Verification' },
-    { path: ROUTES.WITHDRAWALS, icon: '💸', label: 'Withdrawals' },
-    { path: ROUTES.HOST_CREATION, icon: '👤', label: 'Host Creation' },
-    { path: ROUTES.USER_HISTORY, icon: '📜', label: 'User History' },
-    { path: ROUTES.ENQUIRIES, icon: '📧', label: 'Enquiries' },
-    { path: ROUTES.SUPPORT_TICKETS, icon: '🎫', label: 'Support Tickets' },
-    { path: ROUTES.NOTIFICATIONS, icon: '🔔', label: 'Notifications' },
-  ];
+  const navItems: NavItem[] = useMemo(
+    () => [
+      { type: 'link', path: ROUTES.DASHBOARD, icon: '📊', label: 'Dashboard' },
+      { type: 'link', path: ROUTES.GENERATE_LOBBY, icon: '🎮', label: 'Room Creator' },
+      {
+        type: 'group',
+        id: 'money',
+        icon: '💰',
+        label: 'Money',
+        children: [
+          { type: 'link', path: ROUTES.TOP_UP, icon: '💰', label: 'Top Up' },
+          { type: 'link', path: ROUTES.PAYMENT_VERIFICATION, icon: '✅', label: 'Mannul Check' },
+          { type: 'link', path: ROUTES.WITHDRAWALS, icon: '💸', label: 'Withdrawals' },
+          { type: 'link', path: ROUTES.USER_HISTORY, icon: '📜', label: 'User Record' },
+        ],
+      },
+      { type: 'link', path: ROUTES.HOST_CREATION, icon: '👤', label: 'Account Creation' },
+      { type: 'link', path: ROUTES.ENQUIRIES, icon: '📧', label: 'Enquiries' },
+      { type: 'link', path: ROUTES.SUPPORT_TICKETS, icon: '🎫', label: 'Support Tickets' },
+      { type: 'link', path: ROUTES.NOTIFICATIONS, icon: '🔔', label: 'Notifications' },
+    ],
+    []
+  );
+
+  const isPathActive = (path: string) =>
+    matchPath({ path, end: false }, location.pathname) !== null;
+
+  const isGroupActive = (item: NavGroupItem) =>
+    item.children.some((child) => isPathActive(child.path));
+
+  useEffect(() => {
+    const moneyItem = navItems.find((x): x is NavGroupItem => x.type === 'group' && x.id === 'money');
+    if (!moneyItem) return;
+
+    const moneyActive = isGroupActive(moneyItem);
+    if (moneyActive) {
+      setOpenGroups((prev) => ({ ...prev, money: true }));
+    }
+  }, [location.pathname, navItems]);
+
+  const isGroupOpen = (groupId: string) => openGroups[groupId] ?? false;
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((prev) => ({ ...prev, [groupId]: !(prev[groupId] ?? false) }));
+  };
 
   return (
     <div className={`admin-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -53,7 +104,49 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
 
         <nav className="sidebar-nav">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            if (item.type === 'group') {
+              const active = isGroupActive(item);
+              const open = isGroupOpen(item.id);
+              return (
+                <div key={item.id} className="nav-group">
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-toggle ${active ? 'active' : ''}`}
+                    onClick={() => toggleGroup(item.id)}
+                    aria-expanded={open}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    {sidebarOpen && <span className="nav-text">{item.label}</span>}
+                    {sidebarOpen && (
+                      <span className={`nav-caret ${open ? 'open' : ''}`} aria-hidden="true">
+                        ▾
+                      </span>
+                    )}
+                  </button>
+
+                  <div className={`nav-subitems ${open ? 'open' : 'closed'}`}>
+                    {item.children.map((child) => {
+                      const childActive = isPathActive(child.path);
+                      return (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          className={`nav-item nav-subitem ${childActive ? 'active' : ''}`}
+                          onClick={(e) => {
+                            if (childActive) e.preventDefault();
+                          }}
+                        >
+                          <span className="nav-icon">{child.icon}</span>
+                          {sidebarOpen && <span className="nav-text">{child.label}</span>}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }
+
+            const isActive = isPathActive(item.path);
             return (
               <Link
                 key={item.path}

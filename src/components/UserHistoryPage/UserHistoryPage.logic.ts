@@ -49,6 +49,7 @@ export const useUserHistoryPageLogic = () => {
   const { 
     data: modalTransactionsData, 
     isLoading: modalTransactionsLoading, 
+    isFetching: modalTransactionsFetching,
     error: modalTransactionsQueryError 
   } = useTopUpTransactions(
     showTransactionModal && selectedUserId 
@@ -136,6 +137,7 @@ export const useUserHistoryPageLogic = () => {
     showTransactionModal,
     modalTransactions,
     modalTransactionsLoading,
+    modalTransactionsFetching,
     modalTransactionsError,
     modalTotalTransactions,
     modalTotalPages,

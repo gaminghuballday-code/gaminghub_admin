@@ -41,7 +41,7 @@ const NotificationsPage: FC = () => {
   };
 
   return (
-    <AdminLayout title="FCM Notifications">
+    <AdminLayout title=" Notifications & Templates">
       <div className="notifications-content-wrapper">
         <div className="notifications-tabs" role="tablist" aria-label="Notification actions">
           <button

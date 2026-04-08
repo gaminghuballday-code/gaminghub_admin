@@ -652,9 +652,20 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  transition: margin-right $transition-normal, max-width $transition-normal;
+
+  &.with-user-details {
+    margin-right: 350px;
+    max-width: calc(1400px - 350px);
+  }
 
   @media (max-width: 768px) {
     padding: 16px;
+
+    &.with-user-details {
+      margin-right: 0;
+      max-width: 1400px;
+    }
   }
 }
 
@@ -1086,17 +1097,28 @@
 .pagination-controls {
   @include flex-between;
   align-items: center;
-  gap: $spacing-lg;
-  padding: $spacing-lg;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
   margin-top: $spacing-lg;
-  margin-bottom: $spacing-lg;
+  margin-bottom: $spacing-md;
   background: linear-gradient(135deg, 
     rgba(var(--primary-color-rgb), 0.1) 0%,
     rgba(var(--primary-color-rgb), 0.05) 100%
   );
   border-radius: $border-radius-md;
   border: 1px solid rgba(var(--primary-color-rgb), 0.2);
-  flex-wrap: wrap;
+}
+
+.pagination-nav {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-nav-button {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  border-radius: $border-radius-sm;
 }
 
 .pagination-button {
@@ -1153,23 +1175,70 @@
 .pagination-info {
   @include flex-column;
   align-items: center;
-  gap: $spacing-xs;
+  gap: $spacing-sm;
   flex: 1;
   text-align: center;
+  min-width: 0;
 }
 
 .pagination-text {
   font-weight: 700;
   color: var(--primary-color);
-  font-size: 1rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .pagination-total {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.pagination-page-button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 $spacing-sm;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.35);
+  border-radius: $border-radius-sm;
+  background: rgba(var(--primary-color-rgb), 0.08);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.16);
+  }
+
+  &.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-ellipsis {
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: 0 2px;
 }
 
 // User Details Sidebar
@@ -1189,6 +1258,7 @@
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   animation: slideInRight 0.3s ease-out;
+  overflow: hidden;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -1252,8 +1322,10 @@
 }
 
 .user-detail-item {
-  @include flex-column;
-  gap: $spacing-xs;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
   padding: $spacing-md;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1289,7 +1361,9 @@
   word-break: break-word;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: $spacing-xs;
+  text-align: right;
 }
 
 // Copy Email Button
@@ -1586,7 +1660,7 @@
 }
 
 // Responsive
-@include respond-to(md) {
+@media (max-width: 768px) {
   .dashboard-content {
     grid-template-columns: 1fr;
   }
@@ -1618,14 +1692,16 @@
   }
 
   .dashboard-tabs {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     gap: $spacing-xs;
   }
 
   .tab-button {
-    width: 100%;
-    text-align: center;
+    width: auto;
+    text-align: left;
     padding: $spacing-sm $spacing-md;
   }
 
@@ -1669,28 +1745,36 @@
   }
 
   .pagination-controls {
-    flex-direction: column;
-    gap: $spacing-md;
-    align-items: stretch;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    align-items: center;
+    padding: $spacing-md;
   }
 
-  .pagination-button {
-    width: 100%;
+  .pagination-nav {
+    width: auto;
+
+    button {
+      width: auto;
+    }
   }
 
-  .user-details-sidebar {
-    width: 100%;
-    max-width: 100%;
+  .pagination-pages {
+    justify-content: center;
   }
+
 }
 
 // Dashboard Tabs
 .dashboard-tabs {
-  @include flex-between;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: $spacing-sm;
   margin-bottom: $spacing-lg;
   border-bottom: 2px solid var(--border-color);
-  padding: 0 $spacing-md;
+  padding: 0;
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -1702,20 +1786,20 @@
 
 .tab-button {
   @include button-secondary;
-  padding: $spacing-md $spacing-xl;
+  padding: $spacing-sm $spacing-md;
   border: none;
   border-bottom: 3px solid transparent;
   border-radius: $border-radius-md $border-radius-md 0 0;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all $transition-fast;
   position: relative;
   bottom: -2px;
-  flex: 1;
-  min-width: 120px;
+  flex: 0 0 auto;
+  min-width: 110px;
 
   &:hover {
     color: var(--primary-color);
@@ -1736,6 +1820,18 @@
     bottom: 0;
     margin-bottom: $spacing-xs;
   }
+}
+
+.no-data-card {
+  text-align: center;
+  padding: $spacing-xl;
+}
+
+.no-data-text {
+  margin-top: $spacing-md;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 

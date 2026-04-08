@@ -8,11 +8,14 @@ import { Badge } from '@components/common/Badge';
 import { usePendingPayments, useUpdatePaymentStatus } from '@services/api/hooks/usePaymentQueries';
 import { getSocket } from '@services/websocket/socket';
 import type { PendingPayment } from '@services/api/payment.api';
+import { useAppSelector } from '@store/hooks';
+import { selectAccessToken } from '@store/slices/authSlice';
 import './PaymentVerificationPage.scss';
 
 const PaymentVerificationPage: React.FC = () => {
   const { data: pendingPaymentsData, isLoading, error, refetch } = usePendingPayments();
   const updatePaymentStatusMutation = useUpdatePaymentStatus();
+  const accessToken = useAppSelector(selectAccessToken);
 
   const [selectedPayment, setSelectedPayment] = useState<PendingPayment | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -20,6 +23,45 @@ const PaymentVerificationPage: React.FC = () => {
   const [rejectReason, setRejectReason] = useState('');
 
   const pendingPayments = pendingPaymentsData?.data?.pendingPayments || [];
+
+  // SSE for real-time pending payments updates (replaces polling)
+  useEffect(() => {
+    if (!accessToken) return;
+
+    // EventSource can't send Authorization headers; backend must accept token via query or cookies.
+    const encodedToken = encodeURIComponent(accessToken);
+    const streamUrl = `/api/admin/payments/pending/stream?token=${encodedToken}&accessToken=${encodedToken}&authToken=${encodedToken}`;
+    const es = new EventSource(streamUrl, { withCredentials: true });
+
+    const onPendingPaymentsEvent = (event: MessageEvent<string>) => {
+      try {
+        const payload: unknown = JSON.parse(event.data);
+        if (
+          typeof payload === 'object' &&
+          payload !== null &&
+          'type' in payload &&
+          (payload as { type?: unknown }).type !== undefined
+        ) {
+          const type = (payload as { type: string }).type;
+          if (type === 'transaction_status_changed' || type === 'connected') {
+            refetch();
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    es.addEventListener('pending-payments', onPendingPaymentsEvent as EventListener);
+    es.onerror = () => {
+      // EventSource auto-retries; nothing to do here
+    };
+
+    return () => {
+      es.removeEventListener('pending-payments', onPendingPaymentsEvent as EventListener);
+      es.close();
+    };
+  }, [accessToken, refetch]);
 
   // WebSocket for real-time payment status updates
   useEffect(() => {

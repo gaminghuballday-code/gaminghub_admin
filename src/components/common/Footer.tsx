@@ -36,10 +36,10 @@ const Footer: React.FC = () => {
         <div className="footer-section">
           <h3 className="footer-title">About</h3>
           <p className="footer-text">
-            Booyahx - Your ultimate gaming tournament platform
+            Booyahx - Your Ultimate Gaming Tournament Platform
           </p>
           <p className="footer-copyright">
-            © {new Date().getFullYear()} Booyahx. All rights reserved.
+            © {new Date().getFullYear()} Booyahx. All Rights Reserved.
           </p>
         </div>
       </div>

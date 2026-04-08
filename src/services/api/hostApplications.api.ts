@@ -110,6 +110,8 @@ export interface HostStatistics {
   name: string;
   email: string;
   totalLobbies: number;
+  lifetimeHostFeeEarned?: number;
+  totalHostFeeEarned?: number;
   timeSlotSummary: Record<string, number>;
   dailyRecords: DailyRecord[];
 }
@@ -121,6 +123,8 @@ export interface HostStatisticsResponse {
   data: {
     totalHosts: number;
     totalLobbies: number;
+    totalHostFeeEarned?: number;
+    allHostsLifetimeHostFeeEarned?: number;
     filters: {
       date?: string;
       fromDate?: string;

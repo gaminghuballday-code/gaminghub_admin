@@ -141,11 +141,24 @@ export const authApi = {
    * Get current user profile
    */
   getProfile: async (): Promise<AuthResponse['user']> => {
-    // Use admin endpoint for admin side, auth/profile endpoint for user side
     const isAdmin = isAdminDomain();
-    const endpoint = isAdmin ? '/api/admin/profile' : '/api/profile';
-    const response = await apiClient.get<{ data: AuthResponse['user'] }>(endpoint);
-    return response.data.data;
+
+    // Primary endpoint by app mode.
+    const primaryEndpoint = isAdmin ? '/api/admin/profile' : '/api/profile';
+
+    try {
+      const response = await apiClient.get<{ data: AuthResponse['user'] }>(primaryEndpoint);
+      return response.data.data;
+    } catch (error: unknown) {
+      // Some deployments don't expose /api/admin/profile.
+      // Fallback to /api/profile only for admin mode + 404.
+      const apiError = error as { status?: number };
+      if (isAdmin && apiError?.status === 404) {
+        const fallbackResponse = await apiClient.get<{ data: AuthResponse['user'] }>('/api/profile');
+        return fallbackResponse.data.data;
+      }
+      throw error;
+    }
   },
 
   /**

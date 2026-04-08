@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import { Modal } from '@components/common/Modal';
+import NoDataFound from '@components/common/NoDataFound';
 import AllHostsList from './AllHostsList';
 import './HostCreationPage.scss';
 
+type AccountTab = 'host' | 'org' | 'user';
+
 const HostCreationPage: React.FC = () => {
+  const [activeAccountTab, setActiveAccountTab] = useState<AccountTab>('host');
   const {
     activeTab,
     setActiveTab,
@@ -33,125 +38,168 @@ const HostCreationPage: React.FC = () => {
   } = useHostCreationPageLogic();
 
   return (
-    <AdminLayout title="Host Creation">
+    <AdminLayout title="Account Creation">
       <div className="host-creation-content-wrapper">
-          {/* Tabs */}
-          <div className="host-creation-tabs">
-            <button
-              className={`host-tab ${activeTab === 'create' ? 'active' : ''}`}
-              onClick={() => setActiveTab('create')}
-              type="button"
-            >
-              Create Host
-            </button>
-            <button
-              className={`host-tab ${activeTab === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveTab('all')}
-              type="button"
-            >
-              All Hosts
-            </button>
-          </div>
+        {/* Account Tabs */}
+        <div className="account-type-tabs">
+          <button
+            className={`account-type-tab ${activeAccountTab === 'host' ? 'active' : ''}`}
+            onClick={() => setActiveAccountTab('host')}
+            type="button"
+          >
+            Host
+          </button>
+          <button
+            className={`account-type-tab ${activeAccountTab === 'org' ? 'active' : ''}`}
+            onClick={() => setActiveAccountTab('org')}
+            type="button"
+          >
+            Org
+          </button>
+          <button
+            className={`account-type-tab ${activeAccountTab === 'user' ? 'active' : ''}`}
+            onClick={() => setActiveAccountTab('user')}
+            type="button"
+          >
+            User
+          </button>
+        </div>
 
-          {/* Create Host Tab */}
-          {activeTab === 'create' && (
-            <div className="host-creation-card">
-              <h2 className="card-title">Create New Host Account</h2>
-              <form className="host-creation-form" onSubmit={handleCreateHost}>
-                <div className="form-group">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="host@example.com"
-                    value={hostEmail}
-                    onChange={(e) => setHostEmail(e.target.value)}
-                    disabled={createLoading}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Host Name"
-                    value={hostName}
-                    onChange={(e) => setHostName(e.target.value)}
-                    disabled={createLoading}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Password</label>
-                  <div className="password-input-wrapper">
+        {activeAccountTab === 'host' && (
+          <>
+            {/* Host Tabs */}
+            <div className="host-creation-tabs">
+              <button
+                className={`host-tab ${activeTab === 'create' ? 'active' : ''}`}
+                onClick={() => setActiveTab('create')}
+                type="button"
+              >
+                Create Host
+              </button>
+              <button
+                className={`host-tab ${activeTab === 'all' ? 'active' : ''}`}
+                onClick={() => setActiveTab('all')}
+                type="button"
+              >
+                All Hosts
+              </button>
+            </div>
+
+            {/* Create Host Tab */}
+            {activeTab === 'create' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">Create New Host Account</h2>
+                <form className="host-creation-form" onSubmit={handleCreateHost}>
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      className="form-input password-input"
-                      placeholder="password123"
-                      value={hostPassword}
-                      onChange={(e) => setHostPassword(e.target.value)}
+                      type="email"
+                      className="form-input"
+                      placeholder="host@example.com"
+                      value={hostEmail}
+                      onChange={(e) => setHostEmail(e.target.value)}
                       disabled={createLoading}
                       required
-                      minLength={6}
                     />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={toggleShowPassword}
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Name</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Host Name"
+                      value={hostName}
+                      onChange={(e) => setHostName(e.target.value)}
                       disabled={createLoading}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      title={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                          <line x1="1" y1="1" x2="23" y2="23"></line>
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                      )}
-                    </button>
+                      required
+                    />
                   </div>
-                </div>
-                {createError && (
-                  <div className="host-creation-error">
-                    {createError}
+                  <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className="form-input password-input"
+                        placeholder="password123"
+                        value={hostPassword}
+                        onChange={(e) => setHostPassword(e.target.value)}
+                        disabled={createLoading}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={toggleShowPassword}
+                        disabled={createLoading}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        title={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                          </svg>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                )}
-                {createSuccess && (
-                  <div className="host-creation-success">
-                    {createSuccess}
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  className="host-creation-button"
-                  disabled={createLoading || !hostEmail.trim() || !hostName.trim() || !hostPassword.trim()}
-                >
-                  {createLoading ? 'Creating...' : 'Create Host Account'}
-                </button>
-              </form>
-            </div>
-          )}
+                  {createError && (
+                    <div className="host-creation-error">
+                      {createError}
+                    </div>
+                  )}
+                  {createSuccess && (
+                    <div className="host-creation-success">
+                      {createSuccess}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    className="host-creation-button"
+                    disabled={createLoading || !hostEmail.trim() || !hostName.trim() || !hostPassword.trim()}
+                  >
+                    {createLoading ? 'Creating...' : 'Create Host Account'}
+                  </button>
+                </form>
+              </div>
+            )}
 
-          {/* All Hosts Tab */}
-          {activeTab === 'all' && (
+            {/* All Hosts Tab */}
+            {activeTab === 'all' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">All Hosts</h2>
+                <AllHostsList
+                  hosts={hosts}
+                  hostsLoading={hostsLoading}
+                  hostsError={hostsError}
+                  pagination={pagination}
+                  onHostClick={handleHostClick}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {activeAccountTab === 'org' && (
+          <div className="host-creation-card">
+            <h2 className="card-title">Organization Account</h2>
+            <NoDataFound message="Org account section pending. Share fields/workflow and I will add it." />
+          </div>
+        )}
+
+        {activeAccountTab === 'user' && (
             <div className="host-creation-card">
-              <h2 className="card-title">All Hosts</h2>
-              <AllHostsList
-                hosts={hosts}
-                hostsLoading={hostsLoading}
-                hostsError={hostsError}
-                pagination={pagination}
-                onHostClick={handleHostClick}
-              />
+              <h2 className="card-title">User Account</h2>
+              <NoDataFound message="User account section pending. Share fields/workflow and I will add it." />
             </div>
-          )}
-        </div>
+        )}
+      </div>
       {/* </main> */}
 
       {/* Host Details Modal */}
@@ -242,9 +290,7 @@ const HostCreationPage: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="host-stats-empty">
-                  <p>No statistics available for this host.</p>
-                </div>
+                <NoDataFound className="host-stats-empty" message="No statistics available for this host." />
               )}
           </div>
         </Modal>

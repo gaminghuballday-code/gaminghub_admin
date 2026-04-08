@@ -15,7 +15,9 @@ export const usePlatformStats = (enabled = true) => {
     queryKey: adminKeys.stats(),
     queryFn: () => adminApi.getPlatformStats(),
     enabled,
-    refetchInterval: 60000, // Refresh every minute
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };
 

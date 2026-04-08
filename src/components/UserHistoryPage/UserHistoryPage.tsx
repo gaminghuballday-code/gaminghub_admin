@@ -3,6 +3,7 @@ import AdminLayout from '@components/common/AdminLayout';
 import { Modal } from '@components/common/Modal';
 import { Button } from '@components/common/Button';
 import { Badge } from '@components/common/Badge';
+import Loading from '@components/common/Loading';
 import './UserHistoryPage.scss';
 
 const UserHistoryPage: React.FC = () => {
@@ -15,6 +16,7 @@ const UserHistoryPage: React.FC = () => {
     showTransactionModal,
     modalTransactions,
     modalTransactionsLoading,
+    modalTransactionsFetching,
     modalTransactionsError,
     modalTotalTransactions,
     modalTotalPages,
@@ -109,9 +111,9 @@ const UserHistoryPage: React.FC = () => {
               </div>
             )}
 
-            {modalTransactionsLoading ? (
+            {modalTransactionsLoading || modalTransactionsFetching ? (
               <div className="loading-message">
-                <p>Loading transactions...</p>
+                <Loading />
               </div>
             ) : modalTransactions.length > 0 ? (
               <>

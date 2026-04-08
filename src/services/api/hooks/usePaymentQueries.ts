@@ -191,8 +191,9 @@ export const usePendingPayments = (enabled = true) => {
     queryKey: paymentKeys.pendingPayments(),
     queryFn: () => paymentApi.getPendingPayments(),
     enabled,
-    refetchOnWindowFocus: true,
-    refetchInterval: 10000, // Poll every 10 seconds for new pending payments
+    // Avoid background polling; the page already listens to WebSocket events and has a manual Refresh button.
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };
 

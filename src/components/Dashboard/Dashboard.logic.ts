@@ -1,24 +1,95 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import type { AdminUser, GetHostStatisticsParams } from '@services/api';
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
-import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
+import { selectAccessToken, selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import {
   useUsers,
   useBlockUsers,
   useUnblockUsers,
   useHostStatistics,
   usePlatformStats,
-  useAnalytics,
+  adminKeys,
 } from '@services/api/hooks';
+import type { PlatformStats, PlatformStatsResponse } from '@services/types/api.types';
+
+const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
+const normalizePlatformStats = (raw: unknown): PlatformStats | null => {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const data = raw as Record<string, unknown>;
+  const breakdown = (data.breakdown && typeof data.breakdown === 'object'
+    ? (data.breakdown as Record<string, unknown>)
+    : undefined);
+
+  const totalUsers = isNumber(data.totalUsers) ? data.totalUsers : 0;
+  const totalDeposit = isNumber(data.totalDeposit)
+    ? data.totalDeposit
+    : isNumber(data.totalIncome)
+      ? data.totalIncome
+      : isNumber(data.totalTopupGC)
+        ? data.totalTopupGC
+        : 0;
+  const totalRewards = isNumber(data.totalRewards)
+    ? data.totalRewards
+    : isNumber(data.totalWithdraw)
+      ? data.totalWithdraw
+      : isNumber(data.totalWinDraw)
+        ? data.totalWinDraw
+        : 0;
+  const platformFeeCollected = isNumber(data.platformFeeCollected)
+    ? data.platformFeeCollected
+    : isNumber(data.platformFee)
+      ? data.platformFee
+      : isNumber(breakdown?.platformFee)
+        ? breakdown.platformFee
+        : 0;
+  const casterFeeCollected = isNumber(data.casterFeeCollected)
+    ? data.casterFeeCollected
+    : isNumber(data.casterFee)
+      ? data.casterFee
+      : isNumber(breakdown?.casterFee)
+        ? breakdown.casterFee
+        : 0;
+  const netProfit = isNumber(data.netProfit)
+    ? data.netProfit
+    : isNumber(data.totalProfit)
+      ? data.totalProfit
+      : isNumber(data.platformProfit)
+        ? data.platformProfit
+        : platformFeeCollected + casterFeeCollected;
+
+  return {
+    totalUsers,
+    totalIncome: totalDeposit,
+    totalRewards,
+    totalProfit: netProfit,
+    userGrowth: isNumber(data.userGrowth) ? data.userGrowth : 0,
+    incomeGrowth: isNumber(data.incomeGrowth) ? data.incomeGrowth : 0,
+    totalDeposit,
+    totalTopupGC: isNumber(data.totalTopupGC) ? data.totalTopupGC : totalDeposit,
+    totalWithdraw: isNumber(data.totalWithdraw) ? data.totalWithdraw : totalRewards,
+    totalWinDraw: isNumber(data.totalWinDraw) ? data.totalWinDraw : totalRewards,
+    platformFeeCollected,
+    casterFeeCollected,
+    platformProfit: isNumber(data.platformProfit) ? data.platformProfit : netProfit,
+    netProfit,
+  };
+};
 
 export const useDashboardLogic = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const accessToken = useAppSelector(selectAccessToken);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageLimit] = useState<number>(10);
+  const [pageLimit] = useState<number>(12);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
   const [userQuery, setUserQuery] = useState<string>('');
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
@@ -26,71 +97,64 @@ export const useDashboardLogic = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   // Host Statistics states
-  const [activeTab, setActiveTab] = useState<'users' | 'hostStats'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'hostStats' | 'orgStats' | 'subAdminStats'>('users');
   
-  // Get current date in YYYY-MM-DD format
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   const [hostStatsFilters, setHostStatsFilters] = useState<{
     fromDate?: string;
     toDate?: string;
     hostEmail?: string;
   }>({});
-
-  // Platform Analytics states
-  const [analyticsPeriod, setAnalyticsPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-
-  // Track if search has been clicked to enable API calls
-  const [hasSearched, setHasSearched] = useState(false);
+  const [appliedHostStatsFilters, setAppliedHostStatsFilters] = useState<{
+    fromDate?: string;
+    toDate?: string;
+    hostEmail?: string;
+  }>({});
+  const [hostStatsCurrentPage, setHostStatsCurrentPage] = useState<number>(1);
+  const hostStatsPageLimit = 10;
   
   // Build API params from filters using useMemo
   const hostStatsParams = useMemo((): GetHostStatisticsParams | undefined => {
-    if (!hasSearched) {
+    if (
+      !appliedHostStatsFilters.hostEmail &&
+      !appliedHostStatsFilters.fromDate &&
+      !appliedHostStatsFilters.toDate
+    ) {
       return undefined;
     }
-    
+
     const params: GetHostStatisticsParams = {};
-    
-    const hasHostEmail = hostStatsFilters.hostEmail?.trim();
-    const hasFromDate = hostStatsFilters.fromDate;
-    const hasToDate = hostStatsFilters.toDate;
+
+    const hasHostEmail = appliedHostStatsFilters.hostEmail?.trim();
+    const hasFromDate = appliedHostStatsFilters.fromDate;
+    const hasToDate = appliedHostStatsFilters.toDate;
     const hasAnyDate = hasFromDate || hasToDate;
-    
+
     // Special case: If ONLY host email (no dates), don't send date
     if (hasHostEmail && !hasAnyDate) {
-      params.hostEmail = hostStatsFilters.hostEmail?.trim();
+      params.hostEmail = appliedHostStatsFilters.hostEmail?.trim();
       return params;
     }
-    
+
     // Handle dates
     if (hasFromDate && hasToDate) {
       // Both dates provided - date range
-      params.fromDate = hostStatsFilters.fromDate;
-      params.toDate = hostStatsFilters.toDate;
+      params.fromDate = appliedHostStatsFilters.fromDate;
+      params.toDate = appliedHostStatsFilters.toDate;
     } else if (hasFromDate && !hasToDate) {
       // Only fromDate - treat as single date
-      params.date = hostStatsFilters.fromDate;
+      params.date = appliedHostStatsFilters.fromDate;
     } else if (!hasFromDate && hasToDate) {
       // Only toDate - treat as single date
-      params.date = hostStatsFilters.toDate;
-    } else {
-      // No dates selected - use current date as default
-      params.date = getCurrentDate();
+      params.date = appliedHostStatsFilters.toDate;
     }
-    
+
     // Add host email if provided (with dates)
     if (hasHostEmail) {
-      params.hostEmail = hostStatsFilters.hostEmail?.trim();
+      params.hostEmail = appliedHostStatsFilters.hostEmail?.trim();
     }
-    
+
     return params;
-  }, [hostStatsFilters, hasSearched]);
+  }, [appliedHostStatsFilters]);
 
   // TanStack Query hooks
   // const { data: profileData } = useProfile(isAuthenticated && !user);
@@ -120,8 +184,8 @@ export const useDashboardLogic = () => {
   const blockUsersMutation = useBlockUsers();
   const unblockUsersMutation = useUnblockUsers();
 
-  // Host Statistics query - only fetch when search is clicked
-  const shouldFetchHostStats = activeTab === 'hostStats' && isAuthenticated && hasSearched;
+  // Host Statistics query - fetch default data on tab open, apply filters only on explicit search
+  const shouldFetchHostStats = activeTab === 'hostStats' && isAuthenticated;
   const { 
     data: hostStatsData, 
     isLoading: hostStatsLoading, 
@@ -129,8 +193,15 @@ export const useDashboardLogic = () => {
   } = useHostStatistics(hostStatsParams, shouldFetchHostStats);
   
   const hostStatistics = hostStatsData?.hosts || [];
+  const hostStatsTotalPages = Math.max(1, Math.ceil(hostStatistics.length / hostStatsPageLimit));
+  const paginatedHostStatistics = useMemo(() => {
+    const startIndex = (hostStatsCurrentPage - 1) * hostStatsPageLimit;
+    return hostStatistics.slice(startIndex, startIndex + hostStatsPageLimit);
+  }, [hostStatistics, hostStatsCurrentPage]);
   const totalHosts = hostStatsData?.totalHosts || 0;
   const totalLobbies = hostStatsData?.totalLobbies || 0;
+  const totalHostFeeEarned = hostStatsData?.totalHostFeeEarned || 0;
+  const allHostsLifetimeHostFeeEarned = hostStatsData?.allHostsLifetimeHostFeeEarned || 0;
   const hostStatsError = hostStatsQueryError ? (hostStatsQueryError as Error).message : null;
 
   // Platform Statistics query
@@ -140,12 +211,66 @@ export const useDashboardLogic = () => {
     error: platformStatsError
   } = usePlatformStats(isAuthenticated);
 
-  // Analytics query
-  const {
-    data: analyticsData,
-    isLoading: analyticsLoading,
-    error: analyticsError
-  } = useAnalytics(analyticsPeriod, isAuthenticated);
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) {
+      return;
+    }
+
+    const encodedToken = encodeURIComponent(accessToken);
+    // Backends differ on query key names for SSE auth. Send common aliases.
+    const streamUrl = `/api/admin/dashboard/stats/stream?token=${encodedToken}&accessToken=${encodedToken}&authToken=${encodedToken}`;
+    const eventSource = new EventSource(streamUrl, { withCredentials: true });
+
+    const updateStatsCache = (stats: PlatformStats) => {
+      queryClient.setQueryData(adminKeys.stats(), stats);
+    };
+
+    const processPayload = (payload: unknown) => {
+      if (!payload || typeof payload !== 'object') {
+        queryClient.invalidateQueries({ queryKey: adminKeys.stats() });
+        return;
+      }
+
+      if ('data' in payload && typeof payload.data === 'object' && payload.data !== null) {
+        const responsePayload = payload as Partial<PlatformStatsResponse>;
+        const normalizedStats = normalizePlatformStats(responsePayload.data);
+        if (normalizedStats) {
+          updateStatsCache(normalizedStats);
+          return;
+        }
+      }
+
+      const normalizedPayload = normalizePlatformStats(payload);
+      if (normalizedPayload) {
+        updateStatsCache(normalizedPayload);
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: adminKeys.stats() });
+    };
+
+    const handleStreamMessage = (event: MessageEvent<string>) => {
+      try {
+        const payload: unknown = JSON.parse(event.data);
+        processPayload(payload);
+      } catch {
+        queryClient.invalidateQueries({ queryKey: adminKeys.stats() });
+      }
+    };
+
+    eventSource.addEventListener('dashboard-stats', handleStreamMessage as EventListener);
+    eventSource.addEventListener('stats-updated', handleStreamMessage as EventListener);
+    eventSource.onmessage = handleStreamMessage;
+    eventSource.onerror = () => {
+      // Let EventSource reconnect automatically.
+    };
+
+    return () => {
+      eventSource.removeEventListener('dashboard-stats', handleStreamMessage as EventListener);
+      eventSource.removeEventListener('stats-updated', handleStreamMessage as EventListener);
+      eventSource.close();
+    };
+  }, [accessToken, isAuthenticated, queryClient]);
 
   useEffect(() => {
     // Check authentication from Redux
@@ -312,6 +437,12 @@ export const useDashboardLogic = () => {
     if (newPage >= 1 && pagination && newPage <= pagination.totalPages) {
       setCurrentPage(newPage);
       setSelectedUserIds(new Set()); // Clear selection when page changes
+      const contentContainer = document.querySelector('.admin-content');
+      if (contentContainer instanceof HTMLElement) {
+        contentContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       // Query will automatically refetch when currentPage changes
     }
   };
@@ -338,12 +469,22 @@ export const useDashboardLogic = () => {
 
   const handleClearHostStatsFilters = () => {
     setHostStatsFilters({});
-    setHasSearched(false);
+    setAppliedHostStatsFilters({});
+    setHostStatsCurrentPage(1);
   };
 
   const handleSearchHostStats = () => {
-    setHasSearched(true);
-    // Query will automatically refetch when hasSearched becomes true and params are computed
+    setAppliedHostStatsFilters({
+      fromDate: hostStatsFilters.fromDate,
+      toDate: hostStatsFilters.toDate,
+      hostEmail: hostStatsFilters.hostEmail?.trim() || undefined,
+    });
+    setHostStatsCurrentPage(1);
+  };
+
+  const handleHostStatsPageChange = (page: number) => {
+    if (page < 1 || page > hostStatsTotalPages) return;
+    setHostStatsCurrentPage(page);
   };
 
   return {
@@ -378,27 +519,24 @@ export const useDashboardLogic = () => {
     // Host Statistics
     activeTab,
     setActiveTab,
-    hostStatistics,
+    hostStatistics: paginatedHostStatistics,
     hostStatsLoading,
     hostStatsError,
     hostStatsFilters,
     totalHosts,
     totalLobbies,
+    totalHostFeeEarned,
+    allHostsLifetimeHostFeeEarned,
+    hostStatsCurrentPage,
+    hostStatsTotalPages,
     handleHostStatsFilterChange,
     handleClearHostStatsFilters,
     handleSearchHostStats,
+    handleHostStatsPageChange,
     // Platform Statistics
     platformStats,
     platformStatsLoading,
     platformStatsError,
-    // Analytics
-    analyticsData: analyticsData?.data || [],
-    analyticsTotals: analyticsData?.selectedPeriodTotals,
-    analyticsOverallTotals: analyticsData?.overallTotals,
-    analyticsLoading,
-    analyticsError,
-    analyticsPeriod,
-    handleAnalyticsPeriodChange: setAnalyticsPeriod,
   };
 };
 

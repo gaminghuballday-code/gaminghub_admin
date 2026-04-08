@@ -30,6 +30,84 @@ interface AnalyticsApiEnvelope {
   data?: RawAnalyticsPayload | RawAnalyticsDataPoint[];
 }
 
+const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
+const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['data'] => {
+  if (!raw || typeof raw !== 'object') {
+    return {
+      totalUsers: 0,
+      totalIncome: 0,
+      totalRewards: 0,
+      totalProfit: 0,
+      userGrowth: 0,
+      incomeGrowth: 0,
+    };
+  }
+
+  const data = raw as Record<string, unknown>;
+  const breakdown = (data.breakdown && typeof data.breakdown === 'object'
+    ? (data.breakdown as Record<string, unknown>)
+    : undefined);
+
+  const totalUsers = isNumber(data.totalUsers) ? data.totalUsers : 0;
+  const totalDeposit = isNumber(data.totalDeposit)
+    ? data.totalDeposit
+    : isNumber(data.totalIncome)
+      ? data.totalIncome
+      : isNumber(data.totalTopupGC)
+        ? data.totalTopupGC
+        : 0;
+
+  const totalRewards = isNumber(data.totalRewards)
+    ? data.totalRewards
+    : isNumber(data.totalWithdraw)
+      ? data.totalWithdraw
+      : isNumber(data.totalWinDraw)
+        ? data.totalWinDraw
+        : 0;
+
+  const platformFeeCollected = isNumber(data.platformFeeCollected)
+    ? data.platformFeeCollected
+    : isNumber(data.platformFee)
+      ? data.platformFee
+      : isNumber(breakdown?.platformFee)
+        ? breakdown.platformFee
+        : 0;
+
+  const casterFeeCollected = isNumber(data.casterFeeCollected)
+    ? data.casterFeeCollected
+    : isNumber(data.casterFee)
+      ? data.casterFee
+      : isNumber(breakdown?.casterFee)
+        ? breakdown.casterFee
+        : 0;
+
+  const netProfit = isNumber(data.netProfit)
+    ? data.netProfit
+    : isNumber(data.totalProfit)
+      ? data.totalProfit
+      : isNumber(data.platformProfit)
+        ? data.platformProfit
+        : platformFeeCollected + casterFeeCollected;
+
+  return {
+    totalUsers,
+    totalIncome: totalDeposit,
+    totalRewards,
+    totalProfit: netProfit,
+    userGrowth: isNumber(data.userGrowth) ? data.userGrowth : 0,
+    incomeGrowth: isNumber(data.incomeGrowth) ? data.incomeGrowth : 0,
+    totalDeposit,
+    totalTopupGC: isNumber(data.totalTopupGC) ? data.totalTopupGC : totalDeposit,
+    totalWithdraw: isNumber(data.totalWithdraw) ? data.totalWithdraw : totalRewards,
+    totalWinDraw: isNumber(data.totalWinDraw) ? data.totalWinDraw : totalRewards,
+    platformFeeCollected,
+    casterFeeCollected,
+    platformProfit: isNumber(data.platformProfit) ? data.platformProfit : netProfit,
+    netProfit,
+  };
+};
+
 export const adminApi = {
   /**
    * Get platform-wide statistics (Admin only)
@@ -37,7 +115,7 @@ export const adminApi = {
   getPlatformStats: async (): Promise<PlatformStatsResponse['data']> => {
     try {
       const response = await apiClient.get<PlatformStatsResponse>('/api/admin/dashboard/stats');
-      return response.data.data;
+      return normalizePlatformStats(response.data.data);
     } catch (error) {
       console.warn('Platform stats API failed, using mock data:', error);
       // Return mock data for development if API is not available
