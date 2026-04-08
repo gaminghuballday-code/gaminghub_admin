@@ -3,7 +3,6 @@ import type { FC } from 'react';
 import AdminLayout from '@components/common/AdminLayout';
 import Loading from '@components/common/Loading';
 import { useNotificationsPageLogic } from './NotificationsPage.logic';
-import { ADMIN_NOTIFICATION_PRESETS } from '@utils/notificationPresets';
 import './NotificationsPage.scss';
 
 const NotificationsPage: FC = () => {
@@ -26,16 +25,20 @@ const NotificationsPage: FC = () => {
     handleSaveTemplate,
     handleSendFromTemplate,
     sendFromTemplatePendingId,
-    applyPresetToBroadcast,
-    handleSendPresetBroadcast,
-    handleSavePresetAsServerTemplate,
-    activePresetSendId,
+    applyTemplateToBroadcast,
+    handleSendTemplateBroadcast,
+    activeTemplateSendId,
   } = useNotificationsPageLogic();
 
   const [activePanel, setActivePanel] = useState<'broadcast' | 'templates'>('broadcast');
 
   const truncate = (text: string, maxLen: number) =>
     text.length <= maxLen ? text : `${text.slice(0, maxLen)}…`;
+
+  const templateCardLabel = (title: string, name?: string) => {
+    const n = name?.trim();
+    return n && n.length > 0 ? n : title;
+  };
 
   return (
     <AdminLayout title="FCM Notifications">
@@ -84,41 +87,52 @@ const NotificationsPage: FC = () => {
             <p className="notifications-presets__hint">
               Use a ready-made title and message. Send immediately, or load into the form below to edit before sending.
             </p>
-            <ul className="notifications-presets__grid">
-              {ADMIN_NOTIFICATION_PRESETS.map((preset) => (
-                <li key={preset.id} className="notifications-presets__card">
-                  <div className="notifications-presets__card-head">
-                    <span className="notifications-presets__card-name">{preset.name}</span>
-                  </div>
-                  <p className="notifications-presets__card-preview">
-                    <strong>{truncate(preset.title, 40)}</strong>
-                    <span className="notifications-presets__card-sep"> · </span>
-                    {truncate(preset.message, 72)}
-                  </p>
-                  <div className="notifications-presets__card-actions">
-                    <button
-                      type="button"
-                      className="notifications-presets__btn notifications-presets__btn--primary"
-                      disabled={broadcastSending}
-                      onClick={() => handleSendPresetBroadcast(preset)}
-                    >
-                      {broadcastSending && activePresetSendId === preset.id ? 'Sending…' : 'Send now'}
-                    </button>
-                    <button
-                      type="button"
-                      className="notifications-presets__btn"
-                      disabled={broadcastSending}
-                      onClick={() => {
-                        applyPresetToBroadcast(preset);
-                        document.getElementById('broadcast-title')?.focus();
-                      }}
-                    >
-                      Use in form
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {templatesLoading ? (
+              <Loading />
+            ) : templates.length === 0 ? (
+              <p className="notifications-presets__empty">
+                No templates yet. Add them under &quot;Templates (save and send)&quot; or ensure defaults are configured
+                on the server.
+              </p>
+            ) : (
+              <ul className="notifications-presets__grid">
+                {templates.map((t) => (
+                  <li key={t.id} className="notifications-presets__card">
+                    <div className="notifications-presets__card-head">
+                      <span className="notifications-presets__card-name">
+                        {truncate(templateCardLabel(t.title, t.name), 48)}
+                      </span>
+                    </div>
+                    <p className="notifications-presets__card-preview">
+                      <strong>{truncate(t.title, 40)}</strong>
+                      <span className="notifications-presets__card-sep"> · </span>
+                      {truncate(t.message, 72)}
+                    </p>
+                    <div className="notifications-presets__card-actions">
+                      <button
+                        type="button"
+                        className="notifications-presets__btn notifications-presets__btn--primary"
+                        disabled={broadcastSending}
+                        onClick={() => handleSendTemplateBroadcast(t)}
+                      >
+                        {broadcastSending && activeTemplateSendId === t.id ? 'Sending…' : 'Send now'}
+                      </button>
+                      <button
+                        type="button"
+                        className="notifications-presets__btn"
+                        disabled={broadcastSending}
+                        onClick={() => {
+                          applyTemplateToBroadcast(t);
+                          document.getElementById('broadcast-title')?.focus();
+                        }}
+                      >
+                        Use in form
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <form className="notifications-form" onSubmit={handleSendNotification}>
@@ -181,53 +195,55 @@ const NotificationsPage: FC = () => {
               Default messages
             </h3>
             <p className="notifications-presets__hint">
-              Send to everyone now, save a copy to your list, or load into the form to tweak before saving.
+              Send to everyone now, or load into the form to edit before saving a new copy.
             </p>
-            <ul className="notifications-presets__grid">
-              {ADMIN_NOTIFICATION_PRESETS.map((preset) => (
-                <li key={preset.id} className="notifications-presets__card">
-                  <div className="notifications-presets__card-head">
-                    <span className="notifications-presets__card-name">{preset.name}</span>
-                  </div>
-                  <p className="notifications-presets__card-preview">
-                    <strong>{truncate(preset.title, 40)}</strong>
-                    <span className="notifications-presets__card-sep"> · </span>
-                    {truncate(preset.message, 72)}
-                  </p>
-                  <div className="notifications-presets__card-actions">
-                    <button
-                      type="button"
-                      className="notifications-presets__btn notifications-presets__btn--primary"
-                      disabled={broadcastSending}
-                      onClick={() => handleSendPresetBroadcast(preset)}
-                    >
-                      {broadcastSending && activePresetSendId === preset.id ? 'Sending…' : 'Send now'}
-                    </button>
-                    <button
-                      type="button"
-                      className="notifications-presets__btn"
-                      disabled={templateSaving}
-                      onClick={() => handleSavePresetAsServerTemplate(preset)}
-                    >
-                      Save to my list
-                    </button>
-                    <button
-                      type="button"
-                      className="notifications-presets__btn"
-                      disabled={broadcastSending || templateSaving}
-                      onClick={() => {
-                        setTemplateName(preset.name);
-                        setTemplateTitle(preset.title);
-                        setTemplateMessage(preset.message);
-                        document.getElementById('template-title')?.focus();
-                      }}
-                    >
-                      Load into form
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {templatesLoading ? (
+              <Loading />
+            ) : templates.length === 0 ? (
+              <p className="notifications-presets__empty">
+                No templates yet. Use the form below to save your first template.
+              </p>
+            ) : (
+              <ul className="notifications-presets__grid">
+                {templates.map((t) => (
+                  <li key={t.id} className="notifications-presets__card">
+                    <div className="notifications-presets__card-head">
+                      <span className="notifications-presets__card-name">
+                        {truncate(templateCardLabel(t.title, t.name), 48)}
+                      </span>
+                    </div>
+                    <p className="notifications-presets__card-preview">
+                      <strong>{truncate(t.title, 40)}</strong>
+                      <span className="notifications-presets__card-sep"> · </span>
+                      {truncate(t.message, 72)}
+                    </p>
+                    <div className="notifications-presets__card-actions">
+                      <button
+                        type="button"
+                        className="notifications-presets__btn notifications-presets__btn--primary"
+                        disabled={broadcastSending}
+                        onClick={() => handleSendTemplateBroadcast(t)}
+                      >
+                        {broadcastSending && activeTemplateSendId === t.id ? 'Sending…' : 'Send now'}
+                      </button>
+                      <button
+                        type="button"
+                        className="notifications-presets__btn"
+                        disabled={broadcastSending || templateSaving}
+                        onClick={() => {
+                          setTemplateName(t.name ?? '');
+                          setTemplateTitle(t.title);
+                          setTemplateMessage(t.message);
+                          document.getElementById('template-title')?.focus();
+                        }}
+                      >
+                        Load into form
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <form className="notifications-form notifications-form--templates" onSubmit={handleSaveTemplate}>

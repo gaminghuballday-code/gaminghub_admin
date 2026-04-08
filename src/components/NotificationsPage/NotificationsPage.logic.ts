@@ -8,7 +8,7 @@ import {
   useSendBroadcastNotification,
   useSendNotificationFromTemplate,
 } from '@services/api/hooks/useNotificationsQueries';
-import type { NotificationPreset } from '@utils/notificationPresets';
+import type { NotificationTemplate } from '@services/api/notifications.api';
 
 const getApiErrorMessage = (err: unknown): string => {
   if (err instanceof AxiosError) {
@@ -39,7 +39,7 @@ export const useNotificationsPageLogic = () => {
   const [templateTitle, setTemplateTitle] = useState('');
   const [templateMessage, setTemplateMessage] = useState('');
 
-  const [activePresetSendId, setActivePresetSendId] = useState<string | null>(null);
+  const [activeTemplateSendId, setActiveTemplateSendId] = useState<string | null>(null);
 
   const handleSendNotification = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,17 +165,17 @@ export const useNotificationsPageLogic = () => {
     });
   };
 
-  const applyPresetToBroadcast = (preset: NotificationPreset) => {
-    setTitle(preset.title);
-    setMessage(preset.message);
+  const applyTemplateToBroadcast = (template: NotificationTemplate) => {
+    setTitle(template.title);
+    setMessage(template.message);
   };
 
-  const handleSendPresetBroadcast = (preset: NotificationPreset) => {
-    setActivePresetSendId(preset.id);
+  const handleSendTemplateBroadcast = (template: NotificationTemplate) => {
+    setActiveTemplateSendId(template.id);
     broadcastMutation.mutate(
-      { title: preset.title, message: preset.message },
+      { title: template.title, message: template.message },
       {
-        onSettled: () => setActivePresetSendId(null),
+        onSettled: () => setActiveTemplateSendId(null),
         onSuccess: (response) => {
           if (response.success) {
             dispatch(
@@ -208,36 +208,6 @@ export const useNotificationsPageLogic = () => {
     );
   };
 
-  const handleSavePresetAsServerTemplate = (preset: NotificationPreset) => {
-    saveTemplateMutation.mutate(
-      {
-        title: preset.title,
-        message: preset.message,
-        name: preset.name,
-      },
-      {
-        onSuccess: () => {
-          dispatch(
-            addToast({
-              message: `Saved "${preset.name}" to your template list.`,
-              type: 'success',
-              duration: 5000,
-            })
-          );
-        },
-        onError: (err) => {
-          dispatch(
-            addToast({
-              message: getApiErrorMessage(err),
-              type: 'error',
-              duration: 6000,
-            })
-          );
-        },
-      }
-    );
-  };
-
   return {
     title,
     setTitle,
@@ -245,10 +215,9 @@ export const useNotificationsPageLogic = () => {
     setMessage,
     broadcastSending: broadcastMutation.isPending,
     handleSendNotification,
-    applyPresetToBroadcast,
-    handleSendPresetBroadcast,
-    handleSavePresetAsServerTemplate,
-    activePresetSendId,
+    applyTemplateToBroadcast,
+    handleSendTemplateBroadcast,
+    activeTemplateSendId,
 
     templates,
     templatesLoading,
