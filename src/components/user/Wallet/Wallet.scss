@@ -322,7 +322,7 @@
   white-space: nowrap;
 
   &.positive {
-    color: rgb(34, 197, 94);
+    color: rgb(0, 200, 255);
   }
 
   &.negative {
@@ -646,8 +646,8 @@
 }
 
 .qr-status-success {
-  color: rgb(34, 197, 94);
-  background: rgba(34, 197, 94, 0.1);
+  color: rgb(0, 200, 255);
+  background: rgba(0, 200, 255, 0.1);
 
   svg {
     flex-shrink: 0;
@@ -722,13 +722,13 @@
 
     &.completed {
       .step-number {
-        background: rgb(34, 197, 94);
-        border-color: rgb(34, 197, 94);
+        background: rgb(0, 200, 255);
+        border-color: rgb(0, 200, 255);
         color: white;
       }
 
       .step-label {
-        color: rgb(34, 197, 94);
+        color: rgb(0, 200, 255);
       }
     }
   }

@@ -64,15 +64,15 @@
 
   &.btn-success {
     @include button-base;
-    background-color: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background-color: rgba(0, 200, 255, 0.1);
+    color: rgb(0, 200, 255);
+    border: 1px solid rgba(0, 200, 255, 0.3);
 
     &:hover:not(:disabled) {
-      background-color: rgba(34, 197, 94, 0.2);
-      border-color: rgb(34, 197, 94);
+      background-color: rgba(0, 200, 255, 0.2);
+      border-color: rgb(0, 200, 255);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 200, 255, 0.3);
     }
   }
 

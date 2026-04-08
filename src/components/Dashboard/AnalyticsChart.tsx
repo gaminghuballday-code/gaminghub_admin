@@ -72,8 +72,8 @@ const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                 <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                <stop offset="5%" stopColor="#00c8ff" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#00c8ff" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -114,7 +114,7 @@ const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
               name="Net Profit"
               type="monotone"
               dataKey="profit"
-              stroke="#10b981"
+              stroke="#00c8ff"
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorProfit)"

@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useGenerateLobbyPageLogic } from './GenerateLobbyPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import GenerateLobby from '@components/GenerateLobby/GenerateLobby';
@@ -6,9 +7,11 @@ import ConfirmationModal from '@components/common/ConfirmationModal';
 import HostApplications from '@components/HostApplications/HostApplications';
 import UpdateRoom from '@components/UpdateRoom/UpdateRoom';
 import { Button } from '@components/common/Button';
+import SpecialTournamentTab from '@components/SpecialTournamentTab/SpecialTournamentTab';
 import './GenerateLobbyPage.scss';
 
 const GenerateLobbyPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'generate' | 'special-tournament'>('special-tournament');
   const {
     showGenerateLobbyModal,
     setShowGenerateLobbyModal,
@@ -51,299 +54,324 @@ const GenerateLobbyPage: React.FC = () => {
   } = useGenerateLobbyPageLogic();
 
   return (
-    <AdminLayout title="Generate Lobby">
-      <div className="generate-lobby-page-content">
-        <div className="generate-lobby-page-card">
-          <h2 className="card-title">Generate  Lobby</h2>
-          <p className="card-description">
-            Create and configure lobbies for the next day. Select date, time slots, game mode, sub modes, and region.
-          </p>
-          <Button
-            variant="primary"
-            onClick={() => setShowGenerateLobbyModal(true)}
-            aria-label="Open Generate Lobby Modal"
-            icon={<span>🎮</span>}
-          >
-            Generate Lobby
-          </Button>
-        </div>
+    <AdminLayout title="Room Creator">
+      <div className="room-creator-tabs">
+        <button
+          className={`room-creator-tab ${activeTab === 'generate' ? 'active' : ''}`}
+          onClick={() => setActiveTab('generate')}
+          type="button"
+        >
+          Lobbies
+        </button>
+        <button
+          className={`room-creator-tab ${activeTab === 'special-tournament' ? 'active' : ''}`}
+          onClick={() => setActiveTab('special-tournament')}
+          type="button"
+        >
+          Special Tournament
+        </button>
+      </div>
 
-        {/* Tournaments List */}
-        <div className="tournaments-list-card">
-          <div className="tournaments-header">
-            <h2 className="card-title">
-              {tournamentStatus === 'upcoming' ? "Today's Tournaments" : 
-               tournamentStatus === 'live' ? "Live Tournaments" : 
-               tournamentStatus === 'completed' ? "Completed Tournaments" :
-               "Cancelled Tournaments"}
-            </h2>
-            <div className="tournament-status-tabs">
-              <button
-                className={`status-tab ${tournamentStatus === 'upcoming' ? 'active' : ''}`}
-                onClick={() => setTournamentStatus('upcoming')}
-                disabled={tournamentsLoading}
-              >
-                Upcoming
-              </button>
-              <button
-                className={`status-tab ${tournamentStatus === 'live' ? 'active' : ''}`}
-                onClick={() => setTournamentStatus('live')}
-                disabled={tournamentsLoading}
-              >
-                Live
-              </button>
-              <button
-                className={`status-tab ${tournamentStatus === 'completed' ? 'active' : ''}`}
-                onClick={() => setTournamentStatus('completed')}
-                disabled={tournamentsLoading}
-              >
-                Completed
-              </button>
-              <button
-                className={`status-tab ${tournamentStatus === 'cancelled' ? 'active' : ''}`}
-                onClick={() => setTournamentStatus('cancelled')}
-                disabled={tournamentsLoading}
-              >
-                Cancelled
-              </button>
-            </div>
+      {activeTab === 'generate' ? (
+        <div className="generate-lobby-page-content">
+          <div className="generate-lobby-page-card">
+            <h2 className="card-title">Generate Lobby</h2>
+            <p className="card-description">
+              Create and configure lobbies for the next day. Select date, time slots, game mode, sub modes, and region.
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => setShowGenerateLobbyModal(true)}
+              aria-label="Open Generate Lobby Modal"
+              icon={<span>🎮</span>}
+            >
+              Generate Lobby
+            </Button>
           </div>
-          
-          {/* Filters Section */}
-          <div className="tournaments-filters">
-            <div className="filter-group">
-              <label className="filter-label">Sub Mode:</label>
-              <div className="submode-filter-tabs">
+
+          {/* Tournaments List */}
+          <div className="tournaments-list-card">
+            <div className="tournaments-header">
+              <h2 className="card-title">
+                {tournamentStatus === 'upcoming' ? "Today's Tournaments" :
+                 tournamentStatus === 'live' ? "Live Tournaments" :
+                 tournamentStatus === 'completed' ? "Completed Tournaments" :
+                 "Cancelled Tournaments"}
+              </h2>
+              <div className="tournament-status-tabs">
                 <button
-                  className={`submode-tab ${subModeFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setSubModeFilter('all')}
+                  className={`status-tab ${tournamentStatus === 'upcoming' ? 'active' : ''}`}
+                  onClick={() => setTournamentStatus('upcoming')}
                   disabled={tournamentsLoading}
                 >
-                  All
+                  Upcoming
                 </button>
                 <button
-                  className={`submode-tab ${subModeFilter === 'solo' ? 'active' : ''}`}
-                  onClick={() => setSubModeFilter('solo')}
+                  className={`status-tab ${tournamentStatus === 'live' ? 'active' : ''}`}
+                  onClick={() => setTournamentStatus('live')}
                   disabled={tournamentsLoading}
                 >
-                  Solo
+                  Live
                 </button>
                 <button
-                  className={`submode-tab ${subModeFilter === 'duo' ? 'active' : ''}`}
-                  onClick={() => setSubModeFilter('duo')}
+                  className={`status-tab ${tournamentStatus === 'completed' ? 'active' : ''}`}
+                  onClick={() => setTournamentStatus('completed')}
                   disabled={tournamentsLoading}
                 >
-                  Duo
+                  Completed
                 </button>
                 <button
-                  className={`submode-tab ${subModeFilter === 'squad' ? 'active' : ''}`}
-                  onClick={() => setSubModeFilter('squad')}
+                  className={`status-tab ${tournamentStatus === 'cancelled' ? 'active' : ''}`}
+                  onClick={() => setTournamentStatus('cancelled')}
                   disabled={tournamentsLoading}
                 >
-                  Squad
+                  Cancelled
                 </button>
               </div>
             </div>
-            
-            <div className="filter-group">
-              <label className="filter-label">Date:</label>
-              <div className="date-input-wrapper">
-                <input
-                  key={`date-input-${tournamentStatus}`}
-                  type="date"
-                  className="date-filter-input"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  disabled={tournamentsLoading}
-                />
-                {selectedDate && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setSelectedDate('')}
+
+            {/* Filters Section */}
+            <div className="tournaments-filters">
+              <div className="filter-group">
+                <label className="filter-label">Sub Mode:</label>
+                <div className="submode-filter-tabs">
+                  <button
+                    className={`submode-tab ${subModeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setSubModeFilter('all')}
                     disabled={tournamentsLoading}
-                    title="Clear date filter"
-                    aria-label="Clear date filter"
                   >
-                    ✕
-                  </Button>
-                )}
+                    All
+                  </button>
+                  <button
+                    className={`submode-tab ${subModeFilter === 'solo' ? 'active' : ''}`}
+                    onClick={() => setSubModeFilter('solo')}
+                    disabled={tournamentsLoading}
+                  >
+                    Solo
+                  </button>
+                  <button
+                    className={`submode-tab ${subModeFilter === 'duo' ? 'active' : ''}`}
+                    onClick={() => setSubModeFilter('duo')}
+                    disabled={tournamentsLoading}
+                  >
+                    Duo
+                  </button>
+                  <button
+                    className={`submode-tab ${subModeFilter === 'squad' ? 'active' : ''}`}
+                    onClick={() => setSubModeFilter('squad')}
+                    disabled={tournamentsLoading}
+                  >
+                    Squad
+                  </button>
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">Date:</label>
+                <div className="date-input-wrapper">
+                  <input
+                    key={`date-input-${tournamentStatus}`}
+                    type="date"
+                    className="date-filter-input"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    disabled={tournamentsLoading}
+                  />
+                  {selectedDate && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setSelectedDate('')}
+                      disabled={tournamentsLoading}
+                      title="Clear date filter"
+                      aria-label="Clear date filter"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          {tournamentsLoading ? (
-            <div className="tournaments-loading">
-              <p>Loading tournaments...</p>
-            </div>
-          ) : tournamentsError ? (
-            <div className="tournaments-error">
-              <p>{tournamentsError}</p>
-            </div>
-          ) : tournaments.length > 0 ? (
-            <div className="tournaments-list">
-              {tournaments.map((tournament) => (
-                <div key={tournament._id || tournament.id} className="tournament-card">
-                  <div className="tournament-header">
-                    <div className="tournament-game-mode">
-                      <span className="tournament-game">{tournament.game}</span>
-                      <span className="tournament-mode">{tournament.mode} - {tournament.subMode}</span>
-                    </div>
-                    <span className={`tournament-status tournament-status-${tournament.status}`}>
-                      {tournament.status}
-                    </span>
-                  </div>
-                  {tournament.lobbyName && (
-                    <div className="tournament-lobby-name">
-                      <span className="lobby-name-label">Lobby Name:</span>
-                      <span className="lobby-name-value">{tournament.lobbyName}</span>
-                    </div>
-                  )}
-                  <div className="tournament-details">
-                    <div className="tournament-detail-item">
-                      <span className="detail-label">Date:</span>
-                      <span className="detail-value">
-                        {tournament.date ? new Date(tournament.date).toLocaleDateString('en-IN', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit'
-                        }) : 'N/A'}
+            {tournamentsLoading ? (
+              <div className="tournaments-loading">
+                <p>Loading tournaments...</p>
+              </div>
+            ) : tournamentsError ? (
+              <div className="tournaments-error">
+                <p>{tournamentsError}</p>
+              </div>
+            ) : tournaments.length > 0 ? (
+              <div className="tournaments-list">
+                {tournaments.map((tournament) => (
+                  <div key={tournament._id || tournament.id} className="tournament-card">
+                    <div className="tournament-header">
+                      <div className="tournament-game-mode">
+                        <span className="tournament-game">{tournament.game}</span>
+                        <span className="tournament-mode">{tournament.mode} - {tournament.subMode}</span>
+                      </div>
+                      <span className={`tournament-status tournament-status-${tournament.status}`}>
+                        {tournament.status}
                       </span>
                     </div>
-                    <div className="tournament-detail-item">
-                      <span className="detail-label">Time:</span>
-                      <span className="detail-value">{tournament.startTime || 'N/A'}</span>
-                    </div>
-                    <div className="tournament-detail-item">
-                      <span className="detail-label">Entry Fee:</span>
-                      <span className="detail-value">₹{tournament.entryFee}</span>
-                    </div>
-                    <div className="tournament-detail-item">
-                      <span className="detail-label">Prize Pool:</span>
-                      <span className="detail-value prize-pool">
-                        ₹
-                        {tournament.winnerPrizePool ??
-                          tournament.potentialPrizePool?.winnerPrizePool ??
-                          tournament.prizePool}
-                      </span>
-                    </div>
-                    {/* Show Teams for Squad/Duo/CS 4v4, Players for Solo */}
-                    {((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) ? (
-                      <div className="tournament-detail-item">
-                        <span className="detail-label">Teams:</span>
-                        <span className="detail-value">
-                          {tournament.joinedTeams !== undefined ? tournament.joinedTeams : 0}/{tournament.maxTeams}
-                          {tournament.availableTeams !== undefined && (
-                            <span className="available-slots"> ({tournament.availableTeams} available)</span>
-                          )}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="tournament-detail-item">
-                        <span className="detail-label">Players:</span>
-                        <span className="detail-value">
-                          {tournament.joinedCount !== undefined 
-                            ? tournament.joinedCount 
-                            : (Array.isArray(tournament.participants) ? tournament.participants.length : 0)}/{tournament.maxPlayers || 'N/A'}
-                          {tournament.availableSlots !== undefined && (
-                            <span className="available-slots"> ({tournament.availableSlots} available)</span>
-                          )}
-                        </span>
+                    {tournament.lobbyName && (
+                      <div className="tournament-lobby-name">
+                        <span className="lobby-name-label">Lobby Name:</span>
+                        <span className="lobby-name-value">{tournament.lobbyName}</span>
                       </div>
                     )}
-                    {tournament.region && (
+                    <div className="tournament-details">
                       <div className="tournament-detail-item">
-                        <span className="detail-label">Region:</span>
-                        <span className="detail-value">{tournament.region}</span>
+                        <span className="detail-label">Date:</span>
+                        <span className="detail-value">
+                          {tournament.date ? new Date(tournament.date).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                          }) : 'N/A'}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  {tournament.room && tournament.room.roomId && (
-                    <div className="tournament-room">
-                      <div className="room-info">
-                        <span className="room-label">Room ID:</span>
-                        <span className="room-value">{tournament.room.roomId}</span>
+                      <div className="tournament-detail-item">
+                        <span className="detail-label">Time:</span>
+                        <span className="detail-value">{tournament.startTime || 'N/A'}</span>
                       </div>
-                      {tournament.room.password && (
-                        <div className="room-info">
-                          <span className="room-label">Password:</span>
-                          <span className="room-value">{tournament.room.password}</span>
+                      <div className="tournament-detail-item">
+                        <span className="detail-label">Entry Fee:</span>
+                        <span className="detail-value">₹{tournament.entryFee}</span>
+                      </div>
+                      <div className="tournament-detail-item">
+                        <span className="detail-label">Prize Pool:</span>
+                        <span className="detail-value prize-pool">
+                          ₹
+                          {tournament.winnerPrizePool ??
+                            tournament.potentialPrizePool?.winnerPrizePool ??
+                            tournament.prizePool}
+                        </span>
+                      </div>
+                      {/* Show Teams for Squad/Duo/CS 4v4, Players for Solo */}
+                      {((tournament.subMode?.toLowerCase() === 'squad' || tournament.subMode?.toLowerCase() === 'duo' || (tournament.mode?.toLowerCase() === 'cs' && tournament.subMode?.toLowerCase() === '4v4')) && tournament.maxTeams !== undefined) ? (
+                        <div className="tournament-detail-item">
+                          <span className="detail-label">Teams:</span>
+                          <span className="detail-value">
+                            {tournament.joinedTeams !== undefined ? tournament.joinedTeams : 0}/{tournament.maxTeams}
+                            {tournament.availableTeams !== undefined && (
+                              <span className="available-slots"> ({tournament.availableTeams} available)</span>
+                            )}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="tournament-detail-item">
+                          <span className="detail-label">Players:</span>
+                          <span className="detail-value">
+                            {tournament.joinedCount !== undefined
+                              ? tournament.joinedCount
+                              : (Array.isArray(tournament.participants) ? tournament.participants.length : 0)}/{tournament.maxPlayers || 'N/A'}
+                            {tournament.availableSlots !== undefined && (
+                              <span className="available-slots"> ({tournament.availableSlots} available)</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      {tournament.region && (
+                        <div className="tournament-detail-item">
+                          <span className="detail-label">Region:</span>
+                          <span className="detail-value">{tournament.region}</span>
                         </div>
                       )}
                     </div>
-                  )}
-                  <div className="tournament-actions">
-                    {/* Hide edit, delete, and view application buttons for cancelled, completed, and pendingResult tournaments */}
-                    {tournament.status !== 'completed' && tournament.status !== 'cancelled' && tournament.status !== 'pendingResult' && (
-                      <>
-                        {!tournament.hostId ? (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
-                            disabled={tournamentsLoading || isUpdating || isDeleting}
-                            title="View Host Applications"
-                            icon={<span>👥</span>}
-                          >
-                            View Applications
-                          </Button>
-                        ) : (
+                    {tournament.room && tournament.room.roomId && (
+                      <div className="tournament-room">
+                        <div className="room-info">
+                          <span className="room-label">Room ID:</span>
+                          <span className="room-value">{tournament.room.roomId}</span>
+                        </div>
+                        {tournament.room.password && (
+                          <div className="room-info">
+                            <span className="room-label">Password:</span>
+                            <span className="room-value">{tournament.room.password}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="tournament-actions">
+                      {/* Hide edit, delete, and view application buttons for cancelled, completed, and pendingResult tournaments */}
+                      {tournament.status !== 'completed' && tournament.status !== 'cancelled' && tournament.status !== 'pendingResult' && (
+                        <>
+                          {!tournament.hostId ? (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
+                              disabled={tournamentsLoading || isUpdating || isDeleting}
+                              title="View Host Applications"
+                              icon={<span>👥</span>}
+                            >
+                              View Applications
+                            </Button>
+                          ) : (
+                            <button
+                              className="tournament-action-button tournament-edit-host-button"
+                              onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
+                              disabled={tournamentsLoading || isUpdating || isDeleting}
+                              title="Edit/Change Host"
+                              type="button"
+                            >
+                              <span className="action-icon">✏️</span>
+                              <span>Edit Host</span>
+                            </button>
+                          )}
+                          {tournament.room && tournament.room.roomId && (
+                            <button
+                              className="tournament-action-button tournament-update-room-button"
+                              onClick={() => handleUpdateRoom(tournament)}
+                              disabled={tournamentsLoading || isUpdating || isDeleting}
+                              title="Update Room ID/Password"
+                              type="button"
+                            >
+                              <span className="action-icon">🔑</span>
+                              <span>Update Room</span>
+                            </button>
+                          )}
                           <button
-                            className="tournament-action-button tournament-edit-host-button"
-                            onClick={() => handleViewHostApplications(tournament._id || tournament.id || '')}
+                            className="tournament-action-button tournament-edit-button"
+                            onClick={() => handleEditTournament(tournament)}
                             disabled={tournamentsLoading || isUpdating || isDeleting}
-                            title="Edit/Change Host"
+                            title="Edit Tournament"
+                            type="button"
                           >
                             <span className="action-icon">✏️</span>
-                            <span>Edit Host</span>
+                            <span>Edit</span>
                           </button>
-                        )}
-                        {tournament.room && tournament.room.roomId && (
                           <button
-                            className="tournament-action-button tournament-update-room-button"
-                            onClick={() => handleUpdateRoom(tournament)}
+                            className="tournament-action-button tournament-delete-button"
+                            onClick={() => openDeleteModal(tournament._id || tournament.id || '')}
                             disabled={tournamentsLoading || isUpdating || isDeleting}
-                            title="Update Room ID/Password"
+                            title="Delete Tournament"
+                            type="button"
                           >
-                            <span className="action-icon">🔑</span>
-                            <span>Update Room</span>
+                            <span className="action-icon">🗑️</span>
+                            <span>Delete</span>
                           </button>
-                        )}
-                        <button
-                          className="tournament-action-button tournament-edit-button"
-                          onClick={() => handleEditTournament(tournament)}
-                          disabled={tournamentsLoading || isUpdating || isDeleting}
-                          title="Edit Tournament"
-                        >
-                          <span className="action-icon">✏️</span>
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          className="tournament-action-button tournament-delete-button"
-                          onClick={() => openDeleteModal(tournament._id || tournament.id || '')}
-                          disabled={tournamentsLoading || isUpdating || isDeleting}
-                          title="Delete Tournament"
-                        >
-                          <span className="action-icon">🗑️</span>
-                          <span>Delete</span>
-                        </button>
-                      </>
-                    )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="tournaments-empty">
-              <p>
-                {tournamentStatus === 'upcoming' ? "No upcoming tournaments found for today." :
-                 tournamentStatus === 'live' ? "No live tournaments found." :
-                 tournamentStatus === 'completed' ? "No completed tournaments found." :
-                 "No cancelled tournaments found."}
-              </p>
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="tournaments-empty">
+                <p>
+                  {tournamentStatus === 'upcoming' ? "No upcoming tournaments found for today." :
+                   tournamentStatus === 'live' ? "No live tournaments found." :
+                   tournamentStatus === 'completed' ? "No completed tournaments found." :
+                   "No cancelled tournaments found."}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <SpecialTournamentTab />
+      )}
       {/* </main> */}
 
       {/* Generate Lobby Modal */}

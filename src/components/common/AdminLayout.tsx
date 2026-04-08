@@ -25,7 +25,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
 
   const navItems = [
     { path: ROUTES.DASHBOARD, icon: '📊', label: 'Dashboard' },
-    { path: ROUTES.GENERATE_LOBBY, icon: '🎮', label: 'Generate Lobby' },
+    { path: ROUTES.GENERATE_LOBBY, icon: '🎮', label: 'Room Creator' },
     { path: ROUTES.TOP_UP, icon: '💰', label: 'Top Up' },
     { path: ROUTES.PAYMENT_VERIFICATION, icon: '✅', label: 'Payment Verification' },
     { path: ROUTES.WITHDRAWALS, icon: '💸', label: 'Withdrawals' },

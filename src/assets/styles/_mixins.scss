@@ -144,7 +144,7 @@
   &:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 133, 234, 45), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
   }
   
   &::placeholder {
@@ -168,7 +168,7 @@
   position: relative;
   overflow: visible;
 
-  // Always visible green top border
+  // Accent top border (matches loader)
   &::before {
     content: '';
     position: absolute;

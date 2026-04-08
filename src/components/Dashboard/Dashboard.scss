@@ -814,13 +814,13 @@
 }
 
 .unblock-button {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  background: linear-gradient(135deg, #00c8ff 0%, #0099cc 100%);
   color: white;
-  border-color: #16a34a;
+  border-color: #00c8ff;
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    background: linear-gradient(135deg, #00e5ff 0%, #00c8ff 100%);
+    box-shadow: 0 4px 12px rgba(0, 200, 255, 0.4);
   }
 }
 
@@ -967,8 +967,8 @@
   letter-spacing: 0.5px;
 
   &.active {
-    background: rgba(22, 163, 74, 0.2);
-    color: #16a34a;
+    background: rgba(0, 200, 255, 0.2);
+    color: #00c8ff;
   }
 
   &.blocked {
@@ -1051,13 +1051,13 @@
   }
 
   &.unblock-button {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    background: linear-gradient(135deg, #00c8ff 0%, #0099cc 100%);
     color: white;
-    border-color: #16a34a;
+    border-color: #00c8ff;
 
     &:hover:not(:disabled) {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+      background: linear-gradient(135deg, #00e5ff 0%, #00c8ff 100%);
+      box-shadow: 0 4px 12px rgba(0, 200, 255, 0.4);
     }
   }
 }
@@ -1530,10 +1530,10 @@
 
 .top-up-success {
   padding: $spacing-md;
-  background: rgba(22, 163, 74, 0.1);
-  border: 1px solid rgba(22, 163, 74, 0.3);
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.3);
   border-radius: $border-radius-md;
-  color: #16a34a;
+  color: #00c8ff;
   font-size: 0.9rem;
   font-weight: 600;
 }

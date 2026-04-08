@@ -18,7 +18,7 @@
   }
 
   &.primary { border-left: 4px solid var(--primary-color, #4f46e5); }
-  &.success { border-left: 4px solid var(--success-color, #10b981); }
+  &.success { border-left: 4px solid var(--success-color, #00c8ff); }
   &.danger { border-left: 4px solid var(--danger-color, #ef4444); }
   &.warning { border-left: 4px solid var(--warning-color, #f59e0b); }
   &.info { border-left: 4px solid var(--info-color, #3b82f6); }
@@ -63,7 +63,7 @@
     font-weight: 500;
 
     &.positive {
-      color: var(--success-color, #10b981);
+      color: var(--success-color, #00c8ff);
     }
 
     &.negative {

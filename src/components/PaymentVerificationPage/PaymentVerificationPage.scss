@@ -251,8 +251,8 @@
     display: block;
     margin-top: 4px;
     padding: 2px 8px;
-    background: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
+    background: rgba(0, 200, 255, 0.1);
+    color: rgb(0, 200, 255);
     border-radius: $border-radius-sm;
     font-size: 0.7rem;
     font-weight: 500;
@@ -295,12 +295,12 @@
     }
 
     &.approve-button {
-      background: rgba(34, 197, 94, 0.1);
-      color: rgb(34, 197, 94);
-      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(0, 200, 255, 0.1);
+      color: rgb(0, 200, 255);
+      border-color: rgba(0, 200, 255, 0.3);
 
       &:hover:not(:disabled) {
-        background: rgba(34, 197, 94, 0.2);
+        background: rgba(0, 200, 255, 0.2);
         transform: translateY(-1px);
       }
     }

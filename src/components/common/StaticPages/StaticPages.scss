@@ -233,10 +233,10 @@
 
 .contact-success {
   padding: $spacing-lg;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.3);
   border-radius: 8px;
-  color: #22c55e;
+  color: #00c8ff;
   text-align: center;
   font-weight: 600;
 }
@@ -329,9 +329,9 @@
   gap: $spacing-md;
 
   &--android {
-    background: linear-gradient(135deg, rgba(22, 163, 74, 0.35), rgba(15, 23, 42, 0.95));
-    border-color: rgba(34, 197, 94, 0.6);
-    box-shadow: 0 24px 60px rgba(34, 197, 94, 0.55);
+    background: linear-gradient(135deg, rgba(0, 200, 255, 0.35), rgba(15, 23, 42, 0.95));
+    border-color: rgba(0, 200, 255, 0.6);
+    box-shadow: 0 24px 60px rgba(0, 200, 255, 0.55);
   }
 
   &--ios {
@@ -552,7 +552,7 @@
   }
 
   &__link--whatsapp {
-    border-color: rgba(34, 197, 94, 0.9);
+    border-color: rgba(0, 200, 255, 0.9);
   }
 
   .downloads-social__icon--instagram {

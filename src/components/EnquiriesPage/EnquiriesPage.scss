@@ -402,9 +402,9 @@
   letter-spacing: 0.5px;
 
   &.replied {
-    background: rgba(22, 163, 74, 0.15);
-    color: #16a34a;
-    border: 1px solid rgba(22, 163, 74, 0.3);
+    background: rgba(0, 200, 255, 0.15);
+    color: #00c8ff;
+    border: 1px solid rgba(0, 200, 255, 0.3);
   }
 
   &.unreplied {
@@ -432,8 +432,8 @@
 .enquiry-reply-info {
   margin-top: $spacing-md;
   padding: $spacing-md;
-  background: rgba(22, 163, 74, 0.1);
-  border-left: 3px solid #16a34a;
+  background: rgba(0, 200, 255, 0.1);
+  border-left: 3px solid #00c8ff;
   border-radius: $border-radius-sm;
   color: var(--text-color);
   font-size: 0.85rem;
