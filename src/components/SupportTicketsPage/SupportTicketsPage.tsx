@@ -59,6 +59,8 @@ const SupportTicketsPage: React.FC = () => {
 
   return (
     <AdminLayout title="Support Tickets">
+      <>
+      <div className="support-tickets-content-wrapper">
       {/* Filters Section */}
       <div className="filters-section">
           <div className="filters-row">
@@ -260,6 +262,7 @@ const SupportTicketsPage: React.FC = () => {
               </>
             )}
       </div>
+      </div>
 
       {/* Chat Modal */}
       <Modal
@@ -460,6 +463,7 @@ const SupportTicketsPage: React.FC = () => {
           </div>
         </div>
       )}
+      </>
     </AdminLayout>
   );
 };

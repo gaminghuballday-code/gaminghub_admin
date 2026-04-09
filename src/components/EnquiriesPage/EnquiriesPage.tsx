@@ -44,6 +44,7 @@ const EnquiriesPage: React.FC = () => {
 
   return (
     <AdminLayout title="Enquiries">
+      <>
       <div className="enquiries-content-wrapper">
           {/* Filters Section */}
           <div className="filters-section">
@@ -161,7 +162,6 @@ const EnquiriesPage: React.FC = () => {
             )}
           </div>
         </div>
-      {/* </main> */}
 
       {/* Reply Modal */}
       {showReplyModal && selectedEnquiry && (
@@ -235,6 +235,7 @@ const EnquiriesPage: React.FC = () => {
           </div>
         </div>
       )}
+      </>
     </AdminLayout>
   );
 };

@@ -67,8 +67,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         ],
       },
       { type: 'link', path: ROUTES.HOST_CREATION, icon: '👤', label: 'Account Creation' },
-      { type: 'link', path: ROUTES.ENQUIRIES, icon: '📧', label: 'Enquiries' },
-      { type: 'link', path: ROUTES.SUPPORT_TICKETS, icon: '🎫', label: 'Support Tickets' },
+      {
+        type: 'group',
+        id: 'user-queries',
+        icon: '💬',
+        label: 'User Queries',
+        children: [
+          { type: 'link', path: ROUTES.SUPPORT_TICKETS, icon: '🎫', label: 'Support Tickets' },
+          { type: 'link', path: ROUTES.ENQUIRIES, icon: '📧', label: 'Enquiries' },
+        ],
+      },
       { type: 'link', path: ROUTES.NOTIFICATIONS, icon: '🔔', label: 'Notifications' },
     ],
     []
