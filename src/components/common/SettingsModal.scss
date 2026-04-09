@@ -5,8 +5,283 @@
 // SettingsModal specific styles
 // Base modal styles are in Modal.scss
 .settings-modal-content {
-  @include flex-column;
+  display: grid;
+  grid-template-columns: 240px 1fr;
   gap: $spacing-lg;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-nav {
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.settings-nav-item {
+  @include button-secondary;
+  justify-content: flex-start;
+  width: 100%;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  font-weight: 600;
+
+  &.active {
+    border-color: rgba(var(--primary-color-rgb), 0.6);
+    background: rgba(var(--primary-color-rgb), 0.12);
+    color: var(--text-color);
+  }
+}
+
+.settings-nav-icon {
+  font-size: 1rem;
+}
+
+.settings-content {
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, var(--background-color-light) 0%, var(--background-color) 100%);
+}
+
+.settings-panel {
+  @include flex-column;
+  gap: $spacing-md;
+}
+
+.settings-panel-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.settings-helper-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.settings-row {
+  @include flex-between;
+  gap: $spacing-md;
+  padding: $spacing-sm 0;
+  border-bottom: 1px dashed rgba(var(--border-color-rgb), 0.5);
+}
+
+.settings-row-label {
+  color: var(--text-secondary);
+}
+
+.settings-row-value {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.settings-row-value-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: rgba(var(--text-color-rgb, 255, 255, 255), 0.85);
+}
+
+.settings-readonly-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  color: rgba(var(--warning-color-rgb, 245, 158, 11), 0.95);
+  background: rgba(var(--warning-color-rgb, 245, 158, 11), 0.16);
+  border: 1px solid rgba(var(--warning-color-rgb, 245, 158, 11), 0.35);
+}
+
+.settings-form-grid {
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.settings-input {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--border-color-rgb), 0.8);
+  background: var(--background-color);
+  color: var(--text-color);
+
+  &:focus {
+    outline: none;
+    border-color: rgba(var(--primary-color-rgb), 0.6);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.15);
+  }
+}
+
+.settings-password-field {
+  position: relative;
+}
+
+.settings-input-password {
+  padding-right: 2.75rem;
+}
+
+.settings-password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem;
+
+  &:hover {
+    color: var(--text-color);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.settings-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-sm;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-primary-btn,
+.settings-secondary-btn,
+.settings-danger-btn {
+  border-radius: $border-radius-md;
+  padding: $spacing-sm $spacing-md;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all $transition-fast;
+}
+
+.settings-primary-btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color-light));
+  color: #fff;
+}
+
+.settings-secondary-btn {
+  background: var(--background-color-light);
+  color: var(--text-color);
+  border-color: rgba(var(--border-color-rgb), 0.8);
+}
+
+.settings-danger-btn {
+  background: rgba(var(--error-color-rgb, 220, 38, 38), 0.15);
+  color: var(--error-color, #dc2626);
+  border-color: rgba(var(--error-color-rgb, 220, 38, 38), 0.35);
+}
+
+.settings-primary-btn:disabled,
+.settings-secondary-btn:disabled,
+.settings-danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-history-list {
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.settings-devices-total {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(var(--primary-color-rgb), 0.95);
+  background: rgba(var(--primary-color-rgb), 0.14);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.3);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+}
+
+.settings-history-item {
+  @include flex-between;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  background: rgba(var(--primary-color-rgb), 0.08);
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+
+  &.current-device {
+    border-color: rgba(var(--success-color-rgb, 16, 185, 129), 0.6);
+    background: rgba(var(--success-color-rgb, 16, 185, 129), 0.14);
+    box-shadow: 0 0 0 1px rgba(var(--success-color-rgb, 16, 185, 129), 0.35);
+  }
+}
+
+.settings-history-action {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.settings-history-time {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.settings-device-meta {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.settings-current-device-logout-btn {
+  margin-top: 0.5rem;
+  border-radius: $border-radius-sm;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid rgba(var(--error-color-rgb, 220, 38, 38), 0.45);
+  background: rgba(var(--error-color-rgb, 220, 38, 38), 0.14);
+  color: var(--error-color, #dc2626);
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba(var(--error-color-rgb, 220, 38, 38), 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.settings-history-empty {
+  border: 1px dashed rgba(var(--border-color-rgb), 0.6);
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.settings-pagination {
+  @include flex-between;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.settings-pagination-info {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .settings-option {
@@ -54,6 +329,109 @@
 .settings-option-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.settings-2fa-setup,
+.settings-2fa-disable {
+  @include flex-column;
+  gap: $spacing-sm;
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  border-radius: $border-radius-lg;
+  background: linear-gradient(145deg, rgba(var(--primary-color-rgb), 0.06), rgba(var(--primary-color-rgb), 0.02));
+  padding: $spacing-md;
+}
+
+.settings-2fa-qr {
+  width: 220px;
+  max-width: 100%;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--border-color-rgb), 0.8);
+  background: #fff;
+  padding: $spacing-xs;
+}
+
+.settings-2fa-secret {
+  @include flex-column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.settings-2fa-secret-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  color: rgba(var(--text-color-rgb, 255, 255, 255), 0.75);
+}
+
+.settings-2fa-secret-value {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.settings-2fa-status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  &.enabled {
+    background: rgba(var(--success-color-rgb, 16, 185, 129), 0.18);
+    color: rgba(var(--success-color-rgb, 16, 185, 129), 0.95);
+    border: 1px solid rgba(var(--success-color-rgb, 16, 185, 129), 0.35);
+  }
+
+  &.disabled {
+    background: rgba(var(--error-color-rgb, 220, 38, 38), 0.16);
+    color: rgba(var(--error-color-rgb, 220, 38, 38), 0.95);
+    border: 1px solid rgba(var(--error-color-rgb, 220, 38, 38), 0.35);
+  }
+
+  &.pending {
+    background: rgba(var(--warning-color-rgb, 245, 158, 11), 0.18);
+    color: rgba(var(--warning-color-rgb, 245, 158, 11), 0.98);
+    border: 1px solid rgba(var(--warning-color-rgb, 245, 158, 11), 0.45);
+  }
+}
+
+.settings-2fa-qr-card {
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.settings-2fa-form-card {
+  @include flex-column;
+  gap: $spacing-sm;
+  border: 1px dashed rgba(var(--border-color-rgb), 0.6);
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  background: rgba(var(--background-color-rgb, 17, 24, 39), 0.45);
+}
+
+.settings-2fa-form-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.settings-2fa-otp-input {
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+
+@media (min-width: 860px) {
+  .settings-2fa-setup {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: $spacing-md;
+    align-items: start;
+  }
 }
 
 .theme-toggle {

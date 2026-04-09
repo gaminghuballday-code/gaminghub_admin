@@ -1,12 +1,26 @@
 import { useState } from 'react';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
+import { useOrgAccountSectionLogic } from './OrgAccountSection.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import { Modal } from '@components/common/Modal';
 import NoDataFound from '@components/common/NoDataFound';
 import AllHostsList from './AllHostsList';
+import AllOrgsList from './AllOrgsList';
+import type { OrgTournamentStatusFilter } from '@services/api';
 import './HostCreationPage.scss';
 
 type AccountTab = 'host' | 'org' | 'user';
+
+const ORG_TOURNAMENT_STATUS_OPTIONS: Array<{ value: OrgTournamentStatusFilter | ''; label: string }> = [
+  { value: '', label: 'All statuses' },
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'locked', label: 'Locked' },
+  { value: 'running', label: 'Running' },
+  { value: 'result_pending', label: 'Result pending' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'result_published', label: 'Result published' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
 
 const HostCreationPage: React.FC = () => {
   const [activeAccountTab, setActiveAccountTab] = useState<AccountTab>('host');
@@ -36,6 +50,36 @@ const HostCreationPage: React.FC = () => {
     handleHostClick,
     handleCloseModal,
   } = useHostCreationPageLogic();
+
+  const {
+    orgTab,
+    setOrgTab,
+    orgName,
+    setOrgName,
+    ownerEmail,
+    setOwnerEmail,
+    logoFieldKey,
+    logoPreviewUrl,
+    handleLogoFileChange,
+    clearLogoSelection,
+    createLoading: orgCreateLoading,
+    uploadPhase,
+    createError: orgCreateError,
+    createSuccess: orgCreateSuccess,
+    handleCreateOrganization,
+    organizations,
+    orgsLoading,
+    orgsError,
+    selectedOrg,
+    showOrgModal,
+    tournamentStatus,
+    setTournamentStatus,
+    tournaments,
+    tournamentsLoading,
+    tournamentsError,
+    handleOrgClick,
+    handleCloseOrgModal,
+  } = useOrgAccountSectionLogic(activeAccountTab === 'org');
 
   return (
     <AdminLayout title="Account Creation">
@@ -187,10 +231,159 @@ const HostCreationPage: React.FC = () => {
         )}
 
         {activeAccountTab === 'org' && (
-          <div className="host-creation-card">
-            <h2 className="card-title">Organization Account</h2>
-            <NoDataFound message="Org account section pending. Share fields/workflow and I will add it." />
-          </div>
+          <>
+            <div className="host-creation-tabs">
+              <button
+                className={`host-tab ${orgTab === 'create' ? 'active' : ''}`}
+                onClick={() => setOrgTab('create')}
+                type="button"
+              >
+                Create Org
+              </button>
+              <button
+                className={`host-tab ${orgTab === 'all' ? 'active' : ''}`}
+                onClick={() => setOrgTab('all')}
+                type="button"
+              >
+                All Orgs
+              </button>
+            </div>
+
+            {orgTab === 'create' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">Create New Organization</h2>
+                <form className="host-creation-form" onSubmit={handleCreateOrganization}>
+                  <div className="form-group org-logo-upload">
+                    <span className="form-label">Organization logo</span>
+                    <p className="org-logo-upload__hint">PNG, JPG, WebP, or GIF — max 2 MB</p>
+                    <div className="org-logo-upload__profile">
+                      <div className="org-logo-upload__avatar-wrap">
+                        {logoPreviewUrl ? (
+                          <img
+                            className="org-logo-upload__preview"
+                            src={logoPreviewUrl}
+                            alt="Organization logo preview"
+                          />
+                        ) : (
+                          <div className="org-logo-upload__placeholder">
+                            <svg
+                              className="org-logo-upload__placeholder-icon"
+                              width="40"
+                              height="40"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-hidden
+                            >
+                              <path
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span className="org-logo-upload__placeholder-text">Add logo</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="org-logo-upload__actions">
+                        <label className="org-logo-upload__choose">
+                          <input
+                            key={logoFieldKey}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                            className="org-logo-upload__input"
+                            disabled={orgCreateLoading}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] ?? null;
+                              handleLogoFileChange(file);
+                            }}
+                          />
+                          <span className="org-logo-upload__choose-text">
+                            {logoPreviewUrl ? 'Change image' : 'Choose image'}
+                          </span>
+                        </label>
+                        {logoPreviewUrl ? (
+                          <button
+                            type="button"
+                            className="org-logo-upload__remove"
+                            onClick={clearLogoSelection}
+                            disabled={orgCreateLoading}
+                            aria-label="Remove logo"
+                          >
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Organization name</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Team Hydra"
+                      value={orgName}
+                      onChange={(e) => setOrgName(e.target.value)}
+                      disabled={orgCreateLoading}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Owner email</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="owner@example.com"
+                      value={ownerEmail}
+                      onChange={(e) => setOwnerEmail(e.target.value)}
+                      disabled={orgCreateLoading}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  {orgCreateError && (
+                    <div className="host-creation-error">
+                      {orgCreateError}
+                    </div>
+                  )}
+                  {orgCreateSuccess && (
+                    <div className="host-creation-success">
+                      {orgCreateSuccess}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    className="host-creation-button"
+                    disabled={
+                      orgCreateLoading ||
+                      !orgName.trim() ||
+                      !ownerEmail.trim()
+                    }
+                  >
+                    {orgCreateLoading
+                      ? uploadPhase
+                        ? 'Uploading logo...'
+                        : 'Creating...'
+                      : 'Create Org Account'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {orgTab === 'all' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">All Organizations</h2>
+                <AllOrgsList
+                  organizations={organizations}
+                  orgsLoading={orgsLoading}
+                  orgsError={orgsError}
+                  onOrgClick={handleOrgClick}
+                />
+              </div>
+            )}
+          </>
         )}
 
         {activeAccountTab === 'user' && (
@@ -203,6 +396,106 @@ const HostCreationPage: React.FC = () => {
       {/* </main> */}
 
       {/* Host Details Modal */}
+      {selectedOrg && (
+        <Modal
+          isOpen={showOrgModal}
+          onClose={handleCloseOrgModal}
+          className="modal-large"
+          title="Organization details"
+          showCloseButton={true}
+        >
+          <div className="host-modal-content">
+            <div className="host-detail-section">
+              <div className="host-detail-item">
+                <span className="detail-label">Name:</span>
+                <span className="detail-value">{selectedOrg.name || 'N/A'}</span>
+              </div>
+              <div className="host-detail-item">
+                <span className="detail-label">Organization ID:</span>
+                <span className="detail-value">{selectedOrg.id}</span>
+              </div>
+              {selectedOrg.ownerUserId && (
+                <div className="host-detail-item">
+                  <span className="detail-label">Owner user:</span>
+                  <span className="detail-value">{selectedOrg.ownerUserId}</span>
+                </div>
+              )}
+              {selectedOrg.createdAt && (
+                <div className="host-detail-item">
+                  <span className="detail-label">Created:</span>
+                  <span className="detail-value">
+                    {new Date(selectedOrg.createdAt).toLocaleDateString('en-IN', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    })}
+                  </span>
+                </div>
+              )}
+              {selectedOrg.logoUrl ? (
+                <img
+                  className="org-detail-logo"
+                  src={selectedOrg.logoUrl}
+                  alt=""
+                />
+              ) : null}
+            </div>
+
+            <div className="org-tournaments-section">
+              <div className="org-tournaments-header">
+                <h4 className="org-tournaments-title">Tournaments</h4>
+                <select
+                  className="org-tournaments-filter"
+                  value={tournamentStatus}
+                  onChange={(e) =>
+                    setTournamentStatus(e.target.value as OrgTournamentStatusFilter | '')
+                  }
+                  aria-label="Filter tournaments by status"
+                >
+                  {ORG_TOURNAMENT_STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.label + String(opt.value)} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {tournamentsLoading ? (
+                <div className="org-tournaments-loading">
+                  <p>Loading tournaments...</p>
+                </div>
+              ) : tournamentsError ? (
+                <div className="org-tournaments-error">
+                  <p>{tournamentsError}</p>
+                </div>
+              ) : tournaments.length === 0 ? (
+                <NoDataFound className="org-tournaments-empty" message="No tournaments for this organization." />
+              ) : (
+                <div className="org-tournaments-list">
+                  {tournaments.map((t, idx) => {
+                    const tid = t._id || t.tournamentId || t.id || `row-${idx}`;
+                    return (
+                      <div key={tid} className="org-tournament-row">
+                        <div className="org-tournament-main">
+                          <span className="org-tournament-game">
+                            {t.lobbyName || t.game || 'Tournament'}
+                          </span>
+                          <span className="org-tournament-meta">
+                            {[t.date, t.startTime].filter(Boolean).join(' · ') || '—'}
+                          </span>
+                        </div>
+                        {t.status ? (
+                          <span className="org-tournament-status">{t.status}</span>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {selectedHost && (
         <Modal
           isOpen={showHostModal}

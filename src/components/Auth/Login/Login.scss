@@ -446,6 +446,19 @@
   }
 }
 
+.login-button-secondary {
+  margin-top: $spacing-sm;
+  background: transparent;
+  border: 1px solid rgba(var(--border-color-rgb), 0.8);
+  color: var(--text-color);
+  box-shadow: none;
+
+  &:hover {
+    background: rgba(var(--primary-color-rgb), 0.08);
+    box-shadow: none;
+  }
+}
+
 // Responsive design for gaming elements
 @media (max-width: 1024px) {
   .gaming-side {

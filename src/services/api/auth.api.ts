@@ -1,5 +1,21 @@
 import apiClient from './client';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleLoginRequest, VerifyOtpRequest, AuthResponse, CsrfTokenResponse, RefreshTokenRequest, RefreshTokenResponse } from '../types/api.types';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  GoogleLoginRequest,
+  VerifyOtpRequest,
+  AuthResponse,
+  CsrfTokenResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  UpdateProfileRequest,
+  VerifyLoginTwoFactorRequest,
+  TwoFactorSetupResponse,
+  TwoFactorEnableRequest,
+  TwoFactorDisableRequest,
+} from '../types/api.types';
 import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
 import { getStorageKey, isAdminDomain } from '../../utils/constants';
@@ -45,11 +61,82 @@ export const authApi = {
     // API returns { status, success, message, data: { accessToken, refreshToken, user } }
     const authData = response.data.data;
     
-    if (!authData.accessToken) {
+    if (!authData.accessToken && !authData.requiresTwoFactor) {
       throw new Error('Access token not received from server');
     }
     
     return authData;
+  },
+
+  /**
+   * Verify 2FA OTP for admin login completion
+   * This is admin-only by design.
+   */
+  /**
+   * Complete password login after 2FA challenge.
+   * Backend uses shared `/api/auth/login/verify-2fa` (pendingToken + code) — no `/api/admin/login/verify-2fa`.
+   */
+  verifyLoginTwoFactor: async (data: VerifyLoginTwoFactorRequest): Promise<AuthResponse> => {
+    if (!isAdminDomain()) {
+      throw new Error('2FA login verification is available for admin panel only');
+    }
+
+    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/login/verify-2fa', data);
+    const authData = response.data.data;
+    if (!authData.accessToken) {
+      throw new Error('Access token not received from server');
+    }
+    return authData;
+  },
+
+  /**
+   * Start 2FA setup for admin account
+   */
+  setupTwoFactor: async (): Promise<TwoFactorSetupResponse> => {
+    if (!isAdminDomain()) {
+      throw new Error('2FA setup is available for admin panel only');
+    }
+
+    const response = await apiClient.post<{ data: TwoFactorSetupResponse }>('/api/auth/2fa/setup');
+    return response.data.data;
+  },
+
+  /**
+   * Enable 2FA: API expects `{ code: "123456" }` (6-digit numeric string)
+   */
+  enableTwoFactor: async (code: string): Promise<{ enabled: boolean }> => {
+    if (!isAdminDomain()) {
+      throw new Error('2FA enable is available for admin panel only');
+    }
+
+    const payload: TwoFactorEnableRequest = { code };
+    try {
+      const response = await apiClient.post<{ data?: { enabled?: boolean } }>('/api/admin/2fa/enable', payload);
+      return { enabled: Boolean(response.data.data?.enabled ?? true) };
+    } catch (error: unknown) {
+      const apiError = error as { status?: number };
+      if (apiError?.status === 404) {
+        const fallbackResponse = await apiClient.post<{ data?: { enabled?: boolean } }>('/api/auth/2fa/enable', payload);
+        return { enabled: Boolean(fallbackResponse.data.data?.enabled ?? true) };
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Disable 2FA: API expects `{ password, code }` per Swagger
+   */
+  disableTwoFactor: async (data: TwoFactorDisableRequest): Promise<{ enabled: boolean }> => {
+    if (!isAdminDomain()) {
+      throw new Error('2FA disable is available for admin panel only');
+    }
+
+    const payload: TwoFactorDisableRequest = {
+      password: data.password,
+      code: data.code,
+    };
+    const response = await apiClient.post<{ data?: { enabled?: boolean } }>('/api/auth/2fa/disable', payload);
+    return { enabled: Boolean(response.data.data?.enabled ?? false) };
   },
 
   /**
@@ -164,8 +251,10 @@ export const authApi = {
   /**
    * Update current user profile
    */
-  updateProfile: async (data: { name?: string }): Promise<AuthResponse['user']> => {
-    const response = await apiClient.put<{ data: AuthResponse['user'] }>('/api/profile', data);
+  updateProfile: async (data: UpdateProfileRequest): Promise<AuthResponse['user']> => {
+    const isAdmin = isAdminDomain();
+    const endpoint = isAdmin ? '/api/admin/profile' : '/api/profile';
+    const response = await apiClient.put<{ data: AuthResponse['user'] }>(endpoint, data);
     return response.data.data;
   },
 

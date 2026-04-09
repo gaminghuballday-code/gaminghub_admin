@@ -1,5 +1,14 @@
 import apiClient from './client';
-import type { PlatformStatsResponse, AnalyticsDataPoint, AnalyticsResponse, AnalyticsTotals } from '../types/api.types';
+import { store } from '../../store/store';
+import { selectRefreshToken } from '../../store/slices/authSlice';
+import type {
+  PlatformStatsResponse,
+  AnalyticsDataPoint,
+  AnalyticsResponse,
+  AnalyticsTotals,
+  AuthResponse,
+  UpdateProfileRequest,
+} from '../types/api.types';
 
 type AnalyticsPeriod = 'daily' | 'weekly' | 'monthly';
 
@@ -30,7 +39,76 @@ interface AnalyticsApiEnvelope {
   data?: RawAnalyticsPayload | RawAnalyticsDataPoint[];
 }
 
+interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+interface AdminLogoutRequest {
+  refreshToken: string;
+}
+
+export interface AdminDeviceHistoryItem {
+  id: string;
+  deviceName: string;
+  platform: string;
+  browser: string;
+  ipAddress: string;
+  location: string;
+  lastActiveAt: string;
+  createdAt: string;
+  isCurrentDevice: boolean;
+}
+
+export interface AdminDevicesResponse {
+  devices: AdminDeviceHistoryItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+const normalizeDeviceItem = (raw: unknown, index: number): AdminDeviceHistoryItem => {
+  const item = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const rawId = item.id ?? item._id ?? item.deviceId ?? `device-${index + 1}`;
+  const id = isString(rawId) ? rawId : `device-${index + 1}`;
+
+  const browser = isString(item.browser) ? item.browser : '';
+  const deviceName = isString(item.deviceName)
+    ? item.deviceName
+    : isString(item.device)
+      ? item.device
+      : isString(item.userAgent)
+        ? item.userAgent
+        : isString(item.platform)
+          ? item.platform
+          : 'Device';
+
+  return {
+    id,
+    deviceName,
+    platform: isString(item.platform) ? item.platform : '',
+    browser,
+    ipAddress: isString(item.ipAddress) ? item.ipAddress : '',
+    location: isString(item.location) ? item.location : '',
+    lastActiveAt: isString(item.lastActiveAt)
+      ? item.lastActiveAt
+      : isString(item.lastSeenAt)
+        ? item.lastSeenAt
+        : isString(item.updatedAt)
+          ? item.updatedAt
+          : '',
+    createdAt: isString(item.createdAt) ? item.createdAt : '',
+    isCurrentDevice: item.isCurrentDevice === true || item.currentDevice === true,
+  };
+};
 
 const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['data'] => {
   if (!raw || typeof raw !== 'object') {
@@ -109,6 +187,102 @@ const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['data'] => 
 };
 
 export const adminApi = {
+  /**
+   * Get current admin profile
+   */
+  getProfile: async (): Promise<AuthResponse['user']> => {
+    const response = await apiClient.get<{ data: AuthResponse['user'] }>('/api/admin/profile');
+    return response.data.data;
+  },
+
+  /**
+   * Update current admin profile
+   */
+  updateProfile: async (data: UpdateProfileRequest): Promise<AuthResponse['user']> => {
+    const response = await apiClient.put<{ data: AuthResponse['user'] }>('/api/admin/profile', data);
+    return response.data.data;
+  },
+
+  /**
+   * Change admin password
+   */
+  changePassword: async (data: ChangePasswordRequest): Promise<void> => {
+    await apiClient.put('/api/admin/change-password', data);
+  },
+
+  /**
+   * Logout admin from current device (refresh token required)
+   */
+  logout: async (): Promise<void> => {
+    const state = store.getState();
+    const refreshToken = selectRefreshToken(state);
+    if (!refreshToken) {
+      throw new Error('Refresh token is required to logout');
+    }
+
+    await apiClient.post('/api/admin/logout', { refreshToken } as AdminLogoutRequest);
+  },
+
+  /**
+   * Logout admin from all devices
+   */
+  logoutAll: async (): Promise<void> => {
+    await apiClient.post('/api/admin/logout-all');
+  },
+
+  /**
+   * Get admin devices history with pagination
+   */
+  getDevices: async (page = 1, limit = 10): Promise<AdminDevicesResponse> => {
+    const response = await apiClient.get<{ data?: unknown }>('/api/admin/devices', {
+      params: { page, limit },
+    });
+
+    const data = (response.data?.data && typeof response.data.data === 'object'
+      ? response.data.data
+      : {}) as Record<string, unknown>;
+
+    const rawDevices = Array.isArray(data.devices)
+      ? data.devices
+      : Array.isArray(data.items)
+        ? data.items
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+
+    const paginationObj = (data.pagination && typeof data.pagination === 'object'
+      ? data.pagination
+      : {}) as Record<string, unknown>;
+
+    const total = isNumber(paginationObj.total)
+      ? paginationObj.total
+      : isNumber(data.total)
+        ? data.total
+        : rawDevices.length;
+
+    const totalPages = isNumber(paginationObj.totalPages)
+      ? paginationObj.totalPages
+      : Math.max(1, Math.ceil(total / Math.max(limit, 1)));
+
+    const currentPage = isNumber(paginationObj.page)
+      ? paginationObj.page
+      : isNumber(data.page)
+        ? data.page
+        : page;
+
+    return {
+      devices: rawDevices.map((device, index) => normalizeDeviceItem(device, index)),
+      pagination: {
+        page: currentPage,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: paginationObj.hasNextPage === true || currentPage < totalPages,
+        hasPrevPage: paginationObj.hasPrevPage === true || currentPage > 1,
+      },
+    };
+  },
+
   /**
    * Get platform-wide statistics (Admin only)
    */

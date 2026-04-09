@@ -24,6 +24,10 @@ export const useUserLogin = () => {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (data: AuthResponse) => {
+      if (!data.accessToken || !data.user) {
+        return;
+      }
+
       // Update Redux store with user and tokens
       dispatch(setCredentials({
         accessToken: data.accessToken,
@@ -96,6 +100,10 @@ export const useVerifyOtp = () => {
   return useMutation({
     mutationFn: (data: VerifyOtpRequest) => authApi.verifyOtp(data),
     onSuccess: (data: AuthResponse) => {
+      if (!data.accessToken || !data.user) {
+        return;
+      }
+
       // Update Redux store with user and tokens
       dispatch(setCredentials({
         accessToken: data.accessToken,
@@ -180,6 +188,10 @@ export const useGoogleLogin = () => {
     mutationFn: ({ idToken, name }: { idToken: string; name?: string }) => 
       authApi.googleLogin(idToken, name),
     onSuccess: (data: AuthResponse) => {
+      if (!data.accessToken || !data.user) {
+        return;
+      }
+
       // Update Redux store with user and tokens
       dispatch(setCredentials({
         accessToken: data.accessToken,

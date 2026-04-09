@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLogout, useUserLogout } from '@services/api/hooks';
+import { useAdminLogout, useUserLogout } from '@services/api/hooks';
 import { getSocket } from '@services/websocket/socket';
 import { useAppSelector } from '@store/hooks';
 import { selectUser } from '@store/slices/authSlice';
@@ -17,7 +17,7 @@ const AppHeaderActions: React.FC = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const isAdmin = isAdminDomain();
   const user = useAppSelector(selectUser);
-  const adminLogoutMutation = useLogout();
+  const adminLogoutMutation = useAdminLogout();
   const userLogoutMutation = useUserLogout();
   const logoutMutation = isAdmin ? adminLogoutMutation : userLogoutMutation;
   

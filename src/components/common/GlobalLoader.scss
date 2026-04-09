@@ -15,7 +15,8 @@ $loader-cyan-light: #00e5ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999;
+  // Above app modals (.modal-overlay uses 99999) so loader covers full screen during mutations
+  z-index: 200000;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: fadeIn 0.2s ease;

@@ -17,6 +17,30 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface VerifyLoginTwoFactorRequest {
+  pendingToken: string;
+  code: string;
+}
+
+/** Body for POST /api/auth/2fa/enable */
+export interface TwoFactorEnableRequest {
+  code: string;
+}
+
+/** Body for POST /api/auth/2fa/disable */
+export interface TwoFactorDisableRequest {
+  password: string;
+  code: string;
+}
+
+export interface TwoFactorSetupResponse {
+  qrCodeUrl?: string;
+  qrCodeDataUrl?: string;
+  otpauthUrl?: string;
+  manualEntryKey?: string;
+  secret?: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -69,10 +93,13 @@ export interface CsrfTokenResponse {
 }
 
 export interface AuthResponse {
-  accessToken: string;
+  accessToken?: string;
   refreshToken?: string;
-  user: User;
+  user?: User;
   message?: string;
+  requiresTwoFactor?: boolean;
+  pendingToken?: string;
+  email?: string;
 }
 
 export interface User {

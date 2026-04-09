@@ -10,6 +10,49 @@ import App from './App.tsx'
 import UserApp from './UserApp.tsx'
 import './assets/styles/dashboard.scss'
 
+// Disable browser autofill across the entire app.
+const disableBrowserAutofillGlobally = () => {
+  const applyAutocompleteOff = (root: ParentNode) => {
+    const formElements = root.querySelectorAll('form')
+    formElements.forEach((form) => {
+      form.setAttribute('autocomplete', 'off')
+    })
+
+    const fieldElements = root.querySelectorAll('input, textarea, select')
+    fieldElements.forEach((field) => {
+      const input = field as HTMLInputElement
+      input.setAttribute('autocomplete', 'off')
+      input.setAttribute('autocorrect', 'off')
+      input.setAttribute('autocapitalize', 'off')
+      input.setAttribute('spellcheck', 'false')
+    })
+  }
+
+  applyAutocompleteOff(document)
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof HTMLElement) {
+          if (node.matches('form,input,textarea,select')) {
+            const element = node as HTMLInputElement
+            element.setAttribute('autocomplete', 'off')
+            element.setAttribute('autocorrect', 'off')
+            element.setAttribute('autocapitalize', 'off')
+            element.setAttribute('spellcheck', 'false')
+          }
+          applyAutocompleteOff(node)
+        }
+      })
+    })
+  })
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  })
+}
+
 // Create QueryClient instance - must be created outside component
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +89,7 @@ const initializeTheme = () => {
 };
 
 initializeTheme();
+disableBrowserAutofillGlobally();
 
 // Subscribe to theme changes
 store.subscribe(() => {

@@ -23,6 +23,10 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (data: AuthResponse) => {
+      if (data.requiresTwoFactor || !data.accessToken || !data.user) {
+        return;
+      }
+
       // Update Redux store with user and tokens
       dispatch(setCredentials({
         accessToken: data.accessToken,

@@ -14,4 +14,5 @@ export * from './useSupportQueries';
 export * from './useAdminQueries';
 export * from './useNotificationsQueries';
 export * from './useSpecialTournamentQueries';
+export * from './useOrganizationsQueries';
 

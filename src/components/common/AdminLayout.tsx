@@ -49,7 +49,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         type: 'group',
         id: 'money',
         icon: '💰',
-        label: 'Money',
+        label: 'Bank Account',
         children: [
           { type: 'link', path: ROUTES.TOP_UP, icon: '💰', label: 'Top Up' },
           { type: 'link', path: ROUTES.PAYMENT_VERIFICATION, icon: '✅', label: 'Mannul Check' },
