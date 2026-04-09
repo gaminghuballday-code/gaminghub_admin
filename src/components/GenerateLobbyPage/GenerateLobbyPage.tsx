@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useGenerateLobbyPageLogic } from './GenerateLobbyPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
+import { ROUTES } from '@utils/constants';
 import GenerateLobby from '@components/GenerateLobby/GenerateLobby';
 import EditTournament from '@components/EditTournament/EditTournament';
 import ConfirmationModal from '@components/common/ConfirmationModal';
@@ -11,7 +13,10 @@ import SpecialTournamentTab from '@components/SpecialTournamentTab/SpecialTourna
 import './GenerateLobbyPage.scss';
 
 const GenerateLobbyPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'generate' | 'special-tournament'>('special-tournament');
+  const location = useLocation();
+  const isSpecialTournamentView =
+    location.pathname === ROUTES.GENERATE_LOBBY_SPECIAL_TOURNAMENT;
+  const pageTitle = isSpecialTournamentView ? 'Special Tournament' : 'Lobbies';
   const {
     showGenerateLobbyModal,
     setShowGenerateLobbyModal,
@@ -54,26 +59,22 @@ const GenerateLobbyPage: React.FC = () => {
   } = useGenerateLobbyPageLogic();
 
   return (
-    <AdminLayout title="Room Creator">
-      <div className="room-creator-tabs">
-        <button
-          className={`room-creator-tab ${activeTab === 'generate' ? 'active' : ''}`}
-          onClick={() => setActiveTab('generate')}
-          type="button"
-        >
-          Lobbies
-        </button>
-        <button
-          className={`room-creator-tab ${activeTab === 'special-tournament' ? 'active' : ''}`}
-          onClick={() => setActiveTab('special-tournament')}
-          type="button"
-        >
-          Special Tournament
-        </button>
-      </div>
+    <AdminLayout title={pageTitle}>
+      <header className="room-creator-page-head">
+        <p className="room-creator-page-head__eyebrow">Room Creator</p>
+        <h2 className="room-creator-page-head__title">
+          {isSpecialTournamentView ? 'Special tournaments' : 'Daily lobbies'}
+        </h2>
+        <p className="room-creator-page-head__desc">
+          {isSpecialTournamentView
+            ? 'Create and manage special tournament events, separate from regular lobby generation.'
+            : 'Generate scheduled lobbies and review tournament status for the selected day.'}
+        </p>
+      </header>
 
-      {activeTab === 'generate' ? (
-        <div className="generate-lobby-page-content">
+      <div className="generate-lobby-page-content">
+      {!isSpecialTournamentView ? (
+        <>
           <div className="generate-lobby-page-card">
             <h2 className="card-title">Generate Lobby</h2>
             <p className="card-description">
@@ -368,10 +369,11 @@ const GenerateLobbyPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </>
       ) : (
         <SpecialTournamentTab />
       )}
+      </div>
       {/* </main> */}
 
       {/* Generate Lobby Modal */}

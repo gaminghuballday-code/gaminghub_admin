@@ -44,7 +44,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const navItems: NavItem[] = useMemo(
     () => [
       { type: 'link', path: ROUTES.DASHBOARD, icon: '📊', label: 'Dashboard' },
-      { type: 'link', path: ROUTES.GENERATE_LOBBY, icon: '🎮', label: 'Room Creator' },
+      {
+        type: 'group',
+        id: 'room-creator',
+        icon: '🎮',
+        label: 'Room Creator',
+        children: [
+          { type: 'link', path: ROUTES.GENERATE_LOBBY_LOBBIES, icon: '🎯', label: 'Lobbies' },
+          { type: 'link', path: ROUTES.GENERATE_LOBBY_SPECIAL_TOURNAMENT, icon: '🏆', label: ' Tournament' },
+        ],
+      },
       {
         type: 'group',
         id: 'money',
@@ -72,13 +81,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     item.children.some((child) => isPathActive(child.path));
 
   useEffect(() => {
-    const moneyItem = navItems.find((x): x is NavGroupItem => x.type === 'group' && x.id === 'money');
-    if (!moneyItem) return;
-
-    const moneyActive = isGroupActive(moneyItem);
-    if (moneyActive) {
-      setOpenGroups((prev) => ({ ...prev, money: true }));
-    }
+    const idsToOpen = navItems
+      .filter((x): x is NavGroupItem => x.type === 'group')
+      .filter((group) => isGroupActive(group))
+      .map((group) => group.id);
+    if (idsToOpen.length === 0) return;
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      idsToOpen.forEach((id) => {
+        next[id] = true;
+      });
+      return next;
+    });
   }, [location.pathname, navItems]);
 
   const isGroupOpen = (groupId: string) => openGroups[groupId] ?? false;

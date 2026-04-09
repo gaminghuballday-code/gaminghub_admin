@@ -29,16 +29,24 @@ const SpecialTournamentTab: React.FC = () => {
     listError,
   } = useSpecialTournamentTabLogic();
 
+  const listTitle =
+    filter === 'upcoming'
+      ? 'Upcoming tournaments'
+      : filter === 'live'
+        ? 'Live tournaments'
+        : 'Completed tournaments';
+
   return (
     <div className="special-tournament-tab">
-      <div className="special-tournament-card">
-        <h2 className="card-title">Special Tournament</h2>
-        
-        <div className="special-tournament-actions">
-          <Button variant="primary" onClick={openCreateModal} icon={<span>➕</span>}>
-            Create Tournament
-          </Button>
-        </div>
+      <div className="generate-lobby-page-card">
+        <h2 className="card-title">Create special tournament</h2>
+        <p className="card-description">
+          Open the form to set title, mode, prize pool, slots, and rounds. Special events stay separate from daily lobby
+          generation.
+        </p>
+        <Button variant="primary" onClick={openCreateModal} icon={<span>➕</span>} aria-label="Create special tournament">
+          Create Tournament
+        </Button>
       </div>
 
       <Modal
@@ -154,13 +162,14 @@ const SpecialTournamentTab: React.FC = () => {
         </form>
       </Modal>
 
-      <div className="special-tournament-card">
-        <div className="special-tournament-list-header">
-          <h2 className="card-title">Special Tournaments</h2>
-          <div className="special-tournament-status-tabs">
+      <div className="tournaments-list-card">
+        <div className="tournaments-header">
+          <h2 className="card-title">{listTitle}</h2>
+          <div className="tournament-status-tabs">
             <button
               className={`status-tab ${filter === 'upcoming' ? 'active' : ''}`}
               onClick={() => setFilterValue('upcoming')}
+              disabled={isListLoading}
               type="button"
             >
               Upcoming
@@ -168,6 +177,7 @@ const SpecialTournamentTab: React.FC = () => {
             <button
               className={`status-tab ${filter === 'live' ? 'active' : ''}`}
               onClick={() => setFilterValue('live')}
+              disabled={isListLoading}
               type="button"
             >
               Live
@@ -175,6 +185,7 @@ const SpecialTournamentTab: React.FC = () => {
             <button
               className={`status-tab ${filter === 'completed' ? 'active' : ''}`}
               onClick={() => setFilterValue('completed')}
+              disabled={isListLoading}
               type="button"
             >
               Completed
@@ -183,11 +194,17 @@ const SpecialTournamentTab: React.FC = () => {
         </div>
 
         {isListLoading ? (
-          <div className="list-state">Loading...</div>
+          <div className="tournaments-loading">
+            <p>Loading tournaments...</p>
+          </div>
         ) : listError ? (
-          <div className="list-state list-state-error">{listError}</div>
+          <div className="tournaments-error">
+            <p>{listError}</p>
+          </div>
         ) : tournaments.length === 0 ? (
-          <div className="list-state">No tournaments found.</div>
+          <div className="tournaments-empty">
+            <p>No tournaments found.</p>
+          </div>
         ) : (
           <>
             <div className="special-tournament-list">
@@ -219,11 +236,11 @@ const SpecialTournamentTab: React.FC = () => {
               ))}
             </div>
 
-            <div className="pagination">
-              <div className="pagination-info">
+            <div className="special-tournament-pagination">
+              <div className="special-tournament-pagination__info">
                 Page {currentPage} of {totalPages} ({total} total)
               </div>
-              <div className="pagination-controls">
+              <div className="special-tournament-pagination__controls">
                 <Button variant="secondary" size="sm" onClick={handlePrevPage} disabled={!hasPrevPage}>
                   Previous
                 </Button>

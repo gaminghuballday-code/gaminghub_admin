@@ -2,41 +2,61 @@
 @use '../../assets/styles/variables' as *;
 @use '../../assets/styles/mixins' as *;
 
-.room-creator-tabs {
-  display: flex;
-  gap: $spacing-xs;
-  background: rgba(var(--border-color-rgb), 0.2);
-  padding: 6px;
-  border-radius: $border-radius-md;
-  border: 1px solid rgba(var(--border-color-rgb), 0.3);
-  width: fit-content;
+.room-creator-page-head {
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto $spacing-lg auto;
+  padding: $spacing-lg $spacing-xl;
+  border-radius: $border-radius-lg;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.22);
+  background: linear-gradient(
+    125deg,
+    rgba(var(--primary-color-rgb), 0.12) 0%,
+    rgba(var(--background-color-rgb), 0.55) 40%,
+    var(--background-color-dark) 100%
+  );
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 120% at 100% 0%, rgba(var(--primary-color-rgb), 0.18), transparent 55%);
+    pointer-events: none;
+  }
 }
 
-.room-creator-tab {
-  @include button-base;
-  padding: $spacing-sm $spacing-lg;
-  border: none;
-  border-radius: calc($border-radius-md - 2px);
-  background: transparent;
+.room-creator-page-head__eyebrow {
+  margin: 0 0 $spacing-xs 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+  position: relative;
+  z-index: 1;
+}
+
+.room-creator-page-head__title {
+  margin: 0 0 $spacing-sm 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-color);
+  position: relative;
+  z-index: 1;
+}
+
+.room-creator-page-head__desc {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
   color: var(--text-secondary);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all $transition-fast;
-  white-space: nowrap;
-
-  &:hover {
-    background: rgba(var(--primary-color-rgb), 0.1);
-    color: var(--text-color);
-    transform: none;
-    box-shadow: none;
-  }
-
-  &.active {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
-    color: var(--background-color);
-    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
-  }
+  max-width: 52ch;
+  position: relative;
+  z-index: 1;
 }
 
 .generate-lobby-page-container {

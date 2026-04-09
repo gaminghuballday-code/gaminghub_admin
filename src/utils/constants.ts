@@ -54,7 +54,10 @@ export const ADMIN_ROUTES = {
   DASHBOARD: '/dashboard',
   HEALTH: '/health',
   PROFILE: '/profile',
+  /** Legacy path; redirects to lobbies sub-route */
   GENERATE_LOBBY: '/generate-lobby',
+  GENERATE_LOBBY_LOBBIES: '/generate-lobby/lobbies',
+  GENERATE_LOBBY_SPECIAL_TOURNAMENT: '/generate-lobby/special-tournament',
   TOP_UP: '/top-up',
   PAYMENT_VERIFICATION: '/payment-verification',
   WITHDRAWALS: '/withdrawals',

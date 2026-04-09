@@ -1,37 +1,15 @@
 @use '../../assets/styles/variables' as *;
 @use '../../assets/styles/mixins' as *;
 
+/* Stacks with parent `.generate-lobby-page-content` (GenerateLobbyPage) — same layout as Lobbies */
 .special-tournament-tab {
   display: flex;
   flex-direction: column;
   gap: $spacing-xl;
-  padding: $spacing-xl;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.special-tournament-card {
-  @include card;
-  @include flex-column;
-  gap: $spacing-lg;
   width: 100%;
-  background: linear-gradient(135deg, var(--background-color-light) 0%, var(--background-color) 100%);
-  border: 1px solid rgba(var(--border-color-rgb), 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(var(--primary-color-rgb), 0.05);
-  overflow: visible;
-
-  .card-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--text-color);
-  }
-
-  .card-description {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .special-tournament-form {
@@ -116,35 +94,25 @@
   color: var(--error-color);
 }
 
-.special-tournament-actions {
+.special-tournament-pagination {
   display: flex;
-  justify-content: flex-end;
-}
-
-.special-tournament-list-header {
-  @include flex-between;
-  align-items: flex-start;
-  gap: $spacing-md;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid rgba(var(--border-color-rgb), 0.3);
 }
 
-.special-tournament-status-tabs {
-  display: flex;
-  gap: $spacing-xs;
-  background: rgba(var(--border-color-rgb), 0.2);
-  padding: 4px;
-  border-radius: $border-radius-md;
-  border: 1px solid rgba(var(--border-color-rgb), 0.3);
-}
-
-.list-state {
-  padding: $spacing-lg;
+.special-tournament-pagination__info {
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  text-align: center;
 }
 
-.list-state-error {
-  color: var(--error-color);
+.special-tournament-pagination__controls {
+  display: flex;
+  gap: $spacing-sm;
 }
 
 .special-tournament-list {

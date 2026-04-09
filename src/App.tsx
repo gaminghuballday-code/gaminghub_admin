@@ -62,8 +62,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path={ROUTES.GENERATE_LOBBY} element={<Navigate to={ROUTES.GENERATE_LOBBY_LOBBIES} replace />} />
           <Route
-            path={ROUTES.GENERATE_LOBBY}
+            path={ROUTES.GENERATE_LOBBY_LOBBIES}
+            element={
+              <ProtectedRoute>
+                <GenerateLobbyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.GENERATE_LOBBY_SPECIAL_TOURNAMENT}
             element={
               <ProtectedRoute>
                 <GenerateLobbyPage />
