@@ -200,8 +200,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
     adminChangePasswordMutation.mutate(
       {
-        currentPassword: passwordForm.currentPassword,
+        oldPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword,
       },
       {
         onSuccess: () => {

@@ -8,6 +8,7 @@ import type {
   AnalyticsTotals,
   AuthResponse,
   UpdateProfileRequest,
+  ChangePasswordRequest,
 } from '../types/api.types';
 
 type AnalyticsPeriod = 'daily' | 'weekly' | 'monthly';
@@ -37,11 +38,6 @@ interface RawAnalyticsPayload {
 
 interface AnalyticsApiEnvelope {
   data?: RawAnalyticsPayload | RawAnalyticsDataPoint[];
-}
-
-interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
 }
 
 interface AdminLogoutRequest {
@@ -204,10 +200,10 @@ export const adminApi = {
   },
 
   /**
-   * Change admin password
+   * Change password (shared auth route; invalidates refresh tokens per API docs)
    */
   changePassword: async (data: ChangePasswordRequest): Promise<void> => {
-    await apiClient.put('/api/admin/change-password', data);
+    await apiClient.put('/api/auth/change-password', data);
   },
 
   /**

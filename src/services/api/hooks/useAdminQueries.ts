@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../admin.api';
 import { useAppDispatch } from '@store/hooks';
 import { logout as logoutAction, setUser } from '@store/slices/authSlice';
-import type { AuthResponse, UpdateProfileRequest } from '@services/types/api.types';
+import type { AuthResponse, UpdateProfileRequest, ChangePasswordRequest } from '@services/types/api.types';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@utils/constants';
 
@@ -82,7 +82,7 @@ export const useAdminUpdateProfile = () => {
  */
 export const useAdminChangePassword = () => {
   return useMutation({
-    mutationFn: (data: { currentPassword: string; newPassword: string }) => adminApi.changePassword(data),
+    mutationFn: (data: ChangePasswordRequest) => adminApi.changePassword(data),
   });
 };
 

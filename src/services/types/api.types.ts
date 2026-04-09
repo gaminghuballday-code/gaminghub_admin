@@ -87,6 +87,13 @@ export interface UpdateProfileRequest {
   paymentUPI?: string;
 }
 
+/** PUT /api/auth/change-password */
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface CsrfTokenResponse {
   csrfToken: string;
   message?: string;

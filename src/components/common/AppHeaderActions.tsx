@@ -123,10 +123,10 @@ const AppHeaderActions: React.FC = () => {
       {/* Logout Confirmation Modal */}
       <ConfirmationModal
         isOpen={showLogoutModal}
-        title="Logout"
-        message="Are you sure you want to logout?"
-        confirmText="Yes"
-        cancelText="No"
+        title="Sign out"
+        message="You will need to sign in again to use the admin panel."
+        confirmText="Sign out"
+        cancelText="Cancel"
         onConfirm={handleLogoutConfirm}
         onCancel={() => setShowLogoutModal(false)}
       />

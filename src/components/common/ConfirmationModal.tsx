@@ -25,7 +25,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
-      className="modal-small"
+      className="modal-small confirmation-modal"
       title={title}
       closeOnOverlayClick={true}
     >
