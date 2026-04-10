@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import { useOrgAccountSectionLogic } from './OrgAccountSection.logic';
 import AdminLayout from '@components/common/AdminLayout';
@@ -6,10 +5,17 @@ import { Modal } from '@components/common/Modal';
 import NoDataFound from '@components/common/NoDataFound';
 import AllHostsList from './AllHostsList';
 import AllOrgsList from './AllOrgsList';
+import {
+  HOST_ACCOUNT_ROLE_LABEL,
+  HOST_DETAILS_NO_STATISTICS_MESSAGE,
+  ORG_ACCOUNT_OWNER_ROLE_LABEL,
+  ORG_DETAILS_NO_TOURNAMENTS_MESSAGE,
+  ROUTES,
+} from '@utils/constants';
+import { getOrganizationOwnerEmail } from '@services/api';
 import type { OrgTournamentStatusFilter } from '@services/api';
+import { useLocation, matchPath } from 'react-router-dom';
 import './HostCreationPage.scss';
-
-type AccountTab = 'host' | 'org' | 'user';
 
 const ORG_TOURNAMENT_STATUS_OPTIONS: Array<{ value: OrgTournamentStatusFilter | ''; label: string }> = [
   { value: '', label: 'All statuses' },
@@ -23,7 +29,9 @@ const ORG_TOURNAMENT_STATUS_OPTIONS: Array<{ value: OrgTournamentStatusFilter | 
 ];
 
 const HostCreationPage: React.FC = () => {
-  const [activeAccountTab, setActiveAccountTab] = useState<AccountTab>('host');
+  const location = useLocation();
+  const isOrgSection =
+    matchPath({ path: ROUTES.ORG_CREATION, end: true }, location.pathname) !== null;
   const {
     activeTab,
     setActiveTab,
@@ -79,37 +87,12 @@ const HostCreationPage: React.FC = () => {
     tournamentsError,
     handleOrgClick,
     handleCloseOrgModal,
-  } = useOrgAccountSectionLogic(activeAccountTab === 'org');
+  } = useOrgAccountSectionLogic(isOrgSection);
 
   return (
     <AdminLayout title="Account Creation">
       <div className="host-creation-content-wrapper">
-        {/* Account Tabs */}
-        <div className="account-type-tabs">
-          <button
-            className={`account-type-tab ${activeAccountTab === 'host' ? 'active' : ''}`}
-            onClick={() => setActiveAccountTab('host')}
-            type="button"
-          >
-            Host
-          </button>
-          <button
-            className={`account-type-tab ${activeAccountTab === 'org' ? 'active' : ''}`}
-            onClick={() => setActiveAccountTab('org')}
-            type="button"
-          >
-            Org
-          </button>
-          <button
-            className={`account-type-tab ${activeAccountTab === 'user' ? 'active' : ''}`}
-            onClick={() => setActiveAccountTab('user')}
-            type="button"
-          >
-            User
-          </button>
-        </div>
-
-        {activeAccountTab === 'host' && (
+        {!isOrgSection && (
           <>
             {/* Host Tabs */}
             <div className="host-creation-tabs">
@@ -230,7 +213,7 @@ const HostCreationPage: React.FC = () => {
           </>
         )}
 
-        {activeAccountTab === 'org' && (
+        {isOrgSection && (
           <>
             <div className="host-creation-tabs">
               <button
@@ -385,13 +368,6 @@ const HostCreationPage: React.FC = () => {
             )}
           </>
         )}
-
-        {activeAccountTab === 'user' && (
-            <div className="host-creation-card">
-              <h2 className="card-title">User Account</h2>
-              <NoDataFound message="User account section pending. Share fields/workflow and I will add it." />
-            </div>
-        )}
       </div>
       {/* </main> */}
 
@@ -401,25 +377,32 @@ const HostCreationPage: React.FC = () => {
           isOpen={showOrgModal}
           onClose={handleCloseOrgModal}
           className="modal-large"
-          title="Organization details"
+          title={selectedOrg.name?.trim() ? selectedOrg.name : 'Organization details'}
           showCloseButton={true}
         >
           <div className="host-modal-content">
             <div className="host-detail-section">
-              <div className="host-detail-item">
-                <span className="detail-label">Name:</span>
-                <span className="detail-value">{selectedOrg.name || 'N/A'}</span>
-              </div>
+              {selectedOrg.logoUrl ? (
+                <img
+                  className="org-detail-logo org-detail-logo--top"
+                  src={selectedOrg.logoUrl}
+                  alt=""
+                />
+              ) : null}
               <div className="host-detail-item">
                 <span className="detail-label">Organization ID:</span>
                 <span className="detail-value">{selectedOrg.id}</span>
               </div>
-              {selectedOrg.ownerUserId && (
-                <div className="host-detail-item">
-                  <span className="detail-label">Owner user:</span>
-                  <span className="detail-value">{selectedOrg.ownerUserId}</span>
-                </div>
-              )}
+              <div className="host-detail-item">
+                <span className="detail-label">Role:</span>
+                <span className="detail-value">{ORG_ACCOUNT_OWNER_ROLE_LABEL}</span>
+              </div>
+              <div className="host-detail-item">
+                <span className="detail-label">Email:</span>
+                <span className="detail-value">
+                  {getOrganizationOwnerEmail(selectedOrg) ?? 'N/A'}
+                </span>
+              </div>
               {selectedOrg.createdAt && (
                 <div className="host-detail-item">
                   <span className="detail-label">Created:</span>
@@ -432,13 +415,6 @@ const HostCreationPage: React.FC = () => {
                   </span>
                 </div>
               )}
-              {selectedOrg.logoUrl ? (
-                <img
-                  className="org-detail-logo"
-                  src={selectedOrg.logoUrl}
-                  alt=""
-                />
-              ) : null}
             </div>
 
             <div className="org-tournaments-section">
@@ -464,11 +440,12 @@ const HostCreationPage: React.FC = () => {
                   <p>Loading tournaments...</p>
                 </div>
               ) : tournamentsError ? (
-                <div className="org-tournaments-error">
-                  <p>{tournamentsError}</p>
-                </div>
+                <NoDataFound variant="panel" message={tournamentsError} />
               ) : tournaments.length === 0 ? (
-                <NoDataFound className="org-tournaments-empty" message="No tournaments for this organization." />
+                <NoDataFound
+                  variant="panel"
+                  message={ORG_DETAILS_NO_TOURNAMENTS_MESSAGE}
+                />
               ) : (
                 <div className="org-tournaments-list">
                   {tournaments.map((t, idx) => {
@@ -501,22 +478,22 @@ const HostCreationPage: React.FC = () => {
           isOpen={showHostModal}
           onClose={handleCloseModal}
           className="modal-large"
-          title="Host Details"
+          title={selectedHost.name?.trim() ? selectedHost.name : 'Host Details'}
           showCloseButton={true}
         >
           <div className="host-modal-content">
               <div className="host-detail-section">
                 <div className="host-detail-item">
-                  <span className="detail-label">Name:</span>
-                  <span className="detail-value">{selectedHost.name || 'N/A'}</span>
+                  <span className="detail-label">Host ID:</span>
+                  <span className="detail-value">{selectedHost.hostId || selectedHost._id || 'N/A'}</span>
+                </div>
+                <div className="host-detail-item">
+                  <span className="detail-label">Role:</span>
+                  <span className="detail-value">{HOST_ACCOUNT_ROLE_LABEL}</span>
                 </div>
                 <div className="host-detail-item">
                   <span className="detail-label">Email:</span>
                   <span className="detail-value">{selectedHost.email}</span>
-                </div>
-                <div className="host-detail-item">
-                  <span className="detail-label">Host ID:</span>
-                  <span className="detail-value">{selectedHost.hostId || selectedHost._id || 'N/A'}</span>
                 </div>
                 {selectedHost.createdAt && (
                   <div className="host-detail-item">
@@ -583,7 +560,10 @@ const HostCreationPage: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <NoDataFound className="host-stats-empty" message="No statistics available for this host." />
+                <NoDataFound
+                  variant="panel"
+                  message={HOST_DETAILS_NO_STATISTICS_MESSAGE}
+                />
               )}
           </div>
         </Modal>

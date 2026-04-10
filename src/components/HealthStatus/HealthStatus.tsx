@@ -8,7 +8,11 @@ const HealthStatus: React.FC = () => {
     healthData,
     healthLoading,
     healthError,
+    checkHealth,
   } = useHealthStatusLogic();
+
+  const normalizedStatus = healthData?.status?.toLowerCase() ?? '';
+  const isHealthy = normalizedStatus === 'ok' || normalizedStatus === 'healthy' || normalizedStatus === 'up';
 
   return (
     <div className="health-status-container">
@@ -33,8 +37,9 @@ const HealthStatus: React.FC = () => {
             <div className="health-status-details">
               <div className="status-item">
                 <span className="status-label">Status:</span>
-                <span className={`status-value ${healthData.status === 'ok' ? 'success' : 'error'}`}>
-                  {healthData.status}
+                <span className={`status-badge ${isHealthy ? 'success' : 'error'}`}>
+                  <span className="status-dot" aria-hidden="true" />
+                  {healthData.status || 'Unknown'}
                 </span>
               </div>
               {healthData.timestamp && (
@@ -52,19 +57,21 @@ const HealthStatus: React.FC = () => {
             </div>
           )}
           <div className="health-status-actions">
-            <button 
-              className="refresh-button" 
-              // onClick={checkHealth} 
+            <button
+              className="refresh-button"
+              onClick={() => {
+                void checkHealth();
+              }}
               disabled={healthLoading}
               aria-label="Refresh"
               title="Refresh"
             >
-              <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
                 className={healthLoading ? 'spinning' : ''}
               >

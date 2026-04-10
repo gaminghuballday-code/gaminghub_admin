@@ -71,6 +71,52 @@ export interface AdminDevicesResponse {
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const isString = (value: unknown): value is string => typeof value === 'string';
 
+/** Accepts finite numbers and numeric strings (common in JSON APIs). */
+const parseFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value);
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+  return undefined;
+};
+
+const PLATFORM_STAT_ROOT_KEYS = [
+  'totalUsers',
+  'totalIncome',
+  'totalDeposit',
+  'totalTopupGC',
+  'totalRewards',
+  'totalWithdraw',
+  'totalWinDraw',
+  'totalProfit',
+  'netProfit',
+  'userGrowth',
+  'incomeGrowth',
+  'platformFeeCollected',
+  'casterFeeCollected',
+  'platformFee',
+  'casterFee',
+  'platformProfit',
+] as const;
+
+/** True if this object looks like a stats payload (avoids SSE heartbeats / {} wiping the cache). */
+const hasRecognizedPlatformStatFields = (data: Record<string, unknown>): boolean => {
+  if (PLATFORM_STAT_ROOT_KEYS.some((k) => k in data)) {
+    return true;
+  }
+  const b = data.breakdown;
+  if (b && typeof b === 'object') {
+    const br = b as Record<string, unknown>;
+    return 'platformFee' in br || 'casterFee' in br;
+  }
+  return false;
+};
+
 const normalizeDeviceItem = (raw: unknown, index: number): AdminDeviceHistoryItem => {
   const item = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const rawId = item.id ?? item._id ?? item.deviceId ?? `device-${index + 1}`;
@@ -106,78 +152,74 @@ const normalizeDeviceItem = (raw: unknown, index: number): AdminDeviceHistoryIte
   };
 };
 
-const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['data'] => {
+const emptyPlatformStats = (): PlatformStatsResponse['data'] => ({
+  totalUsers: 0,
+  totalIncome: 0,
+  totalRewards: 0,
+  totalProfit: 0,
+  userGrowth: 0,
+  incomeGrowth: 0,
+});
+
+/**
+ * Normalizes REST/SSE dashboard stats payloads.
+ * Returns null when `raw` is not a recognizable stats object (so SSE must not overwrite cache with zeros).
+ */
+export const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['data'] | null => {
   if (!raw || typeof raw !== 'object') {
-    return {
-      totalUsers: 0,
-      totalIncome: 0,
-      totalRewards: 0,
-      totalProfit: 0,
-      userGrowth: 0,
-      incomeGrowth: 0,
-    };
+    return null;
   }
 
   const data = raw as Record<string, unknown>;
+  if (!hasRecognizedPlatformStatFields(data)) {
+    return null;
+  }
+
   const breakdown = (data.breakdown && typeof data.breakdown === 'object'
     ? (data.breakdown as Record<string, unknown>)
     : undefined);
 
-  const totalUsers = isNumber(data.totalUsers) ? data.totalUsers : 0;
-  const totalDeposit = isNumber(data.totalDeposit)
-    ? data.totalDeposit
-    : isNumber(data.totalIncome)
-      ? data.totalIncome
-      : isNumber(data.totalTopupGC)
-        ? data.totalTopupGC
-        : 0;
-
-  const totalRewards = isNumber(data.totalRewards)
-    ? data.totalRewards
-    : isNumber(data.totalWithdraw)
-      ? data.totalWithdraw
-      : isNumber(data.totalWinDraw)
-        ? data.totalWinDraw
-        : 0;
-
-  const platformFeeCollected = isNumber(data.platformFeeCollected)
-    ? data.platformFeeCollected
-    : isNumber(data.platformFee)
-      ? data.platformFee
-      : isNumber(breakdown?.platformFee)
-        ? breakdown.platformFee
-        : 0;
-
-  const casterFeeCollected = isNumber(data.casterFeeCollected)
-    ? data.casterFeeCollected
-    : isNumber(data.casterFee)
-      ? data.casterFee
-      : isNumber(breakdown?.casterFee)
-        ? breakdown.casterFee
-        : 0;
-
-  const netProfit = isNumber(data.netProfit)
-    ? data.netProfit
-    : isNumber(data.totalProfit)
-      ? data.totalProfit
-      : isNumber(data.platformProfit)
-        ? data.platformProfit
-        : platformFeeCollected + casterFeeCollected;
+  const totalUsers = parseFiniteNumber(data.totalUsers) ?? 0;
+  const totalDeposit =
+    parseFiniteNumber(data.totalDeposit) ??
+    parseFiniteNumber(data.totalIncome) ??
+    parseFiniteNumber(data.totalTopupGC) ??
+    0;
+  const totalRewards =
+    parseFiniteNumber(data.totalRewards) ??
+    parseFiniteNumber(data.totalWithdraw) ??
+    parseFiniteNumber(data.totalWinDraw) ??
+    0;
+  const platformFeeCollected =
+    parseFiniteNumber(data.platformFeeCollected) ??
+    parseFiniteNumber(data.platformFee) ??
+    parseFiniteNumber(breakdown?.platformFee) ??
+    0;
+  const casterFeeCollected =
+    parseFiniteNumber(data.casterFeeCollected) ??
+    parseFiniteNumber(data.casterFee) ??
+    parseFiniteNumber(breakdown?.casterFee) ??
+    0;
+  const netProfit =
+    parseFiniteNumber(data.netProfit) ??
+    parseFiniteNumber(data.totalProfit) ??
+    parseFiniteNumber(data.platformProfit) ??
+    platformFeeCollected + casterFeeCollected;
 
   return {
     totalUsers,
     totalIncome: totalDeposit,
     totalRewards,
     totalProfit: netProfit,
-    userGrowth: isNumber(data.userGrowth) ? data.userGrowth : 0,
-    incomeGrowth: isNumber(data.incomeGrowth) ? data.incomeGrowth : 0,
+    userGrowth: parseFiniteNumber(data.userGrowth) ?? 0,
+    incomeGrowth: parseFiniteNumber(data.incomeGrowth) ?? 0,
     totalDeposit,
-    totalTopupGC: isNumber(data.totalTopupGC) ? data.totalTopupGC : totalDeposit,
-    totalWithdraw: isNumber(data.totalWithdraw) ? data.totalWithdraw : totalRewards,
-    totalWinDraw: isNumber(data.totalWinDraw) ? data.totalWinDraw : totalRewards,
+    totalTopupGC: parseFiniteNumber(data.totalTopupGC) ?? totalDeposit,
+    totalWithdraw: parseFiniteNumber(data.totalWithdraw) ?? totalRewards,
+    totalWinDraw: parseFiniteNumber(data.totalWinDraw) ?? totalRewards,
     platformFeeCollected,
     casterFeeCollected,
-    platformProfit: isNumber(data.platformProfit) ? data.platformProfit : netProfit,
+    platformProfit: parseFiniteNumber(data.platformProfit) ?? netProfit,
     netProfit,
   };
 };
@@ -285,7 +327,7 @@ export const adminApi = {
   getPlatformStats: async (): Promise<PlatformStatsResponse['data']> => {
     try {
       const response = await apiClient.get<PlatformStatsResponse>('/api/admin/dashboard/stats');
-      return normalizePlatformStats(response.data.data);
+      return normalizePlatformStats(response.data.data) ?? emptyPlatformStats();
     } catch (error) {
       console.warn('Platform stats API failed, using mock data:', error);
       // Return mock data for development if API is not available

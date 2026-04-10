@@ -189,44 +189,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-// Account Type Tabs
-.account-type-tabs {
-  display: flex;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-md;
-  border-bottom: 2px solid var(--border-color);
-  padding: 0 $spacing-md;
-}
-
-.account-type-tab {
-  @include button-secondary;
-  padding: $spacing-md $spacing-xl;
-  border: none;
-  border-bottom: 3px solid transparent;
-  border-radius: $border-radius-md $border-radius-md 0 0;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all $transition-fast;
-  position: relative;
-  bottom: -2px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &:hover {
-    color: var(--primary-color);
-    background: rgba(var(--primary-color-rgb), 0.1);
-  }
-
-  &.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-    background: rgba(var(--primary-color-rgb), 0.1);
-  }
-}
-
 // Host Creation Tabs
 .host-creation-tabs {
   display: flex;
@@ -612,8 +574,7 @@
   margin-bottom: $spacing-md;
 }
 
-.host-stats-loading,
-.host-stats-empty {
+.host-stats-loading {
   padding: $spacing-xl;
   text-align: center;
   color: var(--text-secondary);
@@ -749,9 +710,7 @@
   font-size: 0.9rem;
 }
 
-.org-tournaments-loading,
-.org-tournaments-error,
-.org-tournaments-empty {
+.org-tournaments-loading {
   padding: $spacing-lg;
   text-align: center;
   color: var(--text-secondary);
@@ -812,6 +771,12 @@
   border-radius: $border-radius-md;
   margin-top: $spacing-sm;
   object-fit: contain;
+
+  &--top {
+    margin-top: 0;
+    margin-bottom: $spacing-md;
+    display: block;
+  }
 }
 
 // Create org — logo file upload (profile-style circle on top)

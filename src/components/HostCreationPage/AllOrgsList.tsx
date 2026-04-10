@@ -1,5 +1,6 @@
 import type { FC } from 'react';
-import type { AdminOrganization } from '@services/api/organizations.api';
+import type { AdminOrganization } from '@services/api';
+import { getOrganizationOwnerSummary } from '@services/api';
 import './AllOrgsList.scss';
 
 interface AllOrgsListProps {
@@ -48,7 +49,9 @@ const AllOrgsList: FC<AllOrgsListProps> = ({
   return (
     <div className="all-orgs-list">
       <div className="all-orgs-list-content">
-        {organizations.map((org) => (
+        {organizations.map((org) => {
+          const ownerSummary = getOrganizationOwnerSummary(org);
+          return (
           <div
             key={org.id}
             className="all-orgs-item"
@@ -65,13 +68,14 @@ const AllOrgsList: FC<AllOrgsListProps> = ({
             <div className="all-orgs-item-content">
               <div className="all-orgs-name">{org.name || 'N/A'}</div>
               <div className="all-orgs-id">ID: {org.id}</div>
-              {org.ownerUserId && (
-                <div className="all-orgs-owner">Owner user: {org.ownerUserId}</div>
-              )}
+              {ownerSummary ? (
+                <div className="all-orgs-owner">Owner: {ownerSummary}</div>
+              ) : null}
             </div>
             <div className="all-orgs-item-arrow">→</div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

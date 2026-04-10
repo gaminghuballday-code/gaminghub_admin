@@ -112,6 +112,14 @@ function App() {
             }
           />
           <Route
+            path={ROUTES.ORG_CREATION}
+            element={
+              <ProtectedRoute>
+                <HostCreationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path={ROUTES.USER_HISTORY}
             element={
               <ProtectedRoute>

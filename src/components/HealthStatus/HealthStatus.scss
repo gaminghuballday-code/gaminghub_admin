@@ -185,11 +185,13 @@
 
 .status-item {
   @include flex-between;
+  align-items: center;
   padding: $spacing-md $spacing-sm;
   border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5);
   border-radius: $border-radius-sm;
   transition: all $transition-fast;
   margin: $spacing-xs 0;
+  gap: $spacing-md;
 
   &:hover {
     background: rgba(var(--primary-color-rgb), 0.05);
@@ -209,6 +211,8 @@
 .status-value {
   color: var(--text-color);
   font-weight: 600;
+  text-align: right;
+  word-break: break-word;
 
   &.success {
     color: var(--success-color);
@@ -217,6 +221,38 @@
   &.error {
     color: var(--error-color);
   }
+}
+
+.status-badge {
+  @include flex-center;
+  gap: $spacing-sm;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: $spacing-xs $spacing-md;
+  border-radius: 999px;
+  border: 1px solid transparent;
+
+  &.success {
+    color: var(--success-color);
+    background: rgba(var(--success-color-rgb), 0.14);
+    border-color: rgba(var(--success-color-rgb), 0.4);
+  }
+
+  &.error {
+    color: var(--error-color);
+    background: rgba(var(--error-color-rgb), 0.14);
+    border-color: rgba(var(--error-color-rgb), 0.4);
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
 }
 
 .loading {
@@ -228,8 +264,25 @@
 .error {
   color: var(--error-color);
   padding: $spacing-md;
-  background-color: rgba(var(--error-color), 0.1);
+  background-color: rgba(var(--error-color-rgb), 0.1);
   border-radius: $border-radius-md;
   border: 1px solid var(--error-color);
+}
+
+@media (max-width: 768px) {
+  .health-status-content {
+    padding: $spacing-md;
+  }
+
+  .status-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  .status-value,
+  .status-badge {
+    text-align: left;
+  }
 }
 

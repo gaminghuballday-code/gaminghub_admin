@@ -1,6 +1,20 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.gaminghuballday.buzz';
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || 'booyahx-admin';
 
+/** Org details modal — account owner row (API may store `org_manager`, UI shows Owner). */
+export const ORG_ACCOUNT_OWNER_ROLE_LABEL = 'Owner';
+
+/** Org details modal — empty state when the org has no tournaments. */
+export const ORG_DETAILS_NO_TOURNAMENTS_MESSAGE =
+  'No tournaments have been created for this organization yet.';
+
+/** Host details modal — account role label (host user). */
+export const HOST_ACCOUNT_ROLE_LABEL = 'Host';
+
+/** Host details modal — empty state when statistics API returns nothing. */
+export const HOST_DETAILS_NO_STATISTICS_MESSAGE =
+  'No statistics available for this host.';
+
 // Public app download link (served from /public/apk/Booyahx.apk)
 export const ANDROID_APK_URL = import.meta.env.VITE_ANDROID_APK_URL || '/apk/Booyahx.apk';
 
@@ -62,6 +76,7 @@ export const ADMIN_ROUTES = {
   PAYMENT_VERIFICATION: '/payment-verification',
   WITHDRAWALS: '/withdrawals',
   HOST_CREATION: '/host-creation',
+  ORG_CREATION: '/org-creation',
   USER_HISTORY: '/user-history',
   ENQUIRIES: '/enquiries',
   SUPPORT_TICKETS: '/support-tickets',

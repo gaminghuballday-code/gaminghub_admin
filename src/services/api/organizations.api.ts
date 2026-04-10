@@ -1,12 +1,50 @@
+import type { RawAxiosRequestHeaders } from 'axios';
 import apiClient from './client';
+
+/** Populated owner from GET /organizations when `ownerUserId` is expanded. */
+export interface OrganizationOwnerUser {
+  _id?: string;
+  email?: string;
+  name?: string;
+  role?: string;
+}
 
 export interface AdminOrganization {
   id: string;
   name: string;
   logoUrl?: string;
-  ownerUserId?: string;
+  ownerUserId?: string | OrganizationOwnerUser;
   createdAt?: string;
 }
+
+export const getOrganizationOwnerEmail = (org: AdminOrganization): string | undefined => {
+  const o = org.ownerUserId;
+  if (typeof o === 'object' && o !== null && typeof o.email === 'string' && o.email.length > 0) {
+    return o.email;
+  }
+  return undefined;
+};
+
+/** One-line hint for list rows: email, name, id, or raw string id. */
+export const getOrganizationOwnerSummary = (org: AdminOrganization): string | undefined => {
+  const o = org.ownerUserId;
+  if (o === undefined || o === null) {
+    return undefined;
+  }
+  if (typeof o === 'string') {
+    return o.length > 0 ? o : undefined;
+  }
+  if (typeof o.email === 'string' && o.email.length > 0) {
+    return o.email;
+  }
+  if (typeof o.name === 'string' && o.name.length > 0) {
+    return o.name;
+  }
+  if (typeof o._id === 'string' && o._id.length > 0) {
+    return o._id;
+  }
+  return undefined;
+};
 
 export interface CreateOrganizationRequest {
   name: string;
@@ -68,11 +106,36 @@ const pickOrgId = (raw: Record<string, unknown>): string => {
   return '';
 };
 
+const normalizeOwnerUserId = (raw: unknown): string | OrganizationOwnerUser | undefined => {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+  if (typeof raw === 'string') {
+    return raw.length > 0 ? raw : undefined;
+  }
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+  const email = typeof raw.email === 'string' ? raw.email : undefined;
+  const name = typeof raw.name === 'string' ? raw.name : undefined;
+  const role = typeof raw.role === 'string' ? raw.role : undefined;
+  const nestedId = typeof raw._id === 'string' ? raw._id : undefined;
+  if (!email && !name && !role && !nestedId) {
+    return undefined;
+  }
+  return {
+    ...(nestedId !== undefined ? { _id: nestedId } : {}),
+    ...(email !== undefined ? { email } : {}),
+    ...(name !== undefined ? { name } : {}),
+    ...(role !== undefined ? { role } : {}),
+  };
+};
+
 const normalizeOrganization = (raw: Record<string, unknown>): AdminOrganization => ({
   id: pickOrgId(raw),
   name: typeof raw.name === 'string' ? raw.name : '',
   logoUrl: typeof raw.logoUrl === 'string' ? raw.logoUrl : undefined,
-  ownerUserId: typeof raw.ownerUserId === 'string' ? raw.ownerUserId : undefined,
+  ownerUserId: normalizeOwnerUserId(raw.ownerUserId),
   createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : undefined,
 });
 
@@ -180,10 +243,11 @@ export const organizationsApi = {
   uploadOrgLogoImage: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
+    // Omit Content-Type so the browser/axios sets multipart with boundary (instance default is JSON).
     const response = await apiClient.post<unknown>(ORG_LOGO_UPLOAD_PATH, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+        'Content-Type': undefined,
+      } as RawAxiosRequestHeaders,
     });
     return parseUploadImageUrl(response.data);
   },
