@@ -23,7 +23,7 @@ export const useDashboardLogic = () => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const accessToken = useAppSelector(selectAccessToken);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageLimit] = useState<number>(12);
+  const [pageLimit] = useState<number>(10);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
   const [userQuery, setUserQuery] = useState<string>('');
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
@@ -442,6 +442,7 @@ export const useDashboardLogic = () => {
     handleUserCardClick,
     handleCopyEmail,
     currentPage,
+    usersPageLimit: pageLimit,
     handlePageChange,
     handlePreviousPage,
     handleNextPage,

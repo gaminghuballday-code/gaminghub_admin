@@ -837,8 +837,8 @@
 
 .users-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: $spacing-md;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-lg;
 }
 
 .user-card {
@@ -848,13 +848,14 @@
   );
   border: 2px solid rgba(var(--border-color-rgb), 0.5);
   border-radius: $border-radius-lg;
-  padding: $spacing-lg;
+  padding: $spacing-xl;
+  min-height: 200px;
   transition: all $transition-fast;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: flex-start;
-  gap: $spacing-md;
+  gap: $spacing-lg;
 
   &::before {
     content: '';
@@ -922,8 +923,8 @@
   position: absolute;
   top: $spacing-sm;
   right: $spacing-sm;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -931,15 +932,16 @@
   color: var(--background-color);
   border-radius: 50%;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
   box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
   z-index: 1;
 }
 
 .user-card-content {
   @include flex-column;
-  gap: $spacing-md;
+  gap: $spacing-lg;
   flex: 1;
+  min-width: 0;
 }
 
 .user-name,
@@ -1084,13 +1086,19 @@
 
 .user-value {
   color: var(--text-color);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 500;
   word-break: break-word;
   flex: 1;
   display: flex;
   align-items: center;
   gap: $spacing-xs;
+}
+
+.user-email-full {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.45;
 }
 
 // Pagination Controls
@@ -1331,6 +1339,43 @@
   border: 1px solid var(--border-color);
   border-radius: $border-radius-md;
   transition: all $transition-fast;
+
+  &--email {
+    align-items: flex-start;
+
+    .detail-value {
+      flex: 1;
+      min-width: 0;
+      justify-content: flex-end;
+
+      button {
+        flex-shrink: 0;
+      }
+    }
+
+    // Keep full email on one line; scroll horizontally if the panel is narrow.
+    .user-email-full--single-line {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      word-break: normal;
+      overflow-wrap: normal;
+      text-align: right;
+      line-height: 1.5;
+      padding-bottom: 2px;
+
+      &::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.35);
+        border-radius: 2px;
+      }
+    }
+  }
 
   &.highlight {
     background: linear-gradient(135deg, 

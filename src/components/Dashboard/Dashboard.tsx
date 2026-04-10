@@ -35,6 +35,7 @@ const Dashboard: React.FC = () => {
     handleUserCardClick,
     handleCopyEmail,
     currentPage,
+    usersPageLimit,
     handlePageChange,
     handlePreviousPage,
     handleNextPage,
@@ -72,16 +73,6 @@ const Dashboard: React.FC = () => {
       document.body.classList.remove('dashboard-details-open');
     };
   }, [selectedUser]);
-
-  const truncateEmail = (email: string): string => {
-    if (!email.includes('@')) {
-      return email;
-    }
-
-    const firstPart = email.slice(0, 4);
-    const lastPart = email.slice(-4);
-    return `${firstPart}....${lastPart}`;
-  };
 
   const getVisiblePages = (current: number, total: number): Array<number | 'ellipsis'> => {
     if (total <= 7) {
@@ -353,7 +344,7 @@ const Dashboard: React.FC = () => {
                           <div className="user-email">
                             <span className="user-label">Email:</span>
                             <span className="user-value">
-                              <span title={adminUser.email}>{truncateEmail(adminUser.email)}</span>
+                              <span className="user-email-full">{adminUser.email}</span>
                               <Button
                                 type="button"
                                 variant="secondary"
@@ -440,7 +431,7 @@ const Dashboard: React.FC = () => {
                       </span>
                       {pagination.total > 0 && (
                         <span className="pagination-total">
-                          (Showing {((currentPage - 1) * 12) + 1}-{Math.min(currentPage * 12, pagination.total)} of {pagination.total})
+                          (Showing {((currentPage - 1) * usersPageLimit) + 1}-{Math.min(currentPage * usersPageLimit, pagination.total)} of {pagination.total})
                         </span>
                       )}
                       <div className="pagination-pages">
@@ -548,10 +539,10 @@ const Dashboard: React.FC = () => {
                 <span className="detail-label">Name:</span>
                 <span className="detail-value">{selectedUser.name || 'N/A'}</span>
               </div>
-              <div className="user-detail-item">
+              <div className="user-detail-item user-detail-item--email">
                 <span className="detail-label">Email:</span>
                 <span className="detail-value">
-                  <span title={selectedUser.email}>{truncateEmail(selectedUser.email)}</span>
+                  <span className="user-email-full user-email-full--single-line">{selectedUser.email}</span>
                   <Button
                     type="button"
                     variant="secondary"
