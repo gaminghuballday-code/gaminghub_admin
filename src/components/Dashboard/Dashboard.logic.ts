@@ -26,6 +26,7 @@ export const useDashboardLogic = () => {
   const [pageLimit] = useState<number>(10);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
   const [userQuery, setUserQuery] = useState<string>('');
+  const [appliedUserQuery, setAppliedUserQuery] = useState<string>('');
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [processingUserId, setProcessingUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -99,7 +100,7 @@ export const useDashboardLogic = () => {
   // Users query - fetch when authenticated
   const shouldFetchUsers = isAuthenticated;
   const roleForQuery = roleFilter === 'all' ? undefined : roleFilter;
-  const queryForHook = isSearchMode ? (userQuery.trim() || undefined) : undefined;
+  const queryForHook = isSearchMode ? (appliedUserQuery || undefined) : undefined;
   const { 
     data: usersData, 
     isLoading: usersLoading, 
@@ -216,12 +217,14 @@ export const useDashboardLogic = () => {
     setCurrentPage(1); // Reset to first page when filter changes
     setSelectedUserIds(new Set()); // Clear selection when filter changes
     setIsSearchMode(false); // Reset search mode when filter changes
+    setAppliedUserQuery('');
   };
 
   const handleQueryUsers = async () => {
     if (!isAuthenticated) return;
 
     setIsSearchMode(true);
+    setAppliedUserQuery(userQuery.trim());
     setCurrentPage(1); // Reset to first page when searching
     // The query will automatically refetch when isSearchMode changes
   };
