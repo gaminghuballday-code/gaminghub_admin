@@ -4,7 +4,7 @@ import type { ApiError } from '../types/api.types';
 import { store } from '../../store/store';
 import { selectAccessToken, selectRefreshToken, logout, updateTokens } from '../../store/slices/authSlice';
 import { addToast } from '../../store/slices/toastSlice';
-import { getStorageKey } from '../../utils/constants';
+import { getStorageKey, getUnauthenticatedRedirectPath } from '../../utils/constants';
 
 // Use relative URLs to leverage proxy (Vite in dev, Vercel in production)
 // This avoids CORS/CSRF issues by making requests from the same origin
@@ -209,7 +209,7 @@ apiClient.interceptors.response.use(
         
         if (!isOnLoginPage) {
           store.dispatch(logout());
-          window.location.href = '/login';
+          window.location.href = getUnauthenticatedRedirectPath();
         }
         return Promise.reject(apiError);
       }
@@ -311,7 +311,7 @@ apiClient.interceptors.response.use(
               // Force clear storage just in case
               localStorage.removeItem(getStorageKey('AUTH_TOKEN'));
               localStorage.removeItem(getStorageKey('REFRESH_TOKEN'));
-              window.location.href = '/login';
+              window.location.href = getUnauthenticatedRedirectPath();
             }
             return Promise.reject(refreshError);
           });
@@ -344,7 +344,7 @@ apiClient.interceptors.response.use(
 
         if (!isOnLoginPage) {
           store.dispatch(logout());
-          window.location.href = '/login';
+          window.location.href = getUnauthenticatedRedirectPath();
         }
         return Promise.reject(apiError);
       }

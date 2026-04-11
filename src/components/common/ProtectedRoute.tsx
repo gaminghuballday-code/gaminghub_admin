@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { ROUTES } from '@utils/constants';
+import { getUnauthenticatedRedirectPath } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectIsAuthenticated } from '@store/slices/authSlice';
 
@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
+    return <Navigate to={getUnauthenticatedRedirectPath()} replace />;
   }
 
   return <>{children}</>;

@@ -8,7 +8,6 @@ import Layout from '@components/common/Layout';
 import { USER_ROUTES, STATIC_ROUTES } from '@utils/constants';
 
 // Code splitting with lazy loading for user components
-const UserLogin = lazy(() => import('@components/user/Auth/Login/Login'));
 const UserRegister = lazy(() => import('@components/user/Auth/Register/Register'));
 const UserForgotPassword = lazy(() => import('@components/user/Auth/ForgotPassword/ForgotPassword'));
 const UserHome = lazy(() => import('@components/user/Home/Home'));
@@ -38,7 +37,7 @@ function UserApp() {
           {/* Public routes */}
           <Route path={STATIC_ROUTES.DOWNLOADS} element={<Downloads />} />
           <Route path="/" element={<Navigate to={STATIC_ROUTES.DOWNLOADS} replace />} />
-          <Route path={USER_ROUTES.LOGIN} element={<UserLogin />} />
+          <Route path={USER_ROUTES.LOGIN} element={<Navigate to={STATIC_ROUTES.DOWNLOADS} replace />} />
           <Route path={USER_ROUTES.REGISTER} element={<UserRegister />} />
           <Route path={USER_ROUTES.FORGOT_PASSWORD} element={<UserForgotPassword />} />
           {/* Authenticated user routes */}

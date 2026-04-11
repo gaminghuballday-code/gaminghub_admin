@@ -71,6 +71,9 @@ export const useAdminUpdateProfile = () => {
   return useMutation({
     mutationFn: (data: UpdateProfileRequest) => adminApi.updateProfile(data),
     onSuccess: (data: AuthResponse['user']) => {
+      if (!data) {
+        return;
+      }
       dispatch(setUser(data));
       queryClient.invalidateQueries({ queryKey: adminKeys.profile() });
     },

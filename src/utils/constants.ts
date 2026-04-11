@@ -199,3 +199,10 @@ export const isAdminDomain = (): boolean => {
   return false;
 };
 
+/**
+ * Where to send users when they must sign in again or leave auth flows.
+ * Admin panel → login page; public user site → downloads (web login disabled).
+ */
+export const getUnauthenticatedRedirectPath = (): string =>
+  isAdminDomain() ? ADMIN_ROUTES.LOGIN : STATIC_ROUTES.DOWNLOADS;
+

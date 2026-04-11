@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROUTES } from '@utils/constants';
+import { getUnauthenticatedRedirectPath } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useUserProfile } from '@services/api/hooks';
@@ -175,7 +175,7 @@ export const useSupportPageLogic = (activeTab: 'tickets' | 'faqs' = 'tickets') =
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate(USER_ROUTES.LOGIN);
+      navigate(getUnauthenticatedRedirectPath());
       return;
     }
   }, [navigate, isAuthenticated]);

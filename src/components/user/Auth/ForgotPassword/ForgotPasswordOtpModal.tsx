@@ -4,7 +4,7 @@ import { useResetPassword } from '@services/api/hooks/useUserAuthQueries';
 import { useAppDispatch } from '@store/hooks';
 import { addToast } from '@store/slices/toastSlice';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROUTES } from '@utils/constants';
+import { getUnauthenticatedRedirectPath } from '@utils/constants';
 import './ForgotPasswordOtpModal.scss';
 
 interface ForgotPasswordOtpModalProps {
@@ -126,9 +126,9 @@ const ForgotPasswordOtpModal: React.FC<ForgotPasswordOtpModalProps> = ({ isOpen,
       {
         onSuccess: () => {
           // Success message will be shown by API interceptor
-          // Close modal and navigate to login
+          // Close modal and return to public entry (downloads on user site)
           onClose();
-          navigate(USER_ROUTES.LOGIN);
+          navigate(getUnauthenticatedRedirectPath());
         },
         onError: (error: any) => {
           // Error will be handled by API interceptor, but we can add specific handling here

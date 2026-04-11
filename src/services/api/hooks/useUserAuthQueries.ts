@@ -4,7 +4,7 @@ import { authApi, type AuthResponse, type LoginRequest, type RegisterRequest, ty
 import { useAppDispatch } from '@store/hooks';
 import { setCredentials, setUser, logout as logoutAction } from '@store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROUTES } from '@utils/constants';
+import { USER_ROUTES, getUnauthenticatedRedirectPath } from '@utils/constants';
 import { addToast } from '@store/slices/toastSlice';
 
 // Query keys
@@ -57,11 +57,14 @@ export const useUserRegister = () => {
     onSuccess: (response) => {
       // If response has accessToken, it's the old flow (registration completed immediately)
       if ('accessToken' in response) {
-        // Update Redux store with user and tokens
+        const { accessToken, refreshToken, user } = response;
+        if (!accessToken || !user) {
+          return;
+        }
         dispatch(setCredentials({
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
-          user: response.user,
+          accessToken,
+          refreshToken,
+          user,
         }));
         
         // Invalidate and refetch profile
@@ -164,14 +167,13 @@ export const useUserLogout = () => {
       // Clear all queries
       queryClient.clear();
       
-      // Navigate to login
-      navigate(USER_ROUTES.LOGIN);
+      navigate(getUnauthenticatedRedirectPath());
     },
     onError: () => {
       // Even if API call fails, logout locally
       dispatch(logoutAction());
       queryClient.clear();
-      navigate(USER_ROUTES.LOGIN);
+      navigate(getUnauthenticatedRedirectPath());
     },
   });
 };
@@ -240,7 +242,9 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (data: UpdateProfileRequest) => authApi.updateProfile(data),
     onSuccess: (data: AuthResponse['user']) => {
-      // Update Redux store with updated user data
+      if (!data) {
+        return;
+      }
       dispatch(setUser(data));
       
       // Invalidate and refetch profile

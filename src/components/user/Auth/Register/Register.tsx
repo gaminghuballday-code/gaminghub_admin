@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { animate, stagger } from 'animejs';
 import { useRegisterLogic } from './Register.logic';
-import { USER_ROUTES } from '@utils/constants';
+import { STATIC_ROUTES } from '@utils/constants';
 import OtpModal from './OtpModal';
 import './Register.scss';
 
@@ -209,10 +209,10 @@ const UserRegister: React.FC = () => {
         </button>
 
         {/* Links */}
-        <div className="auth-links">
+               <div className="auth-links">
           <span className="auth-link-text">Already have an account?</span>
-          <Link to={USER_ROUTES.LOGIN} className="auth-link">
-            Sign In
+          <Link to={STATIC_ROUTES.DOWNLOADS} className="auth-link">
+            Get the app
           </Link>
         </div>
       </div>

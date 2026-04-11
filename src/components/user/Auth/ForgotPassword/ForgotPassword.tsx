@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { animate, stagger } from 'animejs';
 import { useForgotPasswordLogic } from './ForgotPassword.logic';
-import { USER_ROUTES } from '@utils/constants';
+import { STATIC_ROUTES } from '@utils/constants';
 import ForgotPasswordOtpModal from './ForgotPasswordOtpModal';
 import './ForgotPassword.scss';
 
@@ -93,8 +93,8 @@ const UserForgotPassword: React.FC = () => {
 
         {/* Links */}
         <div className="auth-links">
-          <Link to={USER_ROUTES.LOGIN} className="auth-link">
-            Back to Sign In
+          <Link to={STATIC_ROUTES.DOWNLOADS} className="auth-link">
+            Back to Download
           </Link>
         </div>
       </div>
