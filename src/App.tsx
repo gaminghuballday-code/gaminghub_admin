@@ -120,6 +120,14 @@ function App() {
             }
           />
           <Route
+            path={ROUTES.INFLUENCER_CREATION}
+            element={
+              <ProtectedRoute>
+                <HostCreationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path={ROUTES.USER_HISTORY}
             element={
               <ProtectedRoute>

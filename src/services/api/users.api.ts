@@ -127,7 +127,9 @@ export const usersApi = {
         params.role = role;
       }
       if (query && query.trim()) {
-        params.query = query.trim();
+        const q = query.trim();
+        params.query = q;
+        params.search = q;
       }
       if (page) {
         params.page = page.toString();
@@ -162,6 +164,13 @@ export const usersApi = {
       // Otherwise, rethrow the original error
       throw error;
     }
+  },
+
+  /**
+   * Delete a user by id (Admin only; privileged when allowlist is configured on server)
+   */
+  deleteUser: async (userId: string): Promise<void> => {
+    await apiClient.delete(`/api/admin/users/${encodeURIComponent(userId)}`);
   },
 
   /**

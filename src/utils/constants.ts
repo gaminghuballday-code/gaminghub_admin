@@ -77,6 +77,7 @@ export const ADMIN_ROUTES = {
   WITHDRAWALS: '/withdrawals',
   HOST_CREATION: '/host-creation',
   ORG_CREATION: '/org-creation',
+  INFLUENCER_CREATION: '/influencer-creation',
   USER_HISTORY: '/user-history',
   ENQUIRIES: '/enquiries',
   SUPPORT_TICKETS: '/support-tickets',

@@ -1,10 +1,15 @@
+import { useEffect } from 'react';
 import { useHostCreationPageLogic } from './HostCreationPage.logic';
 import { useOrgAccountSectionLogic } from './OrgAccountSection.logic';
+import { useInfluencerAccountSectionLogic } from './InfluencerAccountSection.logic';
+import { useHostCreationPrivilegedActions } from './HostCreationPage.privilegedActions.logic';
 import AdminLayout from '@components/common/AdminLayout';
+import ConfirmationModal from '@components/common/ConfirmationModal';
 import { Modal } from '@components/common/Modal';
 import NoDataFound from '@components/common/NoDataFound';
 import AllHostsList from './AllHostsList';
 import AllOrgsList from './AllOrgsList';
+import AllInfluencersList from './AllInfluencersList';
 import {
   HOST_ACCOUNT_ROLE_LABEL,
   HOST_DETAILS_NO_STATISTICS_MESSAGE,
@@ -13,6 +18,11 @@ import {
   ROUTES,
 } from '@utils/constants';
 import { getOrganizationOwnerEmail } from '@services/api';
+import {
+  getAdminUserId,
+  getHostAccountUserId,
+  getOrganizationOwnerUserId,
+} from '@utils/privilegedAccount.helper';
 import type { OrgTournamentStatusFilter } from '@services/api';
 import { useLocation, matchPath } from 'react-router-dom';
 import './HostCreationPage.scss';
@@ -30,8 +40,12 @@ const ORG_TOURNAMENT_STATUS_OPTIONS: Array<{ value: OrgTournamentStatusFilter | 
 
 const HostCreationPage: React.FC = () => {
   const location = useLocation();
+  const isHostSection =
+    matchPath({ path: ROUTES.HOST_CREATION, end: true }, location.pathname) !== null;
   const isOrgSection =
     matchPath({ path: ROUTES.ORG_CREATION, end: true }, location.pathname) !== null;
+  const isInfluencerSection =
+    matchPath({ path: ROUTES.INFLUENCER_CREATION, end: true }, location.pathname) !== null;
   const {
     activeTab,
     setActiveTab,
@@ -57,7 +71,7 @@ const HostCreationPage: React.FC = () => {
     showHostModal,
     handleHostClick,
     handleCloseModal,
-  } = useHostCreationPageLogic();
+  } = useHostCreationPageLogic(isHostSection);
 
   const {
     orgTab,
@@ -89,10 +103,85 @@ const HostCreationPage: React.FC = () => {
     handleCloseOrgModal,
   } = useOrgAccountSectionLogic(isOrgSection);
 
+  const {
+    privilegedAccountActions,
+    hostSelectedIds,
+    orgSelectedIds,
+    influencerSelectedIds,
+    setHostSelectedIds,
+    setOrgSelectedIds,
+    setInfluencerSelectedIds,
+    toggleHostSelect,
+    toggleOrgSelect,
+    toggleInfluencerSelect,
+    clearInfluencerSelection,
+    setDeletePending,
+    setBlockPending,
+    deletePending,
+    blockPending,
+    confirmDelete,
+    confirmBlock,
+    actionPending,
+  } = useHostCreationPrivilegedActions();
+
+  const {
+    influencerTab,
+    setInfluencerTab,
+    inviteEmail,
+    setInviteEmail,
+    inviteName,
+    setInviteName,
+    createLoading: influencerInviteLoading,
+    createError: influencerCreateError,
+    createSuccess: influencerCreateSuccess,
+    handleInviteInfluencer,
+    influencers,
+    influencersLoading,
+    influencersError,
+    pagination: influencersPagination,
+    listPage: influencersListPage,
+    searchInput: influencerSearchInput,
+    setSearchInput: setInfluencerSearchInput,
+    appliedSearch: influencerAppliedSearch,
+    handleSearchSubmit: handleInfluencerSearchSubmit,
+    handlePageChange: handleInfluencerPageChange,
+  } = useInfluencerAccountSectionLogic(isInfluencerSection, privilegedAccountActions);
+
+  useEffect(() => {
+    clearInfluencerSelection();
+  }, [influencersListPage, influencerAppliedSearch, clearInfluencerSelection]);
+
+  const handleSelectAllHosts = (selected: boolean) => {
+    const ids = hosts.map(getHostAccountUserId).filter((id): id is string => Boolean(id));
+    setHostSelectedIds(selected ? new Set(ids) : new Set());
+  };
+
+  const handleSelectAllOrgs = (selected: boolean) => {
+    const ids = organizations
+      .map(getOrganizationOwnerUserId)
+      .filter((id): id is string => Boolean(id));
+    setOrgSelectedIds(selected ? new Set(ids) : new Set());
+  };
+
+  const handleSelectAllInfluencersOnPage = (selected: boolean) => {
+    const ids = influencers.map(getAdminUserId).filter((id): id is string => Boolean(id));
+    setInfluencerSelectedIds(selected ? new Set(ids) : new Set());
+  };
+
+  const handleInfluencerPageChangeWithClear = (nextPage: number) => {
+    clearInfluencerSelection();
+    handleInfluencerPageChange(nextPage);
+  };
+
+  const handleInfluencerSearchSubmitWithClear = (e: React.FormEvent) => {
+    clearInfluencerSelection();
+    handleInfluencerSearchSubmit(e);
+  };
+
   return (
     <AdminLayout title="Account Creation">
       <div className="host-creation-content-wrapper">
-        {!isOrgSection && (
+        {isHostSection && (
           <>
             {/* Host Tabs */}
             <div className="host-creation-tabs">
@@ -207,6 +296,126 @@ const HostCreationPage: React.FC = () => {
                   hostsError={hostsError}
                   pagination={pagination}
                   onHostClick={handleHostClick}
+                  privilegedAccountActions={privilegedAccountActions}
+                  selectedUserIds={hostSelectedIds}
+                  onToggleSelect={toggleHostSelect}
+                  onSelectAll={handleSelectAllHosts}
+                  onRequestDelete={(userId) =>
+                    setDeletePending({ context: 'host', ids: [userId] })
+                  }
+                  onRequestBlock={(userId) => setBlockPending({ ids: [userId], unblock: false })}
+                  onRequestUnblock={(userId) => setBlockPending({ ids: [userId], unblock: true })}
+                  onBulkDeleteSelected={() => {
+                    if (hostSelectedIds.size === 0) return;
+                    setDeletePending({ context: 'host', ids: [...hostSelectedIds] });
+                  }}
+                  actionPending={actionPending}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {isInfluencerSection && (
+          <>
+            <div className="host-creation-tabs">
+              {privilegedAccountActions ? (
+                <button
+                  className={`host-tab ${influencerTab === 'invite' ? 'active' : ''}`}
+                  onClick={() => setInfluencerTab('invite')}
+                  type="button"
+                >
+                  Invite Influencer
+                </button>
+              ) : null}
+              <button
+                className={`host-tab ${influencerTab === 'all' ? 'active' : ''}`}
+                onClick={() => setInfluencerTab('all')}
+                type="button"
+              >
+                All Influencers
+              </button>
+            </div>
+
+            {privilegedAccountActions && influencerTab === 'invite' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">Invite Influencer</h2>
+                <p className="influencer-invite-hint">
+                  No password is set here. We send an email with an OTP so the influencer can complete
+                  signup in the app (e.g. via verify OTP).
+                </p>
+                <form className="host-creation-form" onSubmit={handleInviteInfluencer}>
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="influencer@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      disabled={influencerInviteLoading}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Name</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Display name"
+                      value={inviteName}
+                      onChange={(e) => setInviteName(e.target.value)}
+                      disabled={influencerInviteLoading}
+                      required
+                    />
+                  </div>
+                  {influencerCreateError && (
+                    <div className="host-creation-error">{influencerCreateError}</div>
+                  )}
+                  {influencerCreateSuccess && (
+                    <div className="host-creation-success">{influencerCreateSuccess}</div>
+                  )}
+                  <button
+                    type="submit"
+                    className="host-creation-button"
+                    disabled={influencerInviteLoading || !inviteEmail.trim() || !inviteName.trim()}
+                  >
+                    {influencerInviteLoading ? 'Sending...' : 'Send invite'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {influencerTab === 'all' && (
+              <div className="host-creation-card">
+                <h2 className="card-title">All Influencers</h2>
+                <AllInfluencersList
+                  influencers={influencers}
+                  influencersLoading={influencersLoading}
+                  influencersError={influencersError}
+                  pagination={influencersPagination}
+                  listPage={influencersListPage}
+                  searchInput={influencerSearchInput}
+                  onSearchInputChange={setInfluencerSearchInput}
+                  onSearchSubmit={handleInfluencerSearchSubmitWithClear}
+                  onPageChange={handleInfluencerPageChangeWithClear}
+                  privilegedAccountActions={privilegedAccountActions}
+                  selectedUserIds={influencerSelectedIds}
+                  onToggleSelect={toggleInfluencerSelect}
+                  onSelectAllOnPage={handleSelectAllInfluencersOnPage}
+                  onRequestDelete={(userId) =>
+                    setDeletePending({ context: 'influencer', ids: [userId] })
+                  }
+                  onRequestBlock={(userId) => setBlockPending({ ids: [userId], unblock: false })}
+                  onRequestUnblock={(userId) => setBlockPending({ ids: [userId], unblock: true })}
+                  onBulkDeleteSelected={() => {
+                    if (influencerSelectedIds.size === 0) return;
+                    setDeletePending({
+                      context: 'influencer',
+                      ids: [...influencerSelectedIds],
+                    });
+                  }}
+                  actionPending={actionPending}
                 />
               </div>
             )}
@@ -363,6 +572,20 @@ const HostCreationPage: React.FC = () => {
                   orgsLoading={orgsLoading}
                   orgsError={orgsError}
                   onOrgClick={handleOrgClick}
+                  privilegedAccountActions={privilegedAccountActions}
+                  selectedUserIds={orgSelectedIds}
+                  onToggleSelect={toggleOrgSelect}
+                  onSelectAll={handleSelectAllOrgs}
+                  onRequestDelete={(userId) =>
+                    setDeletePending({ context: 'org', ids: [userId] })
+                  }
+                  onRequestBlock={(userId) => setBlockPending({ ids: [userId], unblock: false })}
+                  onRequestUnblock={(userId) => setBlockPending({ ids: [userId], unblock: true })}
+                  onBulkDeleteSelected={() => {
+                    if (orgSelectedIds.size === 0) return;
+                    setDeletePending({ context: 'org', ids: [...orgSelectedIds] });
+                  }}
+                  actionPending={actionPending}
                 />
               </div>
             )}
@@ -472,6 +695,34 @@ const HostCreationPage: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      <ConfirmationModal
+        isOpen={deletePending !== null}
+        title={deletePending && deletePending.ids.length > 1 ? 'Delete users?' : 'Delete user?'}
+        message={
+          deletePending && deletePending.ids.length > 1
+            ? `Delete ${deletePending.ids.length} users? This cannot be undone.`
+            : 'Delete this user? This cannot be undone.'
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeletePending(null)}
+      />
+
+      <ConfirmationModal
+        isOpen={blockPending !== null}
+        title={blockPending?.unblock ? 'Unblock user?' : 'Block user?'}
+        message={
+          blockPending?.unblock
+            ? 'Allow this user to sign in again?'
+            : 'Block this user from signing in?'
+        }
+        confirmText={blockPending?.unblock ? 'Unblock' : 'Block'}
+        cancelText="Cancel"
+        onConfirm={confirmBlock}
+        onCancel={() => setBlockPending(null)}
+      />
 
       {selectedHost && (
         <Modal

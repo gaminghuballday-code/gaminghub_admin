@@ -8,7 +8,7 @@ import { useProfile, useAllHosts, useCreateHost, useHostStatistics } from '@serv
 
 type HostTab = 'create' | 'all';
 
-export const useHostCreationPageLogic = () => {
+export const useHostCreationPageLogic = (sectionEnabled: boolean) => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -29,7 +29,9 @@ export const useHostCreationPageLogic = () => {
 
   // TanStack Query hooks
   useProfile(isAuthenticated && !user);
-  const { data: hostsData, isLoading: hostsLoading, error: hostsQueryError, refetch: refetchHosts } = useAllHosts(isAuthenticated);
+  const { data: hostsData, isLoading: hostsLoading, error: hostsQueryError, refetch: refetchHosts } = useAllHosts(
+    isAuthenticated && sectionEnabled
+  );
   const hosts = hostsData?.hosts || [];
   const pagination = hostsData?.pagination;
   const hostsError = hostsQueryError ? (hostsQueryError as Error).message : null;

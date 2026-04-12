@@ -1,5 +1,6 @@
 @use '../../assets/styles/variables' as *;
 @use '../../assets/styles/mixins' as *;
+@use './AccountListShared.scss' as *;
 
 .all-hosts-list {
   width: 100%;
@@ -23,8 +24,8 @@
 
 .all-hosts-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
+  gap: $spacing-md;
   padding: $spacing-lg;
   background: linear-gradient(135deg, 
     var(--background-color-light) 0%,
@@ -32,10 +33,13 @@
   );
   border: 1px solid rgba(var(--border-color-rgb), 0.5);
   border-radius: $border-radius-md;
-  cursor: pointer;
   transition: all $transition-fast;
 
-  &:hover {
+  &:not(:has(.all-hosts-item-actions)) {
+    cursor: pointer;
+  }
+
+  &:not(:has(.all-hosts-item-actions)):hover {
     transform: translateX(4px);
     border-color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
@@ -44,12 +48,41 @@
       rgba(var(--primary-color-rgb), 0.05) 100%
     );
   }
+
+  &:has(.all-hosts-item-actions) {
+    cursor: default;
+  }
+
+  &:has(.all-hosts-item-actions):hover {
+    border-color: rgba(var(--primary-color-rgb), 0.35);
+  }
+}
+
+.all-hosts-item__check {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
 }
 
 .all-hosts-item-content {
   @include flex-column;
   gap: $spacing-xs;
   flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+}
+
+.all-hosts-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: center;
+  padding-top: 2px;
 }
 
 .all-hosts-name {

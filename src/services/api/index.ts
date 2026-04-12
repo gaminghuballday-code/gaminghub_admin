@@ -15,6 +15,7 @@ export * from './admin.api';
 export * from './notifications.api';
 export * from './specialTournament.api';
 export * from './organizations.api';
+export * from './influencers.api';
 export * from '../types/api.types';
 export * from './hooks';
 

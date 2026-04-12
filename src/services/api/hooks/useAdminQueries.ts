@@ -13,6 +13,20 @@ export const adminKeys = {
   analytics: (period: string) => [...adminKeys.all, 'analytics', period] as const,
   profile: () => [...adminKeys.all, 'profile'] as const,
   devices: (page: number, limit: number) => [...adminKeys.all, 'devices', page, limit] as const,
+  privileges: () => [...adminKeys.all, 'privileges'] as const,
+};
+
+/**
+ * Privileged account actions (delete users, influencer invite) — mirrors GET /api/admin/privileges
+ */
+export const useAdminPrivileges = (enabled = true) => {
+  return useQuery({
+    queryKey: adminKeys.privileges(),
+    queryFn: () => adminApi.getPrivileges(),
+    enabled,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
 };
 
 /**

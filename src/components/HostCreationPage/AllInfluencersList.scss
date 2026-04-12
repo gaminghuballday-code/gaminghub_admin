@@ -1,0 +1,190 @@
+@use '../../assets/styles/variables' as *;
+@use '../../assets/styles/mixins' as *;
+@use './AccountListShared.scss' as *;
+
+.all-influencers-list {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.all-influencers-list__toolbar {
+  margin-bottom: $spacing-lg;
+}
+
+.all-influencers-list__search-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: $spacing-sm;
+}
+
+.all-influencers-list__search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: stretch;
+}
+
+.all-influencers-list__search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  background: var(--background-color);
+  color: var(--text-color);
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.all-influencers-list__search-btn {
+  padding: $spacing-md $spacing-xl;
+  border-radius: $border-radius-md;
+  border: none;
+  background: var(--primary-color);
+  color: var(--text-on-primary, #fff);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity $transition-fast;
+
+  &:hover:not(:disabled) {
+    opacity: 0.92;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.all-influencers-list__state {
+  padding: $spacing-xl;
+  text-align: center;
+  color: var(--text-secondary);
+
+  &--error {
+    color: var(--error-color, #e74c3c);
+  }
+}
+
+.all-influencers-list__content {
+  @include flex-column;
+  gap: $spacing-md;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.all-influencers-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: linear-gradient(
+    135deg,
+    var(--background-color-light) 0%,
+    var(--background-color) 100%
+  );
+  border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  border-radius: $border-radius-md;
+}
+
+.all-influencers-list__check {
+  padding-top: 2px;
+}
+
+.all-influencers-list__item-main {
+  @include flex-column;
+  gap: $spacing-xs;
+  flex: 1;
+  min-width: 0;
+}
+
+.all-influencers-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.all-influencers-list__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.all-influencers-list__email {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.all-influencers-list__meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: $spacing-xs;
+}
+
+.all-influencers-list__pagination {
+  margin-top: $spacing-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-color-rgb), 0.1) 0%,
+    rgba(var(--primary-color-rgb), 0.05) 100%
+  );
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+  box-sizing: border-box;
+}
+
+.all-influencers-list__pagination-info {
+  @include flex-column;
+  align-items: center;
+  gap: $spacing-xs;
+  text-align: center;
+  margin-bottom: $spacing-md;
+}
+
+.all-influencers-list__pagination-text {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.all-influencers-list__pagination-total {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.all-influencers-list__pagination-nav {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.all-influencers-list__page-btn {
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.4);
+  background: var(--background-color);
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

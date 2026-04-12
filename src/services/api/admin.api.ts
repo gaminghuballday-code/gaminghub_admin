@@ -322,6 +322,18 @@ export const adminApi = {
   },
 
   /**
+   * Whether this admin may perform privileged account actions (user delete, influencer invite).
+   * Server uses ADMIN_PRIVILEGED_USER_IDS; when unset, all admins are treated as privileged.
+   */
+  getPrivileges: async (): Promise<{ privilegedAccountActions: boolean }> => {
+    const response = await apiClient.get<{
+      data?: { privilegedAccountActions?: boolean };
+    }>('/api/admin/privileges');
+    const raw = response.data?.data?.privilegedAccountActions;
+    return { privilegedAccountActions: raw === true };
+  },
+
+  /**
    * Get platform-wide statistics (Admin only)
    */
   getPlatformStats: async (): Promise<PlatformStatsResponse['data']> => {

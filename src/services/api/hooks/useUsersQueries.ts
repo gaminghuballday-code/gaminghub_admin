@@ -36,6 +36,22 @@ export const useUsers = (
 };
 
 /**
+ * Hook for deleting a user (DELETE /api/admin/users/:userId)
+ */
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => usersApi.deleteUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['hostApplications'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+    },
+  });
+};
+
+/**
  * Hook for blocking users mutation
  */
 export const useBlockUsers = () => {
@@ -46,6 +62,8 @@ export const useBlockUsers = () => {
     onSuccess: () => {
       // Invalidate users list to refetch
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['hostApplications'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     },
   });
 };
@@ -61,6 +79,8 @@ export const useUnblockUsers = () => {
     onSuccess: () => {
       // Invalidate users list to refetch
       queryClient.invalidateQueries({ queryKey: usersKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['hostApplications'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     },
   });
 };

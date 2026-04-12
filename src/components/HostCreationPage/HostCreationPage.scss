@@ -915,6 +915,13 @@
   }
 }
 
+.influencer-invite-hint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 $spacing-lg 0;
+  line-height: 1.45;
+}
+
 // Responsive
 @include respond-to(md) {
   .host-creation-content {

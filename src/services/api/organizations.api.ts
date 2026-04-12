@@ -7,6 +7,7 @@ export interface OrganizationOwnerUser {
   email?: string;
   name?: string;
   role?: string;
+  isBlocked?: boolean;
 }
 
 export interface AdminOrganization {

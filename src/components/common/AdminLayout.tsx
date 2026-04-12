@@ -74,6 +74,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         children: [
           { type: 'link', path: ROUTES.HOST_CREATION, icon: '👤', label: 'Host' },
           { type: 'link', path: ROUTES.ORG_CREATION, icon: '🏢', label: 'Org' },
+          { type: 'link', path: ROUTES.INFLUENCER_CREATION, icon: '✨', label: 'Influencer' },
         ],
       },
       {

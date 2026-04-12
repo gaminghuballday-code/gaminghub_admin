@@ -170,6 +170,7 @@ export interface Host {
   createdAt?: string;
   updatedAt?: string;
   totalLobbies?: number;
+  isBlocked?: boolean;
 }
 
 export interface HostsListAllResponse {
