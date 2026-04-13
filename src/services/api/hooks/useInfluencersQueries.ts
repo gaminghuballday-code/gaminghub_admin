@@ -1,10 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { influencersApi, type InviteInfluencerRequest } from '../influencers.api';
+import {
+  influencersApi,
+  type InviteInfluencerRequest,
+  type GetInfluencerStatisticsParams,
+} from '../influencers.api';
 import { usersKeys } from './useUsersQueries';
 
 export const influencersKeys = {
   all: ['influencers'] as const,
-  statistics: () => [...influencersKeys.all, 'statistics'] as const,
+  statistics: (params?: GetInfluencerStatisticsParams) =>
+    [...influencersKeys.all, 'statistics', params ?? {}] as const,
 };
 
 export const useInviteInfluencer = () => {
@@ -22,10 +27,13 @@ export const useInviteInfluencer = () => {
 /**
  * Static influencer statistics (fetches when tab is active, like host statistics).
  */
-export const useInfluencerStatistics = (enabled = true) => {
+export const useInfluencerStatistics = (
+  params?: GetInfluencerStatisticsParams,
+  enabled = true
+) => {
   return useQuery({
-    queryKey: influencersKeys.statistics(),
-    queryFn: () => influencersApi.getInfluencerStatistics(),
+    queryKey: influencersKeys.statistics(params),
+    queryFn: () => influencersApi.getInfluencerStatistics(params),
     enabled,
   });
 };

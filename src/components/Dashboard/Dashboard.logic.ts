@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import type { AdminUser, GetHostStatisticsParams } from '@services/api';
+import type { AdminUser, GetHostStatisticsParams, GetInfluencerStatisticsParams } from '@services/api';
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectAccessToken, selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
@@ -49,6 +49,9 @@ export const useDashboardLogic = () => {
   }>({});
   const [hostStatsCurrentPage, setHostStatsCurrentPage] = useState<number>(1);
   const hostStatsPageLimit = 10;
+
+  const [influencerStatsEmail, setInfluencerStatsEmail] = useState('');
+  const [appliedInfluencerStatsEmail, setAppliedInfluencerStatsEmail] = useState('');
   
   // Build API params from filters using useMemo
   const hostStatsParams = useMemo((): GetHostStatisticsParams | undefined => {
@@ -93,6 +96,14 @@ export const useDashboardLogic = () => {
 
     return params;
   }, [appliedHostStatsFilters]);
+
+  const influencerStatsParams = useMemo((): GetInfluencerStatisticsParams | undefined => {
+    const email = appliedInfluencerStatsEmail.trim();
+    if (!email) {
+      return undefined;
+    }
+    return { email };
+  }, [appliedInfluencerStatsEmail]);
 
   // TanStack Query hooks
   // const { data: profileData } = useProfile(isAuthenticated && !user);
@@ -147,7 +158,7 @@ export const useDashboardLogic = () => {
     data: influencerStatsData,
     isLoading: influencerStatsLoading,
     error: influencerStatsQueryError,
-  } = useInfluencerStatistics(shouldFetchInfluencerStats);
+  } = useInfluencerStatistics(influencerStatsParams, shouldFetchInfluencerStats);
   const influencerStatsError = influencerStatsQueryError
     ? (influencerStatsQueryError as Error).message
     : null;
@@ -432,6 +443,19 @@ export const useDashboardLogic = () => {
     setHostStatsCurrentPage(page);
   };
 
+  const handleInfluencerStatsEmailChange = (value: string) => {
+    setInfluencerStatsEmail(value);
+  };
+
+  const handleSearchInfluencerStats = () => {
+    setAppliedInfluencerStatsEmail(influencerStatsEmail.trim());
+  };
+
+  const handleClearInfluencerStatsSearch = () => {
+    setInfluencerStatsEmail('');
+    setAppliedInfluencerStatsEmail('');
+  };
+
   return {
     user,
     users: users,
@@ -483,6 +507,11 @@ export const useDashboardLogic = () => {
     influencerStatsData,
     influencerStatsLoading,
     influencerStatsError,
+    influencerStatsEmail,
+    appliedInfluencerStatsEmail,
+    handleInfluencerStatsEmailChange,
+    handleSearchInfluencerStats,
+    handleClearInfluencerStatsSearch,
     // Platform Statistics
     platformStats,
     platformStatsLoading,

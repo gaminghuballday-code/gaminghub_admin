@@ -60,6 +60,11 @@ const Dashboard: React.FC = () => {
     influencerStatsData,
     influencerStatsLoading,
     influencerStatsError,
+    influencerStatsEmail,
+    appliedInfluencerStatsEmail,
+    handleInfluencerStatsEmailChange,
+    handleSearchInfluencerStats,
+    handleClearInfluencerStatsSearch,
     // Platform Statistics
     platformStats,
     platformStatsLoading,
@@ -576,6 +581,11 @@ const Dashboard: React.FC = () => {
               stats={influencerStatsData}
               loading={influencerStatsLoading}
               error={influencerStatsError}
+              emailInput={influencerStatsEmail}
+              appliedEmail={appliedInfluencerStatsEmail}
+              onEmailChange={handleInfluencerStatsEmailChange}
+              onSearch={handleSearchInfluencerStats}
+              onClearSearch={handleClearInfluencerStatsSearch}
             />
           )}
 

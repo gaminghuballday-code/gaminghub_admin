@@ -1,6 +1,34 @@
 @use '../../assets/styles/variables' as *;
 
 .influencer-statistics {
+  &__toolbar {
+    margin-bottom: $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__filter-hint {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    strong {
+      color: var(--primary-color);
+    }
+  }
+
+  &__platform-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+
+    span {
+      color: var(--text-color);
+    }
+  }
+
   &__loading {
     display: flex;
     justify-content: center;
@@ -11,6 +39,57 @@
     padding: $spacing-lg;
     color: var(--error-color);
     text-align: center;
+  }
+
+  &__records {
+    margin-top: $spacing-xl;
+  }
+
+  &__records-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 $spacing-md;
+  }
+
+  &__table-wrap {
+    overflow-x: auto;
+    border-radius: $border-radius-md;
+    border: 1px solid rgba(var(--border-color-rgb), 0.5);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th,
+    td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(var(--border-color-rgb), 0.35);
+      color: var(--text-color);
+    }
+
+    th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  &__no-rows {
+    margin: $spacing-md 0 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
   }
 }
 
