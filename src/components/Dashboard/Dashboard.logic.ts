@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import type { AdminUser, GetHostStatisticsParams, GetInfluencerStatisticsParams } from '@services/api';
+import type {
+  AdminUser,
+  GetHostStatisticsParams,
+  GetInfluencerStatisticsParams,
+  GetUserReferralsParams,
+} from '@services/api';
 import { ROUTES } from '@utils/constants';
 import { useAppSelector } from '@store/hooks';
 import { selectAccessToken, selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
@@ -11,6 +16,7 @@ import {
   useUnblockUsers,
   useHostStatistics,
   useInfluencerStatistics,
+  useUserReferralsStats,
   usePlatformStats,
   adminKeys,
 } from '@services/api/hooks';
@@ -161,6 +167,36 @@ export const useDashboardLogic = () => {
   } = useInfluencerStatistics(influencerStatsParams, shouldFetchInfluencerStats);
   const influencerStatsError = influencerStatsQueryError
     ? (influencerStatsQueryError as Error).message
+    : null;
+
+  const selectedUserReferralsParams = useMemo((): GetUserReferralsParams | undefined => {
+    if (!selectedUser) {
+      return undefined;
+    }
+
+    const selectedUserId = (selectedUser.userId || selectedUser._id || '').trim();
+    if (selectedUserId) {
+      return { userId: selectedUserId, limit: 100, skip: 0 };
+    }
+
+    const selectedUserEmail = selectedUser.email?.trim();
+    if (selectedUserEmail) {
+      return { email: selectedUserEmail, limit: 100, skip: 0 };
+    }
+
+    return undefined;
+  }, [selectedUser]);
+
+  const {
+    data: selectedUserReferralsStats,
+    isLoading: selectedUserReferralsLoading,
+    error: selectedUserReferralsQueryError,
+  } = useUserReferralsStats(
+    selectedUserReferralsParams,
+    isAuthenticated && activeTab === 'users' && Boolean(selectedUser)
+  );
+  const selectedUserReferralsError = selectedUserReferralsQueryError
+    ? (selectedUserReferralsQueryError as Error).message
     : null;
 
   // Platform Statistics query
@@ -479,6 +515,9 @@ export const useDashboardLogic = () => {
     isUnblocking: unblockUsersMutation.isPending,
     processingUserId,
     selectedUser,
+    selectedUserReferralsStats,
+    selectedUserReferralsLoading,
+    selectedUserReferralsError,
     handleUserCardClick,
     handleCopyEmail,
     currentPage,

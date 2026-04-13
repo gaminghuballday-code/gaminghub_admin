@@ -3,6 +3,7 @@ import {
   usersApi,
   // type AdminUser,
   type BlockUnblockRequest,
+  type GetUserReferralsParams,
   type TopUpRequest,
   type BulkTopUpRequest,
   type TopUpTransactionsParams,
@@ -16,6 +17,8 @@ export const usersKeys = {
     [...usersKeys.lists(), filters] as const,
   transactions: (params?: TopUpTransactionsParams) =>
     [...usersKeys.all, 'transactions', params] as const,
+  referrals: (params?: GetUserReferralsParams) =>
+    [...usersKeys.all, 'referrals', params] as const,
 };
 
 /**
@@ -126,6 +129,23 @@ export const useTopUpTransactions = (params?: TopUpTransactionsParams, enabled =
     queryKey: usersKeys.transactions(params),
     queryFn: () => usersApi.getTopUpTransactions(params),
     enabled,
+  });
+};
+
+/**
+ * Hook for fetching user referrals statistics.
+ */
+export const useUserReferralsStats = (params?: GetUserReferralsParams, enabled = true) => {
+  return useQuery({
+    queryKey: usersKeys.referrals(params),
+    queryFn: () =>
+      usersApi.getUserReferralsStats({
+        userId: params?.userId,
+        email: params?.email,
+        limit: params?.limit ?? 100,
+        skip: params?.skip ?? 0,
+      }),
+    enabled: enabled && Boolean(params?.userId || params?.email),
   });
 };
 

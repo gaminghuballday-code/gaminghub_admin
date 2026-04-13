@@ -112,6 +112,80 @@ export interface TopUpTransactionsParams {
   endDate?: string; // YYYY-MM-DD
 }
 
+export interface GetUserReferralsParams {
+  userId?: string;
+  email?: string;
+  limit?: number;
+  skip?: number;
+}
+
+export interface UserReferralsStats {
+  referralCount: number;
+  grcCoin: number;
+}
+
+interface UserReferralsResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+const parseFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value);
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+  return undefined;
+};
+
+const normalizeUserReferralsStats = (raw: unknown): UserReferralsStats => {
+  if (!raw || typeof raw !== 'object') {
+    return { referralCount: 0, grcCoin: 0 };
+  }
+
+  const o = raw as Record<string, unknown>;
+  const meta =
+    o.meta && typeof o.meta === 'object' ? (o.meta as Record<string, unknown>) : undefined;
+  const summary =
+    o.summary && typeof o.summary === 'object' ? (o.summary as Record<string, unknown>) : undefined;
+
+  const referralCount =
+    parseFiniteNumber(o.referralCount) ??
+    parseFiniteNumber(o.referralsCount) ??
+    parseFiniteNumber(o.totalReferrals) ??
+    parseFiniteNumber(o.count) ??
+    parseFiniteNumber(meta?.total) ??
+    parseFiniteNumber(meta?.totalReferrals) ??
+    parseFiniteNumber(summary?.referralCount) ??
+    parseFiniteNumber(summary?.totalReferrals) ??
+    (Array.isArray(o.referrals) ? o.referrals.length : undefined) ??
+    0;
+
+  const grcCoin =
+    parseFiniteNumber(o.grcCoin) ??
+    parseFiniteNumber(o.grcCoins) ??
+    parseFiniteNumber(o.totalGrcCoin) ??
+    parseFiniteNumber(o.totalGrcCoins) ??
+    parseFiniteNumber(o.totalGC) ??
+    parseFiniteNumber(o.totalGc) ??
+    parseFiniteNumber(o.totalRewardGc) ??
+    parseFiniteNumber(summary?.grcCoin) ??
+    parseFiniteNumber(summary?.totalGrcCoin) ??
+    parseFiniteNumber(summary?.totalGrcCoins) ??
+    0;
+
+  return {
+    referralCount,
+    grcCoin,
+  };
+};
+
 export const usersApi = {
   /**
    * Get admin users with optional role filter and search query
@@ -268,6 +342,33 @@ export const usersApi = {
       console.error('Failed to get top-up transactions:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get referral stats for a specific user by userId or email (Admin only).
+   */
+  getUserReferralsStats: async (params: GetUserReferralsParams): Promise<UserReferralsStats> => {
+    const queryParams: Record<string, string> = {};
+    const userId = params.userId?.trim();
+    const email = params.email?.trim();
+
+    if (userId) {
+      queryParams.userId = userId;
+    } else if (email) {
+      queryParams.email = email;
+    } else {
+      return { referralCount: 0, grcCoin: 0 };
+    }
+
+    const limit = params.limit ?? 100;
+    const skip = params.skip ?? 0;
+    queryParams.limit = String(limit);
+    queryParams.skip = String(skip);
+
+    const response = await apiClient.get<UserReferralsResponse>('/api/admin/users/referrals', {
+      params: queryParams,
+    });
+    return normalizeUserReferralsStats(response.data?.data);
   },
 };
 

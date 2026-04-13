@@ -33,6 +33,9 @@ const Dashboard: React.FC = () => {
     isUnblocking,
     processingUserId,
     selectedUser,
+    selectedUserReferralsStats,
+    selectedUserReferralsLoading,
+    selectedUserReferralsError,
     handleUserCardClick,
     handleCopyEmail,
     currentPage,
@@ -655,6 +658,28 @@ const Dashboard: React.FC = () => {
                 <span className="detail-label">Balance GC:</span>
                 <span className="detail-value balance-highlight">{selectedUser.balanceGC ?? 0}</span>
               </div>
+              <div className="user-detail-item highlight">
+                <span className="detail-label">Referral Count:</span>
+                <span className="detail-value balance-highlight">
+                  {selectedUserReferralsLoading
+                    ? 'Loading...'
+                    : (selectedUserReferralsStats?.referralCount ?? 0)}
+                </span>
+              </div>
+              <div className="user-detail-item highlight">
+                <span className="detail-label">Referral GRC Coin:</span>
+                <span className="detail-value balance-highlight">
+                  {selectedUserReferralsLoading
+                    ? 'Loading...'
+                    : (selectedUserReferralsStats?.grcCoin ?? 0)}
+                </span>
+              </div>
+              {selectedUserReferralsError && (
+                <div className="user-detail-item">
+                  <span className="detail-label">Referral API:</span>
+                  <span className="detail-value">{selectedUserReferralsError}</span>
+                </div>
+              )}
               {selectedUser.createdAt && (
                 <div className="user-detail-item">
                   <span className="detail-label">Created:</span>
