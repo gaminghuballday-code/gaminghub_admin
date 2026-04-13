@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ANDROID_APK_URL, STATIC_ROUTES, getPublicAbsoluteUrl } from '@utils/constants';
 import { applyManagedPageSeo } from '@utils/seo';
 import { ApkDownloadQr } from './ApkDownloadQr';
+import { DownloadsEnquiry } from './DownloadsEnquiry';
 import './Downloads.scss';
 
 const TICKER_ITEMS = [
@@ -175,6 +176,9 @@ const Downloads: React.FC = () => {
           </a>
           <a href="#download" className="dl-nl" onClick={handleNavAnchorClick}>
             Download
+          </a>
+          <a href="#enquire" className="dl-nl" onClick={handleNavAnchorClick}>
+            Enquire
           </a>
           <a
             href={downloadHref}
@@ -472,6 +476,8 @@ const Downloads: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <DownloadsEnquiry />
 
       <section className="dl-social" id="social">
         <h2 className="dl-social__title">Follow us</h2>

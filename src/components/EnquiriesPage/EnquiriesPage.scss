@@ -2,6 +2,18 @@
 @use '../../assets/styles/variables' as *;
 @use '../../assets/styles/mixins' as *;
 
+.enquiries-page-shell {
+  @include flex-column;
+  gap: $spacing-lg;
+  width: 100%;
+}
+
+.reply-modal-templates {
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.35);
+}
+
 .enquiries-content-wrapper {
   @include flex-column;
   gap: $spacing-xl;

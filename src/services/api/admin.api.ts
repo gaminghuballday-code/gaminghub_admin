@@ -3,6 +3,7 @@ import { store } from '../../store/store';
 import { selectRefreshToken } from '../../store/slices/authSlice';
 import type {
   PlatformStatsResponse,
+  InfluencerProgramStats,
   AnalyticsDataPoint,
   AnalyticsResponse,
   AnalyticsTotals,
@@ -152,6 +153,24 @@ const normalizeDeviceItem = (raw: unknown, index: number): AdminDeviceHistoryIte
   };
 };
 
+const defaultInfluencerProgramStats = (): InfluencerProgramStats => ({
+  influencerAccounts: 0,
+  paidReferralsCount: 0,
+  totalGcPaidToInfluencers: 0,
+});
+
+const normalizeInfluencerProgramStats = (raw: unknown): InfluencerProgramStats => {
+  if (!raw || typeof raw !== 'object') {
+    return defaultInfluencerProgramStats();
+  }
+  const o = raw as Record<string, unknown>;
+  return {
+    influencerAccounts: parseFiniteNumber(o.influencerAccounts) ?? 0,
+    paidReferralsCount: parseFiniteNumber(o.paidReferralsCount) ?? 0,
+    totalGcPaidToInfluencers: parseFiniteNumber(o.totalGcPaidToInfluencers) ?? 0,
+  };
+};
+
 const emptyPlatformStats = (): PlatformStatsResponse['data'] => ({
   totalUsers: 0,
   totalIncome: 0,
@@ -159,6 +178,7 @@ const emptyPlatformStats = (): PlatformStatsResponse['data'] => ({
   totalProfit: 0,
   userGrowth: 0,
   incomeGrowth: 0,
+  influencerProgram: defaultInfluencerProgramStats(),
 });
 
 /**
@@ -221,6 +241,7 @@ export const normalizePlatformStats = (raw: unknown): PlatformStatsResponse['dat
     casterFeeCollected,
     platformProfit: parseFiniteNumber(data.platformProfit) ?? netProfit,
     netProfit,
+    influencerProgram: normalizeInfluencerProgramStats(data.influencerProgram),
   };
 };
 

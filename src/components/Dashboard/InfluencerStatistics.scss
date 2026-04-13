@@ -1,0 +1,23 @@
+@use '../../assets/styles/variables' as *;
+
+.influencer-statistics {
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: $spacing-xl;
+  }
+
+  &__error {
+    padding: $spacing-lg;
+    color: var(--error-color);
+    text-align: center;
+  }
+}
+
+.stats-grid--influencer-tab {
+  grid-template-columns: repeat(3, 1fr);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}

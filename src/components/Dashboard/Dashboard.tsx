@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useDashboardLogic } from './Dashboard.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import HostStatistics from './HostStatistics';
+import InfluencerStatistics from './InfluencerStatistics';
 import StatCard from './StatCard';
 import { Button } from '@components/common/Button';
 import { Badge } from '@components/common/Badge';
@@ -56,6 +57,9 @@ const Dashboard: React.FC = () => {
     handleClearHostStatsFilters,
     handleSearchHostStats,
     handleHostStatsPageChange,
+    influencerStatsData,
+    influencerStatsLoading,
+    influencerStatsError,
     // Platform Statistics
     platformStats,
     platformStatsLoading,
@@ -169,6 +173,53 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
+          <section className="influencer-program-section" aria-label="Influencer program statistics">
+            <h2 className="influencer-program-section__title">Influencer program</h2>
+            <div className="stats-grid stats-grid--influencer">
+              <StatCard
+                title="Influencer accounts"
+                value={(platformStats?.influencerProgram?.influencerAccounts ?? 0).toLocaleString()}
+                loading={platformStatsLoading}
+                color="primary"
+                icon={
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                }
+              />
+              <StatCard
+                title="Paid referrals"
+                value={(platformStats?.influencerProgram?.paidReferralsCount ?? 0).toLocaleString()}
+                loading={platformStatsLoading}
+                color="success"
+                icon={
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <polyline points="17 11 19 13 23 9" />
+                  </svg>
+                }
+              />
+              <StatCard
+                title="Total GC paid to influencers"
+                value={`${(platformStats?.influencerProgram?.totalGcPaidToInfluencers ?? 0).toLocaleString()} GC`}
+                loading={platformStatsLoading}
+                color="warning"
+                icon={
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v12" />
+                    <path d="M8 10h8" />
+                    <path d="M8 14h5" />
+                  </svg>
+                }
+              />
+            </div>
+          </section>
+
           {/* Analytics Chart Section (temporarily removed) */}
 
           {/* Tabs */}
@@ -184,6 +235,12 @@ const Dashboard: React.FC = () => {
               onClick={() => setActiveTab('hostStats')}
             >
               Host Statistics
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'influencerStats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('influencerStats')}
+            >
+              Influencer statistics
             </button>
             <button
               className={`tab-button ${activeTab === 'orgStats' ? 'active' : ''}`}
@@ -231,6 +288,13 @@ const Dashboard: React.FC = () => {
                   disabled={usersLoading}
                 >
                   User
+                </button>
+                <button
+                  className={`filter-button ${roleFilter === 'influencer' ? 'active' : ''}`}
+                  onClick={() => handleRoleFilterChange('influencer')}
+                  disabled={usersLoading}
+                >
+                  Influencer
                 </button>
               </div>
             </div>
@@ -504,6 +568,14 @@ const Dashboard: React.FC = () => {
               onClearFilters={handleClearHostStatsFilters}
               onSearch={handleSearchHostStats}
               onPageChange={handleHostStatsPageChange}
+            />
+          )}
+
+          {activeTab === 'influencerStats' && (
+            <InfluencerStatistics
+              stats={influencerStatsData}
+              loading={influencerStatsLoading}
+              error={influencerStatsError}
             />
           )}
 

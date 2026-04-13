@@ -647,6 +647,26 @@
   }
 }
 
+.influencer-program-section {
+  margin-bottom: 8px;
+}
+
+.influencer-program-section__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+
+.stats-grid--influencer {
+  grid-template-columns: repeat(3, 1fr);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dashboard-content-wrapper {
   padding: 24px;
   max-width: 1400px;

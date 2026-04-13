@@ -10,6 +10,7 @@ export * from './useWalletQueries';
 export * from './usePaymentQueries';
 export * from './useWithdrawalsQueries';
 export * from './useEnquiriesQueries';
+export * from './useInquiryQueries';
 export * from './useSupportQueries';
 export * from './useAdminQueries';
 export * from './useNotificationsQueries';

@@ -1,10 +1,18 @@
+import { useState } from 'react';
 import { useEnquiriesPageLogic } from './EnquiriesPage.logic';
 import AdminLayout from '@components/common/AdminLayout';
 import { Button } from '@components/common/Button';
+import Loading from '@components/common/Loading';
+import InquiryReplyTemplatesPanel from './InquiryReplyTemplatesPanel';
+import { getInquirySubjectLabel, INQUIRY_SUBJECT_OPTIONS } from '@utils/inquirySubjects';
+import '../NotificationsPage/NotificationsPage.scss';
 import './EnquiriesPage.scss';
 
 const EnquiriesPage: React.FC = () => {
+  const [activePanel, setActivePanel] = useState<'enquiries' | 'templates'>('enquiries');
+
   const {
+    isAuthenticated,
     enquiries,
     enquiriesLoading,
     enquiriesError,
@@ -29,7 +37,15 @@ const EnquiriesPage: React.FC = () => {
     handleReplySubmit,
     isReplying,
     replyError,
+    replyTemplates,
+    replyTemplatesLoading,
+    applyTemplateToReply,
+    handleReplyFromTemplate,
+    replyFromTemplatePendingTemplateId,
   } = useEnquiriesPageLogic();
+
+  const truncate = (text: string, maxLen: number) =>
+    text.length <= maxLen ? text : `${text.slice(0, maxLen)}…`;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -43,9 +59,36 @@ const EnquiriesPage: React.FC = () => {
   };
 
   return (
-    <AdminLayout title="Enquiries">
+    <AdminLayout title="Enquiries & templates">
       <>
-      <div className="enquiries-content-wrapper">
+      <div className="enquiries-page-shell">
+        <div className="notifications-tabs" role="tablist" aria-label="Enquiry section">
+          <button
+            type="button"
+            role="tab"
+            id="enquiries-tab-list"
+            aria-selected={activePanel === 'enquiries'}
+            aria-controls="enquiries-panel-list"
+            className={`notifications-tabs__btn ${activePanel === 'enquiries' ? 'notifications-tabs__btn--active' : ''}`}
+            onClick={() => setActivePanel('enquiries')}
+          >
+            Enquiries
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="enquiries-tab-templates"
+            aria-selected={activePanel === 'templates'}
+            aria-controls="enquiries-panel-templates"
+            className={`notifications-tabs__btn ${activePanel === 'templates' ? 'notifications-tabs__btn--active' : ''}`}
+            onClick={() => setActivePanel('templates')}
+          >
+            Reply templates
+          </button>
+        </div>
+
+      {activePanel === 'enquiries' && (
+      <div className="enquiries-content-wrapper" id="enquiries-panel-list" role="tabpanel" aria-labelledby="enquiries-tab-list">
           {/* Filters Section */}
           <div className="filters-section">
             <div className="filters-row">
@@ -62,14 +105,22 @@ const EnquiriesPage: React.FC = () => {
                 </select>
               </div>
               <div className="filter-group">
-                <label className="filter-label">Subject</label>
-                <input
-                  type="text"
-                  className="filter-input"
-                  placeholder="Filter by subject..."
+                <label className="filter-label" htmlFor="enquiries-subject-filter">
+                  Subject
+                </label>
+                <select
+                  id="enquiries-subject-filter"
+                  className="filter-select"
                   value={subjectFilter}
                   onChange={(e) => handleSubjectFilterChange(e.target.value)}
-                />
+                >
+                  <option value="">All subjects</option>
+                  {INQUIRY_SUBJECT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -98,7 +149,9 @@ const EnquiriesPage: React.FC = () => {
                           <div className="enquiry-name">{enquiry.name}</div>
                           <div className="enquiry-email">{enquiry.email}</div>
                         </div>
-                        <div className="enquiry-subject">{enquiry.subject}</div>
+                        <div className="enquiry-subject">
+                          {getInquirySubjectLabel(enquiry.subject)}
+                        </div>
                         <div className="enquiry-meta">
                           <div className="enquiry-date">
                             {formatDate(enquiry.createdAt)}
@@ -162,6 +215,12 @@ const EnquiriesPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {activePanel === 'templates' && (
+        <InquiryReplyTemplatesPanel isAuthenticated={isAuthenticated} />
+      )}
+      </div>
 
       {/* Reply Modal */}
       {showReplyModal && selectedEnquiry && (
@@ -185,7 +244,9 @@ const EnquiriesPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="reply-enquiry-label">Subject</div>
-                  <div className="reply-enquiry-value">{selectedEnquiry.subject}</div>
+                  <div className="reply-enquiry-value">
+                    {getInquirySubjectLabel(selectedEnquiry.subject)}
+                  </div>
                 </div>
                 <div>
                   <div className="reply-enquiry-label">Message</div>
@@ -201,7 +262,56 @@ const EnquiriesPage: React.FC = () => {
                 <div className="reply-info-box">
                   📧 Reply will be sent to: <strong>{selectedEnquiry.email}</strong>
                 </div>
+                <section className="notifications-presets reply-modal-templates" aria-labelledby="reply-templates-heading">
+                  <h3 className="notifications-presets__heading" id="reply-templates-heading">
+                    Saved reply templates
+                  </h3>
+                  <p className="notifications-presets__hint">
+                    Send the template email in one step, or load the message into the box below to edit before sending.
+                  </p>
+                  {replyTemplatesLoading ? (
+                    <Loading />
+                  ) : replyTemplates.length === 0 ? (
+                    <p className="notifications-presets__empty">
+                      No active templates. Add some under the &quot;Reply templates&quot; tab.
+                    </p>
+                  ) : (
+                    <ul className="notifications-presets__grid">
+                      {replyTemplates.map((t) => (
+                        <li key={t.id} className="notifications-presets__card">
+                          <div className="notifications-presets__card-head">
+                            <span className="notifications-presets__card-name">{truncate(t.title, 44)}</span>
+                          </div>
+                          <p className="notifications-presets__card-preview">
+                            <strong>{truncate(t.title, 36)}</strong>
+                            <span className="notifications-presets__card-sep"> · </span>
+                            {truncate(t.message, 64)}
+                          </p>
+                          <div className="notifications-presets__card-actions">
+                            <button
+                              type="button"
+                              className="notifications-presets__btn notifications-presets__btn--primary"
+                              disabled={isReplying || replyFromTemplatePendingTemplateId !== undefined}
+                              onClick={() => handleReplyFromTemplate(t.id)}
+                            >
+                              {replyFromTemplatePendingTemplateId === t.id ? 'Sending…' : 'Send with template'}
+                            </button>
+                            <button
+                              type="button"
+                              className="notifications-presets__btn"
+                              disabled={isReplying || replyFromTemplatePendingTemplateId !== undefined}
+                              onClick={() => applyTemplateToReply(t)}
+                            >
+                              Use in reply box
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
                 <textarea
+                  id="enquiry-reply-textarea"
                   className="reply-textarea"
                   placeholder="Type your reply message here. This will be sent to the user's email address..."
                   value={replyMessage}
@@ -226,7 +336,11 @@ const EnquiriesPage: React.FC = () => {
               <Button
                 variant="primary"
                 onClick={handleReplySubmit}
-                disabled={isReplying || !replyMessage.trim()}
+                disabled={
+                  isReplying ||
+                  !replyMessage.trim() ||
+                  replyFromTemplatePendingTemplateId !== undefined
+                }
                 loading={isReplying}
               >
                 Send Reply

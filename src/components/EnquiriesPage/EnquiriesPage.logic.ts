@@ -1,13 +1,36 @@
 import { useState, useEffect } from 'react';
+import { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@utils/constants';
-import { useAppSelector } from '@store/hooks';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { addToast } from '@store/slices/toastSlice';
 import { selectUser, selectIsAuthenticated } from '@store/slices/authSlice';
 import { useProfile } from '@services/api/hooks';
-import { useEnquiries, useReplyToEnquiry } from '@services/api/hooks/useEnquiriesQueries';
+import {
+  useEnquiries,
+  useReplyToEnquiry,
+  useInquiryTemplates,
+  useReplyToEnquiryFromTemplate,
+} from '@services/api/hooks/useEnquiriesQueries';
 import type { Enquiry } from '@services/api';
+import type { InquiryReplyTemplate } from '@services/types/api.types';
+
+const getApiErrorMessage = (err: unknown): string => {
+  if (err instanceof AxiosError) {
+    const data = err.response?.data as { message?: string } | undefined;
+    if (data?.message && typeof data.message === 'string') {
+      return data.message;
+    }
+    return err.message;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return 'An unexpected error occurred.';
+};
 
 export const useEnquiriesPageLogic = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   
@@ -51,6 +74,12 @@ export const useEnquiriesPageLogic = () => {
   const hasPrevPage = pagination?.hasPrevPage ?? (currentPage > 1);
   
   const replyMutation = useReplyToEnquiry();
+  const replyFromTemplateMutation = useReplyToEnquiryFromTemplate();
+
+  const { data: replyTemplates = [], isLoading: replyTemplatesLoading } = useInquiryTemplates(
+    false,
+    isAuthenticated
+  );
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -98,21 +127,71 @@ export const useEnquiriesPageLogic = () => {
     if (!selectedEnquiry || !replyMessage.trim()) {
       return;
     }
-    
+
     try {
       await replyMutation.mutateAsync({
         enquiryId: selectedEnquiry._id || selectedEnquiry.id || '',
         replyMessage: replyMessage.trim(),
       });
+      dispatch(
+        addToast({
+          message: 'Reply sent successfully.',
+          type: 'success',
+          duration: 5000,
+        })
+      );
       handleCloseReplyModal();
-      // Refetch enquiries to update the list
       refetchEnquiries();
     } catch (error) {
-      console.error('Error replying to enquiry:', error);
+      dispatch(
+        addToast({
+          message: getApiErrorMessage(error),
+          type: 'error',
+          duration: 6000,
+        })
+      );
     }
+  };
+
+  const applyTemplateToReply = (t: InquiryReplyTemplate) => {
+    setReplyMessage(t.message);
+    document.getElementById('enquiry-reply-textarea')?.focus();
+  };
+
+  const handleReplyFromTemplate = (templateId: string) => {
+    if (!selectedEnquiry) {
+      return;
+    }
+    const inquiryId = selectedEnquiry._id || selectedEnquiry.id || '';
+    replyFromTemplateMutation.mutate(
+      { inquiryId, body: { templateId } },
+      {
+        onSuccess: () => {
+          dispatch(
+            addToast({
+              message: 'Reply sent from template.',
+              type: 'success',
+              duration: 5000,
+            })
+          );
+          handleCloseReplyModal();
+          refetchEnquiries();
+        },
+        onError: (err) => {
+          dispatch(
+            addToast({
+              message: getApiErrorMessage(err),
+              type: 'error',
+              duration: 6000,
+            })
+          );
+        },
+      }
+    );
   };
   
   return {
+    isAuthenticated,
     enquiries,
     enquiriesLoading,
     enquiriesError: enquiriesError ? (enquiriesError as Error).message : null,
@@ -137,5 +216,14 @@ export const useEnquiriesPageLogic = () => {
     handleReplySubmit,
     isReplying: replyMutation.isPending,
     replyError: replyMutation.error ? (replyMutation.error as Error).message : null,
+
+    replyTemplates,
+    replyTemplatesLoading,
+    applyTemplateToReply,
+    handleReplyFromTemplate,
+    replyFromTemplatePendingTemplateId: replyFromTemplateMutation.isPending
+      ? replyFromTemplateMutation.variables?.body.templateId
+      : undefined,
+    isReplyFromTemplateSending: replyFromTemplateMutation.isPending,
   };
 };

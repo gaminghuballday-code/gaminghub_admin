@@ -10,6 +10,7 @@ import {
   useBlockUsers,
   useUnblockUsers,
   useHostStatistics,
+  useInfluencerStatistics,
   usePlatformStats,
   adminKeys,
 } from '@services/api/hooks';
@@ -24,7 +25,7 @@ export const useDashboardLogic = () => {
   const accessToken = useAppSelector(selectAccessToken);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageLimit] = useState<number>(10);
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'host' | 'user' | 'influencer'>('all');
   const [userQuery, setUserQuery] = useState<string>('');
   const [appliedUserQuery, setAppliedUserQuery] = useState<string>('');
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
@@ -32,7 +33,9 @@ export const useDashboardLogic = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   // Host Statistics states
-  const [activeTab, setActiveTab] = useState<'users' | 'hostStats' | 'orgStats' | 'subAdminStats'>('users');
+  const [activeTab, setActiveTab] = useState<
+    'users' | 'hostStats' | 'influencerStats' | 'orgStats' | 'subAdminStats'
+  >('users');
   
   const [hostStatsFilters, setHostStatsFilters] = useState<{
     fromDate?: string;
@@ -139,6 +142,16 @@ export const useDashboardLogic = () => {
   const allHostsLifetimeHostFeeEarned = hostStatsData?.allHostsLifetimeHostFeeEarned || 0;
   const hostStatsError = hostStatsQueryError ? (hostStatsQueryError as Error).message : null;
 
+  const shouldFetchInfluencerStats = activeTab === 'influencerStats' && isAuthenticated;
+  const {
+    data: influencerStatsData,
+    isLoading: influencerStatsLoading,
+    error: influencerStatsQueryError,
+  } = useInfluencerStatistics(shouldFetchInfluencerStats);
+  const influencerStatsError = influencerStatsQueryError
+    ? (influencerStatsQueryError as Error).message
+    : null;
+
   // Platform Statistics query
   const {
     data: platformStats,
@@ -212,7 +225,7 @@ export const useDashboardLogic = () => {
   }, [navigate, isAuthenticated]);
 
 
-  const handleRoleFilterChange = (filter: 'all' | 'admin' | 'host' | 'user') => {
+  const handleRoleFilterChange = (filter: 'all' | 'admin' | 'host' | 'user' | 'influencer') => {
     setRoleFilter(filter);
     setCurrentPage(1); // Reset to first page when filter changes
     setSelectedUserIds(new Set()); // Clear selection when filter changes
@@ -466,6 +479,10 @@ export const useDashboardLogic = () => {
     handleClearHostStatsFilters,
     handleSearchHostStats,
     handleHostStatsPageChange,
+    // Influencer statistics (static API)
+    influencerStatsData,
+    influencerStatsLoading,
+    influencerStatsError,
     // Platform Statistics
     platformStats,
     platformStatsLoading,

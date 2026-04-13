@@ -176,6 +176,29 @@ export interface EnquiryReplyResponse {
   };
 }
 
+/** Admin — saved email reply templates for enquiries */
+export interface InquiryReplyTemplate {
+  id: string;
+  title: string;
+  message: string;
+  isActive: boolean;
+}
+
+export interface CreateInquiryTemplateRequest {
+  title: string;
+  message: string;
+}
+
+export interface UpdateInquiryTemplateRequest {
+  title?: string;
+  message?: string;
+  isActive?: boolean;
+}
+
+export interface InquiryReplyFromTemplateBody {
+  templateId: string;
+}
+
 export interface EnquiriesListResponse {
   status: number;
   success: boolean;
@@ -315,7 +338,15 @@ export interface FAQsListResponse {
     faqs?: FAQ[];
     total?: number;
   };
-}// Dashboard & Analytics Types
+}
+
+// Dashboard & Analytics Types
+export interface InfluencerProgramStats {
+  influencerAccounts: number;
+  paidReferralsCount: number;
+  totalGcPaidToInfluencers: number;
+}
+
 export interface PlatformStats {
   totalUsers: number;
   totalIncome: number; // Total money in
@@ -332,6 +363,7 @@ export interface PlatformStats {
   casterFeeCollected?: number;
   platformProfit?: number;
   netProfit?: number;
+  influencerProgram: InfluencerProgramStats;
 }
 
 export interface AnalyticsDataPoint {

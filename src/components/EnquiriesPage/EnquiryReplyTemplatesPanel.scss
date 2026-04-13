@@ -1,0 +1,95 @@
+.inquiry-templates-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+
+    input {
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--primary-color);
+    }
+  }
+}
+
+.inquiry-templates-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+
+  &--active {
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.15);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.35);
+  }
+
+  &--inactive {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.inquiry-templates-edit-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  background: rgba(var(--primary-color-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.25);
+
+  &__cancel {
+    margin-left: auto;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-color);
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.enquiry-templates-table {
+  &__actions {
+    min-width: 220px;
+  }
+
+  &__btn {
+    margin-right: 8px;
+    margin-bottom: 4px;
+
+    &--danger {
+      background: rgba(220, 53, 69, 0.15) !important;
+      color: #ff6b7a !important;
+      border-color: rgba(220, 53, 69, 0.45) !important;
+
+      &:hover:not(:disabled) {
+        background: rgba(220, 53, 69, 0.25) !important;
+      }
+    }
+  }
+}
