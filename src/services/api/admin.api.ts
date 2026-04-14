@@ -371,6 +371,7 @@ export const adminApi = {
         totalProfit: 65000,
         userGrowth: 15.5,
         incomeGrowth: 12.2,
+        influencerProgram: defaultInfluencerProgramStats(),
       };
     }
   },
