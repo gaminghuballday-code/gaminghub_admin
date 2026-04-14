@@ -3,6 +3,7 @@ import apiClient from './client';
 export interface InviteInfluencerRequest {
   email: string;
   name: string;
+  referralCode?: string;
 }
 
 export interface InviteInfluencerResponse {

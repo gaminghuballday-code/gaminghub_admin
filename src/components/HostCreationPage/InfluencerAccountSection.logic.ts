@@ -5,6 +5,7 @@ import { selectIsAuthenticated } from '@store/slices/authSlice';
 import { useUsers, useInviteInfluencer } from '@services/api/hooks';
 
 type InfluencerTab = 'invite' | 'all';
+const REFERRAL_CODE_PATTERN = /^[A-Za-z0-9_-]{8,16}$/;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -31,6 +32,7 @@ export const useInfluencerAccountSectionLogic = (
   const [influencerTab, setInfluencerTab] = useState<InfluencerTab>('invite');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
+  const [inviteReferralCode, setInviteReferralCode] = useState('');
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
 
@@ -61,6 +63,9 @@ export const useInfluencerAccountSectionLogic = (
     : null;
 
   const inviteMutation = useInviteInfluencer();
+  const trimmedReferralCode = inviteReferralCode.trim();
+  const isReferralCodeInvalid =
+    trimmedReferralCode.length > 0 && !REFERRAL_CODE_PATTERN.test(trimmedReferralCode);
 
   useEffect(() => {
     if (!privilegedAccountActions && influencerTab === 'invite') {
@@ -92,6 +97,12 @@ export const useInfluencerAccountSectionLogic = (
       setCreateError('Email and name are required');
       return;
     }
+    if (isReferralCodeInvalid) {
+      setCreateError(
+        'Referral code must be 8-16 characters and only use letters, numbers, "_" or "-".'
+      );
+      return;
+    }
 
     setCreateError(null);
     setCreateSuccess(null);
@@ -100,6 +111,7 @@ export const useInfluencerAccountSectionLogic = (
       const response = await inviteMutation.mutateAsync({
         email: inviteEmail.trim(),
         name: inviteName.trim(),
+        ...(trimmedReferralCode ? { referralCode: trimmedReferralCode } : {}),
       });
       if (response.success) {
         setCreateSuccess(
@@ -108,6 +120,7 @@ export const useInfluencerAccountSectionLogic = (
         );
         setInviteEmail('');
         setInviteName('');
+        setInviteReferralCode('');
       } else {
         setCreateError(response.message || 'Failed to send invite');
       }
@@ -136,6 +149,9 @@ export const useInfluencerAccountSectionLogic = (
     setInviteEmail,
     inviteName,
     setInviteName,
+    inviteReferralCode,
+    setInviteReferralCode,
+    isReferralCodeInvalid,
     createLoading: inviteMutation.isPending,
     createError,
     createSuccess,

@@ -131,6 +131,9 @@ const HostCreationPage: React.FC = () => {
     setInviteEmail,
     inviteName,
     setInviteName,
+    inviteReferralCode,
+    setInviteReferralCode,
+    isReferralCodeInvalid,
     createLoading: influencerInviteLoading,
     createError: influencerCreateError,
     createSuccess: influencerCreateSuccess,
@@ -369,6 +372,27 @@ const HostCreationPage: React.FC = () => {
                       required
                     />
                   </div>
+                  <div className="form-group">
+                    <label className="form-label">Referral code (optional)</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="ABCD_1234"
+                      value={inviteReferralCode}
+                      onChange={(e) => setInviteReferralCode(e.target.value)}
+                      disabled={influencerInviteLoading}
+                      minLength={8}
+                      maxLength={16}
+                    />
+                    <small className="influencer-invite-hint">
+                      Optional. Use 8-16 chars: letters, numbers, "_" or "-". Must be globally unique.
+                    </small>
+                  </div>
+                  {isReferralCodeInvalid && (
+                    <div className="host-creation-error">
+                      Referral code format is invalid (8-16 chars, letters/numbers/"_"/"-" only).
+                    </div>
+                  )}
                   {influencerCreateError && (
                     <div className="host-creation-error">{influencerCreateError}</div>
                   )}
@@ -378,7 +402,12 @@ const HostCreationPage: React.FC = () => {
                   <button
                     type="submit"
                     className="host-creation-button"
-                    disabled={influencerInviteLoading || !inviteEmail.trim() || !inviteName.trim()}
+                    disabled={
+                      influencerInviteLoading ||
+                      !inviteEmail.trim() ||
+                      !inviteName.trim() ||
+                      isReferralCodeInvalid
+                    }
                   >
                     {influencerInviteLoading ? 'Sending...' : 'Send invite'}
                   </button>
