@@ -174,6 +174,9 @@ const Downloads: React.FC = () => {
           <a href="#how" className="dl-nl" onClick={handleNavAnchorClick}>
             How It Works
           </a>
+          <a href="#referrals" className="dl-nl" onClick={handleNavAnchorClick}>
+            Referrals
+          </a>
           <a href="#download" className="dl-nl" onClick={handleNavAnchorClick}>
             Download
           </a>
@@ -398,6 +401,91 @@ const Downloads: React.FC = () => {
               <p>
                 Prize money hits your wallet after verified results. Withdraw to UPI anytime,
                 instantly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="dl-referrals" id="referrals" aria-labelledby="dl-referrals-heading">
+        <div className="dl-wrap">
+          <div className="dl-sh dl-r">
+            <div className="dl-sh-eye">Invite &amp; Earn</div>
+            <h2 id="dl-referrals-heading">
+              Referral <em>Rewards</em>
+            </h2>
+          </div>
+          <p className="dl-referrals__intro dl-r">
+            Bring new players to BooyahX and unlock bonuses. Everyday players use friend referrals;
+            creators and influencers follow a separate, application-based program with higher rewards
+            once eligibility is confirmed.
+          </p>
+
+          <div className="dl-referrals__grid">
+            <article className="dl-referrals__card dl-referrals__card--player dl-r">
+              <span className="dl-referrals__badge" aria-hidden>
+                👥
+              </span>
+              <h3 className="dl-referrals__title">Friend referral</h3>
+              <p className="dl-referrals__lead">
+                Share your invite link. When someone signs up through it and starts playing on the app:
+              </p>
+              <ul className="dl-referrals__list">
+                <li>
+                  <strong>You</strong> earn <span className="dl-referrals__amt">10 RGC</span> as the referrer.
+                </li>
+                <li>
+                  <strong>Your friend</strong> gets <span className="dl-referrals__amt">5 RGC</span> credited so they
+                  can enter tournaments and compete for real cash prizes.
+                </li>
+              </ul>
+            </article>
+
+            <article className="dl-referrals__card dl-referrals__card--creator dl-r">
+              <span className="dl-referrals__badge" aria-hidden>
+                ✨
+              </span>
+              <h3 className="dl-referrals__title">Creator &amp; influencer referrals</h3>
+              <p className="dl-referrals__lead">
+                Approved influencers earn when their audience joins and funds a BooyahX wallet. Rewards apply per
+                successful referral after the deposit rule below is satisfied.
+              </p>
+              <ul className="dl-referrals__list">
+                <li>
+                  <strong>You (influencer):</strong> <span className="dl-referrals__amt">10 GC</span> — eligible for
+                  withdrawal or for paying tournament entry.
+                </li>
+                <li>
+                  <strong>Your referral:</strong> <span className="dl-referrals__amt">5 RGC</span>.
+                </li>
+              </ul>
+              <p className="dl-referrals__note">
+                Payouts unlock when your referral completes a <strong>minimum wallet deposit of 25 GC</strong> on the
+                platform. Final eligibility and timing follow BooyahX program terms.
+              </p>
+            </article>
+          </div>
+
+          <div className="dl-referrals__apply dl-r">
+            <div className="dl-referrals__apply-inner">
+              <h3 className="dl-referrals__apply-title">Become an influencer on BooyahX</h3>
+              <p className="dl-referrals__apply-text">
+                Influencer perks are not turned on for every account by default. We onboard creators who meet our
+                eligibility checks — for example audience fit, content quality, and compliance with platform and
+                tournament rules. If you think you qualify, use the <strong>Send an enquiry</strong> section further
+                down on this same page: submit your channels, follower range, and how you plan to promote BooyahX. Our
+                team will review your details and reply by email.
+              </p>
+              <a
+                href="#enquire"
+                className="dl-referrals__apply-btn"
+                onClick={handleNavAnchorClick}
+              >
+                Go to enquiry section below
+              </a>
+              <p className="dl-referrals__apply-hint">
+                In that form, select <strong>Influencer / creator program</strong> as the subject so we can route your
+                request faster.
               </p>
             </div>
           </div>

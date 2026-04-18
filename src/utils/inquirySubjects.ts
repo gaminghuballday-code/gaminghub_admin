@@ -8,6 +8,7 @@ export interface InquirySubjectOption {
 
 export const INQUIRY_SUBJECT_OPTIONS: readonly InquirySubjectOption[] = [
   { value: 'general', label: 'General enquiry' },
+  { value: 'influencer', label: 'Influencer / creator program' },
   { value: 'support', label: 'Technical support' },
   { value: 'billing', label: 'Billing / payment' },
   { value: 'tournament', label: 'Tournament' },
