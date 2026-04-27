@@ -3,7 +3,11 @@ import StaticLandingLayout from './StaticLandingLayout';
 import { STATIC_ROUTES } from '@utils/constants';
 
 const TermsConditions: React.FC = () => (
-  <StaticLandingLayout title="Terms and Conditions" showBackButton>
+  <StaticLandingLayout
+    title="Terms and Conditions"
+    description="Review the BooyahX Terms and Conditions. Learn about tournament rules, user responsibilities, and the legal agreement for using our gaming platform."
+    showBackButton
+  >
     <section className="sl-section">
       <h2>1. Acceptance of Terms</h2>
       <p>

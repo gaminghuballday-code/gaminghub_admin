@@ -38,7 +38,11 @@ const ContactUs: React.FC = () => {
   };
 
   return (
-    <StaticLandingLayout title="Contact Us" showBackButton>
+    <StaticLandingLayout
+      title="Contact Us"
+      description="Have questions or need support? Contact the BooyahX team. We are here to help you with tournament queries, technical issues, and platform feedback."
+      showBackButton
+    >
       <section className="sl-section">
         <h2>Get in Touch</h2>
         <p>

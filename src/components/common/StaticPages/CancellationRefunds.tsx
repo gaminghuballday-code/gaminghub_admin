@@ -3,7 +3,11 @@ import StaticLandingLayout from './StaticLandingLayout';
 import { STATIC_ROUTES } from '@utils/constants';
 
 const CancellationRefunds: React.FC = () => (
-  <StaticLandingLayout title="Cancellation & Refunds Policy" showBackButton>
+  <StaticLandingLayout
+    title="Cancellation & Refunds Policy"
+    description="Learn about the BooyahX Cancellation and Refund policy. Find out how to cancel tournament entries and when you are eligible for a refund."
+    showBackButton
+  >
     <section className="sl-section">
       <h2>1. Cancellation Policy</h2>
       <p>

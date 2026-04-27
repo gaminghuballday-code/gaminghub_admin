@@ -3,7 +3,11 @@ import StaticLandingLayout from './StaticLandingLayout';
 import { STATIC_ROUTES } from '@utils/constants';
 
 const Privacy: React.FC = () => (
-  <StaticLandingLayout title="Privacy Policy" showBackButton>
+  <StaticLandingLayout
+    title="Privacy Policy"
+    description="Read the BooyahX Privacy Policy to understand how we collect, use, and protect your personal information on our tournament platform."
+    showBackButton
+  >
     <section className="sl-section">
       <h2>1. Information We Collect</h2>
       <p>
